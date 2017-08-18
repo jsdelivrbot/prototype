@@ -43,7 +43,7 @@ export abstract class ClassBase {
         if (
           decorator.expression.kind === typescript.SyntaxKind.CallExpression &&
           (<typescript.CallExpression>decorator.expression).expression.kind === typescript.SyntaxKind.Identifier &&
-          (<typescript.Identifier>(<typescript.CallExpression>decorator.expression).expression).text === name
+          typescript.getTextOfNode(<typescript.Identifier>(<typescript.CallExpression>decorator.expression).expression) === name
         )
           return true;
       }
@@ -86,7 +86,7 @@ export class Class extends ClassBase {
   /** Reflected class type. */
   type: Type;
   /** Concrete type arguments. */
-  typeArguments: typescript.TypeNode[];
+  typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[];
   /** Type arguments map. */
   typeArgumentsMap: TypeArgumentsMap;
   /** Base class, if any. */
@@ -111,7 +111,7 @@ export class Class extends ClassBase {
   implicitMalloc: boolean = false;
 
   /** Constructs a new reflected class and binds it to its TypeScript declaration. */
-  constructor(compiler: Compiler, name: string, template: ClassTemplate, typeArguments: typescript.TypeNode[] , base?: Class) {
+  constructor(compiler: Compiler, name: string, template: ClassTemplate, typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[] , base?: Class) {
     super(compiler, name, template.declaration);
 
     // register
@@ -245,7 +245,7 @@ export class ClassTemplate extends ClassBase {
   /** Base class template, if any. */
   base?: ClassTemplate;
   /** Base type arguments. */
-  baseTypeArguments: typescript.TypeNode[];
+  baseTypeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[];
   /** Static and instance class property declarations by simple name. */
   propertyDeclarations: { [key: string]: typescript.PropertyDeclaration } = {};
   /** Static and instance method declarations by simple name. */
@@ -258,7 +258,7 @@ export class ClassTemplate extends ClassBase {
   ctorDeclaration?: typescript.ConstructorDeclaration;
 
   /** Constructs a new reflected class template and binds it to its declaration. */
-  constructor(compiler: Compiler, name: string, declaration: typescript.ClassDeclaration, base?: ClassTemplate, baseTypeArguments?: typescript.TypeNode[]) {
+  constructor(compiler: Compiler, name: string, declaration: typescript.ClassDeclaration, base?: ClassTemplate, baseTypeArguments?: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[]) {
     super(compiler, name, declaration);
 
     if (base && !baseTypeArguments)
@@ -335,7 +335,7 @@ export class ClassTemplate extends ClassBase {
   }
 
   /** Resolves this possibly generic class against the provided type arguments. */
-  resolve(typeArgumentNodes: typescript.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Class {
+  resolve(typeArgumentNodes: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Class {
 
     // validate number of type parameters
     const typeParametersCount = this.declaration.typeParameters && this.declaration.typeParameters.length || 0;
@@ -366,8 +366,8 @@ export class ClassTemplate extends ClassBase {
       let base: Class | undefined;
       if (this.base) {
         const baseTypeArgumentNodes: typescript.TypeNode[] = [];
-        for (let i = 0; i < (<typescript.TypeNode[]>this.baseTypeArguments).length; ++i) {
-          const argument = (<typescript.TypeNode[]>this.baseTypeArguments)[i];
+        for (let i = 0; i < this.baseTypeArguments.length; ++i) {
+          const argument = this.baseTypeArguments[i];
           const argumentName = typescript.getTextOfNode(argument);
           baseTypeArgumentNodes[i] = typeArguments[argumentName] ? typeArguments[argumentName].node : argument;
         }
@@ -389,12 +389,15 @@ export function patchClassImplementation(declTemplate: ClassTemplate, implTempla
   // Make the declaration extend the implementation. New instances will automatically inherit this change from the template.
   implTemplate.base = declTemplate.base; // overrides inheritance from declaration
   declTemplate.base = implTemplate;
+  const declBaseTypeArguments = declTemplate.baseTypeArguments.slice();
   if (implTemplate.declaration.typeParameters) {
     for (let i = 0, k = implTemplate.declaration.typeParameters.length; i < k; ++i) {
       const parameter = implTemplate.declaration.typeParameters[i];
-      declTemplate.baseTypeArguments.push(<typescript.TypeNode><any>parameter); // solely used to obtain a name
+      declBaseTypeArguments.push(<typescript.TypeNode><any>parameter); // solely used to obtain a name
     }
   }
+  if (declTemplate.baseTypeArguments.length < declBaseTypeArguments.length)
+    declTemplate.baseTypeArguments = typescript.createNodeArray(declBaseTypeArguments);
 
   // patch existing instances
   for (let keys = Object.keys(declTemplate.instances), i = 0, k = keys.length; i < k; ++i) {
@@ -421,7 +424,4 @@ export function patchClassImplementation(declTemplate: ClassTemplate, implTempla
         util.setReflectedFunction(declMethod.template.declaration, implMethod.instance);
     }
   }
-
-  // remove 'export' modifier from implementation (parent) so std classes are not actually exported
-  util.removeModifier(implTemplate.declaration, typescript.SyntaxKind.ExportKeyword, true);
 }

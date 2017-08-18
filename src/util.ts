@@ -29,18 +29,6 @@ export function isDeclare(node: typescript.Node, checkParent: boolean = false): 
   return false;
 }
 
-/** Removes a modifier from a node and optionally also from its parent. */
-export function removeModifier(node: typescript.Node, kind: typescript.SyntaxKind, includingParent: boolean = false): void {
-  if (node && node.modifiers)
-    for (let i = 0; i < node.modifiers.length;)
-      if (node.modifiers[i].kind === kind)
-        node.modifiers.splice(i, 1);
-      else
-        ++i;
-  if (includingParent && node.parent && node.parent.kind === typescript.SyntaxKind.ClassDeclaration)
-    removeModifier(node.parent, kind);
-}
-
 /** Tests if the specified node has a 'static' modifier or is otherwise part of a static context. */
 export function isStatic(node: typescript.Node): boolean {
   return (<typescript.ModifierFlags>node.modifierFlagsCache & typescript.ModifierFlags.Static) !== 0;

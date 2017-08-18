@@ -346,7 +346,7 @@ export class Compiler {
         if (!declaration.symbol)
           throw Error("symbol expected");
 
-        const name = this.mangleGlobalName(<string>declaration.symbol.name, typescript.getSourceFileOfNode(declaration));
+        const name = this.mangleGlobalName(<string>declaration.symbol.escapedName, typescript.getSourceFileOfNode(declaration));
         const type = this.resolveType(declaration.type);
 
         if (type)
@@ -497,7 +497,7 @@ export class Compiler {
 
     // handle inheritance
     let base: reflection.ClassTemplate | undefined;
-    let baseTypeArguments: typescript.TypeNode[] | undefined;
+    let baseTypeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[] | undefined;
     if (node.heritageClauses) {
       for (let i = 0, k = node.heritageClauses.length; i < k; ++i) {
         const clause = node.heritageClauses[i];
@@ -631,16 +631,19 @@ export class Compiler {
         continue;
 
       for (const statement of sourceFiles[i].statements) {
+
+        if (!this.options.noTreeShaking)
+          if (!(util.isExport(statement) && typescript.getSourceFileOfNode(statement) === this.entryFile))
+            continue;
+
         switch (statement.kind) {
 
           case typescript.SyntaxKind.FunctionDeclaration:
           {
             const declaration = <typescript.FunctionDeclaration>statement;
-            if (util.isExport(declaration) || this.options.noTreeShaking) {
-              const instance = util.getReflectedFunction(declaration);
-              if (instance && !instance.compiled) // otherwise generic: compiled once type arguments are known
-                this.compileFunction(instance);
-            }
+            const instance = util.getReflectedFunction(declaration);
+            if (instance && !instance.compiled) // otherwise generic: compiled once type arguments are known
+              this.compileFunction(instance);
             break;
           }
 
@@ -1133,7 +1136,7 @@ export class Compiler {
   maybeResolveAlias(symbol: typescript.Symbol): typescript.Symbol {
 
     // Exit early (before hitting 'number') if it's a built in type
-    switch (symbol.name) {
+    switch (symbol.escapedName) {
       case "byte":
       case "sbyte":
       case "short":
@@ -1204,7 +1207,7 @@ export class Compiler {
           if (symbol) {
 
             // Exit early if it's a basic type
-            switch (symbol.name) {
+            switch (symbol.escapedName) {
               case "byte": return reflection.byteType;
               case "sbyte": return reflection.sbyteType;
               case "short": return reflection.shortType;
@@ -1269,7 +1272,7 @@ export class Compiler {
 
       for (let i = 0, k = symbol.declarations.length; i < k; ++i) {
         const declaration = symbol.declarations[i];
-        const globalName = this.mangleGlobalName(<string>symbol.name, typescript.getSourceFileOfNode(declaration));
+        const globalName = this.mangleGlobalName(<string>symbol.escapedName, typescript.getSourceFileOfNode(declaration));
 
         if (filter & reflection.ObjectFlags.Variable && this.globals[globalName])
           return this.globals[globalName];
@@ -1294,13 +1297,13 @@ export class Compiler {
   }
 
   /** Resolves a list of type arguments to a type arguments map. */
-  resolveTypeArgumentsMap(typeArguments: typescript.TypeNode[], declaration: typescript.FunctionLikeDeclaration | typescript.ClassDeclaration, baseTypeArgumentsMap?: reflection.TypeArgumentsMap): reflection.TypeArgumentsMap {
+  resolveTypeArgumentsMap(typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], declaration: typescript.FunctionLikeDeclaration | typescript.ClassDeclaration, baseTypeArgumentsMap?: reflection.TypeArgumentsMap): reflection.TypeArgumentsMap {
     const declarationTypeCount = declaration.typeParameters && declaration.typeParameters.length || 0;
     if (typeArguments.length !== declarationTypeCount)
       throw Error("type parameter count mismatch: expected " + declarationTypeCount + " but saw " + typeArguments.length);
     const map: reflection.TypeArgumentsMap = baseTypeArgumentsMap && Object.create(baseTypeArgumentsMap) || {};
     for (let i = 0; i < declarationTypeCount; ++i) {
-      const name = typescript.getTextOfNode((<typescript.TypeParameterDeclaration[]>declaration.typeParameters)[i].name);
+      const name = typescript.getTextOfNode((<typescript.NodeArray<typescript.TypeParameterDeclaration>>declaration.typeParameters)[i].name);
       const node = typeArguments[i];
       const type = baseTypeArgumentsMap && baseTypeArgumentsMap[name] && baseTypeArgumentsMap[name].type || this.resolveType(node, false, baseTypeArgumentsMap) || reflection.voidType; // reports
       map[name] = { node, type };

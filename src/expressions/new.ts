@@ -26,7 +26,7 @@ export function compileNew(compiler: Compiler, node: typescript.NewExpression, c
 
   if (reference instanceof reflection.ClassTemplate) {
     const template = <reflection.ClassTemplate>reference;
-    let typeArguments: typescript.TypeNode[] | undefined = node.typeArguments;
+    let typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[] | undefined = node.typeArguments;
     if (!typeArguments && contextualType.underlyingClass) { // inherit from contextual class
       const clazz = contextualType.underlyingClass;
       typeArguments = Object.keys(clazz.typeArgumentsMap).map(key => clazz.typeArgumentsMap[key].node);

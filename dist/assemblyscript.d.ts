@@ -293,7 +293,7 @@ declare module 'assemblyscript/compiler' {
       /** Resolves an identifier or name to the corresponding reflection object. */
       resolveReference(node: typescript.Identifier | typescript.EntityName, filter?: reflection.ObjectFlags): reflection.Object | null;
       /** Resolves a list of type arguments to a type arguments map. */
-      resolveTypeArgumentsMap(typeArguments: typescript.TypeNode[], declaration: typescript.FunctionLikeDeclaration | typescript.ClassDeclaration, baseTypeArgumentsMap?: reflection.TypeArgumentsMap): reflection.TypeArgumentsMap;
+      resolveTypeArgumentsMap(typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], declaration: typescript.FunctionLikeDeclaration | typescript.ClassDeclaration, baseTypeArgumentsMap?: reflection.TypeArgumentsMap): reflection.TypeArgumentsMap;
       /** Computes the binaryen signature identifier of a reflected type. */
       identifierOf(type: reflection.Type): string;
       /** Obtains the signature of the specified reflected function. */
@@ -490,6 +490,7 @@ declare module 'assemblyscript/typescript' {
   export import createDiagnosticForNode = ts.createDiagnosticForNode;
   export import createProgram = ts.createProgram;
   export import createSourceFile = ts.createSourceFile;
+  export import createNodeArray = ts.createNodeArray;
   export { DiagnosticsEx } from "assemblyscript/typescript/diagnosticMessages.generated";
   /** Default format diagnostics host for convenience. */
   export const defaultFormatDiagnosticsHost: FormatDiagnosticsHost;
@@ -541,8 +542,6 @@ declare module 'assemblyscript/util' {
   export function isExport(node: typescript.Node, checkParent?: boolean): boolean;
   /** Tests if the specified node, or optionally either its parent, has a 'declare' modifier. */
   export function isDeclare(node: typescript.Node, checkParent?: boolean): boolean;
-  /** Removes a modifier from a node and optionally also from its parent. */
-  export function removeModifier(node: typescript.Node, kind: typescript.SyntaxKind, includingParent?: boolean): void;
   /** Tests if the specified node has a 'static' modifier or is otherwise part of a static context. */
   export function isStatic(node: typescript.Node): boolean;
   /** Tests if the specified node has an 'abstract' modifier. */
@@ -833,7 +832,7 @@ declare module 'assemblyscript/reflection/class' {
       /** Reflected class type. */
       type: Type;
       /** Concrete type arguments. */
-      typeArguments: typescript.TypeNode[];
+      typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[];
       /** Type arguments map. */
       typeArgumentsMap: TypeArgumentsMap;
       /** Base class, if any. */
@@ -865,7 +864,7 @@ declare module 'assemblyscript/reflection/class' {
       /** Whether memory must be allocated implicitly. */
       implicitMalloc: boolean;
       /** Constructs a new reflected class and binds it to its TypeScript declaration. */
-      constructor(compiler: Compiler, name: string, template: ClassTemplate, typeArguments: typescript.TypeNode[], base?: Class);
+      constructor(compiler: Compiler, name: string, template: ClassTemplate, typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], base?: Class);
       /** Tests if this class extends another class. */
       extends(base: Class): boolean;
       /** Tests if this class is assignable to the specified (class) type. */
@@ -881,7 +880,7 @@ declare module 'assemblyscript/reflection/class' {
       /** Base class template, if any. */
       base?: ClassTemplate;
       /** Base type arguments. */
-      baseTypeArguments: typescript.TypeNode[];
+      baseTypeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[];
       /** Static and instance class property declarations by simple name. */
       propertyDeclarations: {
           [key: string]: typescript.PropertyDeclaration;
@@ -901,9 +900,9 @@ declare module 'assemblyscript/reflection/class' {
       /** Constructor declaration, if any. */
       ctorDeclaration?: typescript.ConstructorDeclaration;
       /** Constructs a new reflected class template and binds it to its declaration. */
-      constructor(compiler: Compiler, name: string, declaration: typescript.ClassDeclaration, base?: ClassTemplate, baseTypeArguments?: typescript.TypeNode[]);
+      constructor(compiler: Compiler, name: string, declaration: typescript.ClassDeclaration, base?: ClassTemplate, baseTypeArguments?: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[]);
       /** Resolves this possibly generic class against the provided type arguments. */
-      resolve(typeArgumentNodes: typescript.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Class;
+      resolve(typeArgumentNodes: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Class;
   }
   /** Patches a declaration to inherit from its actual implementation. */
   export function patchClassImplementation(declTemplate: ClassTemplate, implTemplate: ClassTemplate): void;
@@ -997,7 +996,7 @@ declare module 'assemblyscript/reflection/function' {
       /** Corresponding function template. */
       template: FunctionTemplate;
       /** Concrete type arguments. */
-      typeArguments: typescript.TypeNode[];
+      typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[];
       /** Resolved type arguments. */
       typeArgumentsMap: TypeArgumentsMap;
       /** Function parameters including `this`. */
@@ -1035,7 +1034,7 @@ declare module 'assemblyscript/reflection/function' {
       /** Binaryen function reference. */
       binaryenFunction: binaryen.Function;
       /** Constructs a new reflected function instance and binds it to its TypeScript declaration. */
-      constructor(compiler: Compiler, name: string, template: FunctionTemplate, typeArguments: typescript.TypeNode[], typeArgumentsMap: TypeArgumentsMap, parameters: FunctionParameter[], returnType: Type, parent?: Class, body?: typescript.Block | typescript.Expression);
+      constructor(compiler: Compiler, name: string, template: FunctionTemplate, typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], typeArgumentsMap: TypeArgumentsMap, parameters: FunctionParameter[], returnType: Type, parent?: Class, body?: typescript.Block | typescript.Expression);
       /** Gets the current break label for use with binaryen loops and blocks. */
       readonly breakLabel: string;
       /** Introduces an additional local variable of the specified name and type. */
@@ -1043,7 +1042,7 @@ declare module 'assemblyscript/reflection/function' {
       /** Introduces an additional unique local variable of the specified type. */
       addUniqueLocal(type: Type, prefix?: string): Variable;
       /** Compiles a call to this function using the specified arguments. Arguments to instance functions include `this` as the first argument or can specifiy it in `thisArg`. */
-      compileCall(argumentNodes: typescript.Expression[], thisArg?: binaryen.Expression): binaryen.Expression;
+      compileCall(argumentNodes: typescript.NodeArray<typescript.Expression> | typescript.Expression[], thisArg?: binaryen.Expression): binaryen.Expression;
       /** Makes a call to this function using the specified operands. */
       call(operands: binaryen.Expression[]): binaryen.Expression;
   }
@@ -1061,7 +1060,7 @@ declare module 'assemblyscript/reflection/function' {
       /** Constructs a new reflected function template and binds it to its TypeScript declaration. */
       constructor(compiler: Compiler, name: string, declaration: typescript.FunctionLikeDeclaration, parent?: Class);
       /** Resolves this possibly generic function against the provided type arguments. */
-      resolve(typeArguments: typescript.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Function;
+      resolve(typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Function;
   }
 }
 

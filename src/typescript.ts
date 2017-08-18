@@ -94,6 +94,7 @@ export import createDiagnosticForNode = ts.createDiagnosticForNode;
        import createGetCanonicalFileName = ts.createGetCanonicalFileName;
 export import createProgram = ts.createProgram;
 export import createSourceFile = ts.createSourceFile;
+export import createNodeArray = ts.createNodeArray;
        import resolveModuleName = ts.resolveModuleName;
        import sys = ts.sys;
 
@@ -144,7 +145,7 @@ export function createCompilerHost(moduleSearchLocations: string[], entryFileSou
   }
 
   function readFile(fileName: string): string {
-    return files[fileName] ? files[fileName].text : sys.readFile(fileName);
+    return (files[fileName] ? files[fileName].text : sys.readFile(fileName)) || "";
   }
 
   function getSourceFile(fileName: string, languageVersion: ScriptTarget, onError?: (message: string) => void): SourceFile {

@@ -6,7 +6,7 @@ import compileStore from "./store";
 import * as reflection from "../../reflection";
 import * as typescript from "../../typescript";
 
-export function compileNewArray(compiler: Compiler, elementType: reflection.Type, elementsOrSize: typescript.Expression[] | number): binaryen.Expression {
+export function compileNewArray(compiler: Compiler, elementType: reflection.Type, elementsOrSize: typescript.NodeArray<typescript.Expression> | typescript.Expression[] | number): binaryen.Expression {
   const op = compiler.module;
   const arrayHeaderSize = 2 * reflection.intType.size;
   const elementCount = typeof elementsOrSize === "number" ? elementsOrSize : elementsOrSize.length;

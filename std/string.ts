@@ -25,6 +25,6 @@ export class String extends Array<ushort> {
       return false;
     const thisPtr: uintptr = unsafe_cast<String,uintptr>(this) + sizeof<Array<ushort>>();
     const valuePtr: uintptr = unsafe_cast<string,uintptr>(value) + sizeof<Array<ushort>>();
-    return memcmp(thisPtr + (this.length - value.length) << 1, valuePtr, value.length) == 0;
+    return memcmp(thisPtr + ((this.length - value.length) << 1) as uintptr, valuePtr, value.length) == 0;
   }
 }

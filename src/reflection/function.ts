@@ -89,7 +89,7 @@ export class Function extends FunctionBase {
   /** Corresponding function template. */
   template: FunctionTemplate;
   /** Concrete type arguments. */
-  typeArguments: typescript.TypeNode[];
+  typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[];
   /** Resolved type arguments. */
   typeArgumentsMap: TypeArgumentsMap;
   /** Function parameters including `this`. */
@@ -132,7 +132,7 @@ export class Function extends FunctionBase {
   binaryenFunction: binaryen.Function;
 
   /** Constructs a new reflected function instance and binds it to its TypeScript declaration. */
-  constructor(compiler: Compiler, name: string, template: FunctionTemplate, typeArguments: typescript.TypeNode[], typeArgumentsMap: TypeArgumentsMap, parameters: FunctionParameter[], returnType: Type, parent?: Class, body?: typescript.Block | typescript.Expression) {
+  constructor(compiler: Compiler, name: string, template: FunctionTemplate, typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], typeArgumentsMap: TypeArgumentsMap, parameters: FunctionParameter[], returnType: Type, parent?: Class, body?: typescript.Block | typescript.Expression) {
     super(compiler, name, template.declaration);
 
     if (!this.compiler.options.noRuntime && isRuntime(this.name, true))
@@ -191,7 +191,7 @@ export class Function extends FunctionBase {
   }
 
   /** Compiles a call to this function using the specified arguments. Arguments to instance functions include `this` as the first argument or can specifiy it in `thisArg`. */
-  compileCall(argumentNodes: typescript.Expression[], thisArg?: binaryen.Expression): binaryen.Expression {
+  compileCall(argumentNodes: typescript.NodeArray<typescript.Expression> | typescript.Expression[], thisArg?: binaryen.Expression): binaryen.Expression {
     const operands: binaryen.Expression[] = new Array(this.parameters.length);
     let operandIndex = 0;
 
@@ -269,7 +269,7 @@ export class FunctionTemplate extends FunctionBase {
   }
 
   /** Resolves this possibly generic function against the provided type arguments. */
-  resolve(typeArguments: typescript.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Function {
+  resolve(typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Function {
 
     // determine the parent class if this is an instance method
     let parent: Class | undefined;
