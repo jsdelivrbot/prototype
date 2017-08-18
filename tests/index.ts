@@ -192,8 +192,6 @@ function runTests(kind: string, exports: typeof assemblyscript) {
     export function test(a: int): int {
       return a;
     }
-
-    function start(): void {}
     `, { silent: true });
 
     test.ok(module, "should compile without errors");

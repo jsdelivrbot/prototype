@@ -1,10 +1,4 @@
-let a: int[] = new Array(3);
-
-function start(): void {
-  a[0] = 1;
-  a[1] = 2;
-  a[2] = 3;
-}
+let a: int[] = [1, 2, 3];
 
 export function getArray(): int[] {
   return a;

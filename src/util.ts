@@ -56,18 +56,6 @@ export function isConst(node: typescript.Node): boolean {
   return (node.flags & typescript.NodeFlags.Const) !== 0;
 }
 
-/** Tests if a function fulfills the requirements to become a start function. */
-export function isStartFunction(node: typescript.FunctionLikeDeclaration): boolean {
-  return !!(
-    node.name &&
-    typescript.getTextOfNode(node.name) === "start" &&
-    !node.typeParameters &&
-    node.parameters.length === 0 &&
-    node.type &&
-    typescript.getTextOfNode(node.type) === "void"
-  );
-}
-
 /** Gets the reflected type of an expression. */
 export function getReflectedType(node: typescript.Expression): reflection.Type {
   return <reflection.Type>(<any>node).reflectedType || null;

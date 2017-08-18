@@ -73,7 +73,6 @@ export class Compiler {
   module: binaryen.Module;
   signatures: { [key: string]: binaryen.Signature } = {};
   globalInitializers: binaryen.Expression[] = [];
-  userStartFunction?: reflection.Function;
   memoryBase: Long;
   memorySegments: CompilerMemorySegment[] = [];
 
@@ -93,6 +92,7 @@ export class Compiler {
   classes: { [key: string]: reflection.Class } = {};
   enums: { [key: string]: reflection.Enum } = {};
   startFunction: reflection.Function;
+  startFunctionBody: typescript.Statement[] = [];
   pendingImplementations: { [key: string]: reflection.ClassTemplate } = {};
 
   /**
@@ -290,11 +290,14 @@ export class Compiler {
             this.initializeEnum(<typescript.EnumDeclaration>statement);
             break;
 
-          // case typescript.SyntaxKind.ModuleDeclaration:
-          // TODO: namespaces
+          case typescript.SyntaxKind.ModuleDeclaration:
+            // TODO: namespaces
 
           default:
-            this.report(statement, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, statement.kind, "Compiler#initialize");
+            if (!typescript.isDeclaration(statement))
+              this.startFunctionBody.push(statement);
+            else
+              this.report(statement, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, statement.kind, "Compiler#initialize");
             break;
         }
       }
@@ -633,7 +636,7 @@ export class Compiler {
           case typescript.SyntaxKind.FunctionDeclaration:
           {
             const declaration = <typescript.FunctionDeclaration>statement;
-            if (util.isExport(declaration) || util.isStartFunction(declaration) || this.options.noTreeShaking) {
+            if (util.isExport(declaration) || this.options.noTreeShaking) {
               const instance = util.getReflectedFunction(declaration);
               if (instance && !instance.compiled) // otherwise generic: compiled once type arguments are known
                 this.compileFunction(instance);
@@ -693,12 +696,8 @@ export class Compiler {
   /** Compiles the start function if either a user-provided start function is or global initializes are present. */
   maybeCompileStartFunction(): void {
 
-    // just use the user start function, if declared, if there is no other initialization to perform
-    if (this.globalInitializers.length === 0 && this.options.noRuntime) {
-      if (this.userStartFunction)
-        this.module.setStart(this.userStartFunction);
+    if (this.globalInitializers.length === 0 && this.startFunctionBody.length === 0 && this.options.noRuntime)
       return;
-    }
 
     const op = this.module;
 
@@ -721,11 +720,8 @@ export class Compiler {
     for (const k = this.globalInitializers.length; i < k; ++i)
       body.push(this.globalInitializers[i]); // usually a setGlobal
 
-    // call the user's start function, if applicable
-    if (this.userStartFunction)
-      body.push(
-        this.userStartFunction.call([])
-      );
+    // compile top-level statements
+    this.startFunctionBody.forEach(stmt => body.push(statements.compile(this, stmt)));
 
     // make sure to check for additional locals
     const additionalLocals: binaryen.Type[] = [];
@@ -871,14 +867,6 @@ export class Compiler {
 
     if (instance.isExport)
       this.module.addExport(instance.name, instance.name);
-
-    if (!instance.parent && instance.body && util.isStartFunction(instance.declaration)) {
-      if (this.userStartFunction)
-        this.report(<typescript.Identifier>instance.declaration.name, typescript.DiagnosticsEx.Start_function_has_already_been_defined);
-        // TODO: report previous declaration using typescript.DiagnosticsEx.Start_function_already_defined_here
-      else
-        this.userStartFunction = instance;
-    }
 
     this.currentFunction = previousFunction;
     return binaryenFunction;

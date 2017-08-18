@@ -88,6 +88,7 @@ export import WhileStatement = ts.WhileStatement;
 export import getPreEmitDiagnostics = ts.getPreEmitDiagnostics;
 export import getSourceFileOfNode = ts.getSourceFileOfNode;
 export import getTextOfNode = ts.getTextOfNode;
+export import isDeclaration = ts.isDeclaration;
 export import createDiagnosticCollection = ts.createDiagnosticCollection;
 export import createDiagnosticForNode = ts.createDiagnosticForNode;
        import createGetCanonicalFileName = ts.createGetCanonicalFileName;

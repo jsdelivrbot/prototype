@@ -9,18 +9,15 @@ import * as util from "../util";
 /** Compiles an 'as' expression explicitly converting from one type to another. */
 export function compileAs(compiler: Compiler, node: typescript.AsExpression, contextualType: reflection.Type): binaryen.Expression {
   const op = compiler.module;
-  const toType = compiler.resolveType(node.type, false, compiler.currentFunction.typeArgumentsMap);
+  const toType = compiler.resolveType(node.type, false, compiler.currentFunction.typeArgumentsMap); // reports
 
   if (toType) {
-
     util.setReflectedType(node, toType);
     return compiler.compileExpression(node.expression, contextualType, toType, true);
-
-  } else {
-
-    util.setReflectedType(node, contextualType);
-    return op.unreachable();
   }
+
+  util.setReflectedType(node, contextualType);
+  return op.unreachable();
 }
 
 export { compileAs as default };

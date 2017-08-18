@@ -308,14 +308,6 @@ Currently, imports can also be pulled from different namespaces by separating th
 declare function Math$random(): double;
 ```
 
-Naming a function `start` with no arguments and a `void` return type will automatically make it the start function that is being called on load even before returning to the embedder.
-
-```ts
-function start(): void {
-  ...
-}
-```
-
 Command line
 ------------
 

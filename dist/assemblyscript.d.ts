@@ -170,7 +170,6 @@ declare module 'assemblyscript/compiler' {
           [key: string]: binaryen.Signature;
       };
       globalInitializers: binaryen.Expression[];
-      userStartFunction?: reflection.Function;
       memoryBase: Long;
       memorySegments: CompilerMemorySegment[];
       target: CompilerTarget;
@@ -200,6 +199,7 @@ declare module 'assemblyscript/compiler' {
           [key: string]: reflection.Enum;
       };
       startFunction: reflection.Function;
+      startFunctionBody: typescript.Statement[];
       pendingImplementations: {
           [key: string]: reflection.ClassTemplate;
       };
@@ -485,6 +485,7 @@ declare module 'assemblyscript/typescript' {
   export import getPreEmitDiagnostics = ts.getPreEmitDiagnostics;
   export import getSourceFileOfNode = ts.getSourceFileOfNode;
   export import getTextOfNode = ts.getTextOfNode;
+  export import isDeclaration = ts.isDeclaration;
   export import createDiagnosticCollection = ts.createDiagnosticCollection;
   export import createDiagnosticForNode = ts.createDiagnosticForNode;
   export import createProgram = ts.createProgram;
@@ -548,8 +549,6 @@ declare module 'assemblyscript/util' {
   export function isAbstract(node: typescript.Node): boolean;
   /** Tests if the specified node is flagged 'const'. */
   export function isConst(node: typescript.Node): boolean;
-  /** Tests if a function fulfills the requirements to become a start function. */
-  export function isStartFunction(node: typescript.FunctionLikeDeclaration): boolean;
   /** Gets the reflected type of an expression. */
   export function getReflectedType(node: typescript.Expression): reflection.Type;
   /** Sets the reflected type of an expression. */

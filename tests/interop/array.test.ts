@@ -8,7 +8,7 @@ export function test(test: tape.Test, module: IModule) {
   // getArray(): int[] -> pointer
   let ptr = exports.getArray() >>> 0;
 
-  // verify initial contents set within start()
+  // verify initial contents
   console.log(hexdump(module.buffer, ptr, arrayHeaderSize + 12));
   test.strictEqual(exports.getArrayCapacity(), 3, "should have initialized an array of capacity 3");
   test.strictEqual(exports.getArrayLength(), 3, "should have initialized an array of size 3");

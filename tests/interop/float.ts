@@ -1,10 +1,5 @@
-let a: float[] = new Array(1);
-let b: double[] = new Array(1);
-
-function start(): void {
-  a[0] = 0.125;
-  b[0] = 1.25;
-}
+let a: float[] = [0.125];
+let b: double[] = [1.25];
 
 export function getFloatArray(): float[] {
   return a;
