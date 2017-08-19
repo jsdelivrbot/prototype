@@ -10,13 +10,10 @@ import * as util from "../util";
 
 /** Compiles an element access expression. Sets the element's value to `valueNode` if specified, otherwise gets it. */
 export function compileElementAccess(compiler: Compiler, node: typescript.ElementAccessExpression, contextualType: reflection.Type, valueNode?: typescript.Expression): binaryen.Expression {
+  const argumentNode = <typescript.Expression>node.argumentExpression;
 
   // fall back to contextual type on error
   util.setReflectedType(node, contextualType);
-
-  // compile the index argument
-  const argumentNode = <typescript.Expression>node.argumentExpression;
-  const argument = compiler.compileExpression(argumentNode, reflection.intType, reflection.intType, false);
 
   // compile the expression and verify that it references an array
   const expression = compiler.compileExpression(node.expression, compiler.uintptrType);
@@ -26,8 +23,7 @@ export function compileElementAccess(compiler: Compiler, node: typescript.Elemen
     throw Error("array access used on non-array object"); // handled by typescript
 
   // obtain the reflected element type
-  const arrayClass = expressionType.underlyingClass;
-  const elementType = arrayClass.typeArgumentsMap.T.type;
+  const elementType = expressionType.underlyingClass.typeArgumentsMap.T.type;
   const uintptrCategory = <binaryen.I32Operations | binaryen.I64Operations>compiler.categoryOf(compiler.uintptrType);
   util.setReflectedType(node, elementType);
 
@@ -42,7 +38,7 @@ export function compileElementAccess(compiler: Compiler, node: typescript.Elemen
     const literalText = literalNode.text; // (usually) preprocessed by TypeScript to a base10 string
 
     if (literalText === "0")
-      return compileLoadOrStore(compiler, node, elementType, expression, arrayClass.size, valueExpression, contextualType);
+      return compileLoadOrStore(compiler, node, elementType, expression, compiler.arrayHeaderSize, valueExpression, contextualType);
 
     if (/^[1-9][0-9]*$/.test(literalText)) {
       const value = Long.fromString(literalText, true, 10);
@@ -50,7 +46,7 @@ export function compileElementAccess(compiler: Compiler, node: typescript.Elemen
         uintptrCategory.add(
           expression,
           compiler.valueOf(compiler.uintptrType, value.mul(elementType.size))
-        ), arrayClass.size, valueExpression, contextualType
+        ), compiler.arrayHeaderSize, valueExpression, contextualType
       );
     }
   }
@@ -60,10 +56,10 @@ export function compileElementAccess(compiler: Compiler, node: typescript.Elemen
     uintptrCategory.add(
       expression,
       uintptrCategory.mul(
-        argument,
+        compiler.compileExpression(argumentNode, reflection.intType, reflection.intType, false),
         compiler.valueOf(compiler.uintptrType, elementType.size)
       )
-    ), arrayClass.size, valueExpression, contextualType
+    ), compiler.arrayHeaderSize, valueExpression, contextualType
   );
 }
 

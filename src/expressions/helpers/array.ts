@@ -8,7 +8,6 @@ import * as typescript from "../../typescript";
 
 export function compileNewArray(compiler: Compiler, elementType: reflection.Type, elementsOrSize: typescript.NodeArray<typescript.Expression> | typescript.Expression[] | number): binaryen.Expression {
   const op = compiler.module;
-  const arrayHeaderSize = 2 * reflection.intType.size;
   const elementCount = typeof elementsOrSize === "number" ? elementsOrSize : elementsOrSize.length;
   const arrptr = compiler.currentFunction.addUniqueLocal(compiler.uintptrType, "arrptr");
   const binaryenUintptrType = compiler.typeOf(compiler.uintptrType);
@@ -18,10 +17,10 @@ export function compileNewArray(compiler: Compiler, elementType: reflection.Type
   const block = [
     op.setLocal(
       arrptr.index,
-      compiler.compileMallocInvocation(arrayHeaderSize + elementCount * elementType.size) // capacity + length + N * element
+      compiler.compileMallocInvocation(compiler.arrayHeaderSize + elementCount * elementType.size) // capacity + length + N * element
     ),
-    op.i32.store(0, 4, op.getLocal(arrptr.index, binaryenUintptrType), binaryenElementSize), // capacity
-    op.i32.store(4, 4, op.getLocal(arrptr.index, binaryenUintptrType), binaryenElementSize)  // length
+    op.i32.store(0, reflection.intType.size, op.getLocal(arrptr.index, binaryenUintptrType), binaryenElementSize), // capacity
+    op.i32.store(reflection.intType.size, reflection.intType.size, op.getLocal(arrptr.index, binaryenUintptrType), binaryenElementSize)  // length
   ];
 
   // initialize concrete values if specified
@@ -30,7 +29,7 @@ export function compileNewArray(compiler: Compiler, elementType: reflection.Type
       block.push(
         compileStore(compiler, elementsOrSize[i], elementType,
           op.getLocal(arrptr.index, binaryenUintptrType),
-          arrayHeaderSize + i * elementType.size,
+          compiler.arrayHeaderSize + i * elementType.size,
           compiler.compileExpression(elementsOrSize[i], elementType, elementType)
         )
       );

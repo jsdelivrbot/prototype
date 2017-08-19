@@ -15,6 +15,8 @@ export function test(test: tape.Test, module: IModule) {
   test.strictEqual(exports.getArrayElement(0), 1, "should have initialized a[0] = 1");
   test.strictEqual(exports.getArrayElement(1), 2, "should have initialized a[1] = 2");
   test.strictEqual(exports.getArrayElement(2), 3, "should have initialized a[2] = 3");
+  test.strictEqual(exports.getArrayElement0(), 1, "should get a[0] = 1 (simplified)");
+  test.strictEqual(exports.getArrayElement2(), 3, "should get a[2] = 3 (optimized)");
 
   // create a new array (this calls malloc) of size 3 with 4-byte (int) elements
   let array = module.array.create(3, 4);

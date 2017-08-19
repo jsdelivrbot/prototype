@@ -16,6 +16,14 @@ export function getArrayElement(i: uint): int {
   return a[i];
 }
 
+export function getArrayElement0(): int {
+  return a[0]; // simplified
+}
+
+export function getArrayElement2(): int {
+  return a[2]; // optimized
+}
+
 export function setArray(b: int[]): void {
   a = b;
 }

@@ -4,13 +4,13 @@ const DAYS_PER_YEAR: double = 365.24;
 
 class Body {
   constructor(
-    public x: double,
-    public y: double,
-    public z: double,
-    public vx: double,
-    public vy: double,
-    public vz: double,
-    public mass: double
+    public x: double, // 0
+    public y: double, // 8
+    public z: double, // 16
+    public vx: double, // 24
+    public vy: double, // 32
+    public vz: double, // 40
+    public mass: double // 48
   ) { }
 
   offsetMomentum(px: double, py: double, pz: double): Body {
@@ -92,7 +92,6 @@ class NBodySystem {
     }
     this.bodies = bodies;
     this.bodies[0].offsetMomentum(px, py, pz);
-    // FIXME: this.bodies[0].offsetMomentum does not work
   }
 
   advance(dt: double): void {

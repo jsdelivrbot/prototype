@@ -146,6 +146,8 @@ export class Class extends ClassBase {
 
     // set up properties - TODO: Investigate impact of dense unaligned properties (that's the case currently)
     Object.keys(this.template.propertyDeclarations).forEach(propertyName => {
+      if (this.properties[propertyName])
+        return; // inherited from base class and already set up
       const propertyDeclaration = this.template.propertyDeclarations[propertyName];
       if (propertyDeclaration.type) {
         const propertyType = this.compiler.resolveType(propertyDeclaration.type);
@@ -191,30 +193,31 @@ export class Class extends ClassBase {
     // set up constructor
     const ctorDeclaration = this.template.ctorDeclaration;
     if (ctorDeclaration) {
-      const localInitializers: number[] = [];
-      for (let j = 0, l = ctorDeclaration.parameters.length; j < l; ++j) {
-        const parameterNode = ctorDeclaration.parameters[j];
-        if (parameterNode.modifiers && parameterNode.modifiers.length) {
-          const propertyName = typescript.getTextOfNode(parameterNode.name);
-          if (parameterNode.type) {
-            const propertyType = this.compiler.resolveType(parameterNode.type);
-            if (propertyType) {
-              this.properties[propertyName] = new Property(this.compiler, propertyName, /* FIXME */<typescript.PropertyDeclaration><any>parameterNode, propertyType, this.size);
-              localInitializers.push(j);
-              this.size += propertyType.size;
-            } // otherwise reported by resolveType
-          } else
-            this.compiler.report(parameterNode, typescript.DiagnosticsEx.Type_expected);
-        }
-      }
       const ctor = this.compiler.initializeInstanceMethod(ctorDeclaration, this);
       this.ctor = ctor.instance;
       if (!this.ctor)
         this.ctor = util.getReflectedFunction(ctorDeclaration);
       if (!this.ctor)
         this.ctor = ctor.template.resolve([], this.typeArgumentsMap);
-      for (let j = 0, l = localInitializers.length; j < l; ++j)
-        this.ctor.parameters[localInitializers[j]].isAlsoProperty = true;
+
+      for (let j = 0, l = ctorDeclaration.parameters.length; j < l; ++j) {
+        const parameterNode = ctorDeclaration.parameters[j];
+        if (parameterNode.modifiers && parameterNode.modifiers.length) {
+          const propertyName = typescript.getTextOfNode(parameterNode.name);
+          const parameter = this.ctor.parameters[/* this */ 1 + j];
+          if (parameter.name !== propertyName) // ^ make sure this is correct
+            throw Error("parameter name mismatch");
+          parameter.isAlsoProperty = true;
+          if (parameterNode.type) {
+            const propertyType = this.compiler.resolveType(parameterNode.type);
+            if (propertyType) {
+              this.properties[propertyName] = new Property(this.compiler, propertyName, /* FIXME */<typescript.PropertyDeclaration><any>parameterNode, propertyType, this.size);
+              this.size += propertyType.size;
+            } // otherwise reported by resolveType
+          } else
+            this.compiler.report(parameterNode, typescript.DiagnosticsEx.Type_expected);
+        }
+      }
     }
   }
 

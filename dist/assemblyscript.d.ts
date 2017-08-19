@@ -227,6 +227,8 @@ declare module 'assemblyscript/compiler' {
       static compileProgram(program: typescript.Program, options?: CompilerOptions): binaryen.Module | null;
       /** Gets the configured byte size of a pointer. `4` when compiling for 32-bit WebAssembly, `8` when compiling for 64-bit WebAssembly. */
       readonly uintptrSize: number;
+      /** Gets the size of an array header in bytes. */
+      readonly arrayHeaderSize: number;
       /**
         * Constructs a new AssemblyScript compiler.
         * @param program TypeScript program

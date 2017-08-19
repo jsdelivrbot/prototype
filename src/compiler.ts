@@ -191,6 +191,9 @@ export class Compiler {
   /** Gets the configured byte size of a pointer. `4` when compiling for 32-bit WebAssembly, `8` when compiling for 64-bit WebAssembly. */
   get uintptrSize(): number { return this.uintptrType.size; }
 
+  /** Gets the size of an array header in bytes. */
+  get arrayHeaderSize(): number { return 2 * reflection.intType.size; } // capacity + length
+
   /**
    * Constructs a new AssemblyScript compiler.
    * @param program TypeScript program
@@ -811,13 +814,13 @@ export class Compiler {
     this.currentFunction = instance;
     const initialLocalsIndex = instance.locals.length;
 
-    for (let i = 1; i < instance.parameters.length; ++i) {
+    for (let i = /* skip this */ 1; i < instance.parameters.length; ++i) {
       const param = instance.parameters[i];
       if (param.isAlsoProperty) {
         const property = (<reflection.Class>instance.parent).properties[param.name];
         if (property)
           body.push(
-            compileStore(this, /* solely used for diagnostics anyway */ <typescript.Expression>param.node, property.type, op.getLocal(0, this.typeOf(this.uintptrType)), property.offset, op.getLocal(i + 1, this.typeOf(param.type)))
+            compileStore(this, /* solely used for diagnostics anyway */ <typescript.Expression>param.node, property.type, op.getLocal(0, this.typeOf(this.uintptrType)), property.offset, op.getLocal(i, this.typeOf(param.type)))
           );
         else
           throw Error("missing parameter property");

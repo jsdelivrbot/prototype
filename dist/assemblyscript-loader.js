@@ -1,6 +1,6 @@
 /*!
  * @license AssemblyScript Loader v0.2.0 (c) 2017, Daniel Wirtz
- * Compiled Fri, 18 Aug 2017 16:05:25 UTC
+ * Compiled Sat, 19 Aug 2017 12:18:39 UTC
  * Licensed under the Apache-License, Version 2.0
  * see: https://github.com/dcodeIO/AssemblyScript for details
  */
