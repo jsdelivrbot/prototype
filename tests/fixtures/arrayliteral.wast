@@ -5,17 +5,16 @@
   (local $0 i32)
   (return
    (block (result i32)
-    (set_local $0
-     (call $assembly.d.ts/memset
-      (call $assembly.d.ts/malloc
+    (i32.store
+     (tee_local $0
+      (call $lib:memset
+       (call $lib:malloc
+        (i32.const 24)
+       )
+       (i32.const 0)
        (i32.const 24)
       )
-      (i32.const 0)
-      (i32.const 24)
      )
-    )
-    (i32.store
-     (get_local $0)
      (i32.const 4)
     )
     (i32.store offset=4
@@ -49,17 +48,16 @@
   (local $3 i32)
   (return
    (block (result i32)
-    (set_local $0
-     (call $assembly.d.ts/memset
-      (call $assembly.d.ts/malloc
+    (i32.store
+     (tee_local $0
+      (call $lib:memset
+       (call $lib:malloc
+        (i32.const 20)
+       )
+       (i32.const 0)
        (i32.const 20)
       )
-      (i32.const 0)
-      (i32.const 20)
      )
-    )
-    (i32.store
-     (get_local $0)
      (i32.const 3)
     )
     (i32.store offset=4
@@ -69,17 +67,16 @@
     (i32.store offset=8
      (get_local $0)
      (block (result i32)
-      (set_local $1
-       (call $assembly.d.ts/memset
-        (call $assembly.d.ts/malloc
+      (i32.store
+       (tee_local $1
+        (call $lib:memset
+         (call $lib:malloc
+          (i32.const 24)
+         )
+         (i32.const 0)
          (i32.const 24)
         )
-        (i32.const 0)
-        (i32.const 24)
        )
-      )
-      (i32.store
-       (get_local $1)
        (i32.const 4)
       )
       (i32.store offset=4
@@ -108,17 +105,16 @@
     (i32.store offset=12
      (get_local $0)
      (block (result i32)
-      (set_local $2
-       (call $assembly.d.ts/memset
-        (call $assembly.d.ts/malloc
+      (i32.store
+       (tee_local $2
+        (call $lib:memset
+         (call $lib:malloc
+          (i32.const 12)
+         )
+         (i32.const 0)
          (i32.const 12)
         )
-        (i32.const 0)
-        (i32.const 12)
        )
-      )
-      (i32.store
-       (get_local $2)
        (i32.const 1)
       )
       (i32.store offset=4
@@ -135,17 +131,16 @@
     (i32.store offset=16
      (get_local $0)
      (block (result i32)
-      (set_local $3
-       (call $assembly.d.ts/memset
-        (call $assembly.d.ts/malloc
+      (i32.store
+       (tee_local $3
+        (call $lib:memset
+         (call $lib:malloc
+          (i32.const 8)
+         )
+         (i32.const 0)
          (i32.const 8)
         )
-        (i32.const 0)
-        (i32.const 8)
        )
-      )
-      (i32.store
-       (get_local $3)
        (i32.const 0)
       )
       (i32.store offset=4

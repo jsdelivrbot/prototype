@@ -8,19 +8,29 @@
  */ /** */
 
 import * as binaryen from "binaryen";
-import Compiler from "./compiler";
+import { Compiler, LIB_PREFIX } from "./compiler";
 import { compileLoad } from "./expressions/helpers/load";
 import { compileStore } from "./expressions/helpers/store";
 import * as reflection from "./reflection";
 import * as typescript from "./typescript";
 import * as util from "./util";
 
+/** Tests if the specified file is a library file. */
+export function isLibraryFile(file: typescript.SourceFile): boolean {
+  return file.fileName === "assembly.d.ts";
+}
+
+/** Tests if the specified file is a standard file. */
+export function isStandardFile(file: typescript.SourceFile): boolean {
+  return util.startsWith(file.fileName, "std/");
+}
+
 /** Tests if the specified function name corresponds to a built-in function. */
-export function isBuiltin(name: string, isGlobalName: boolean = true): boolean {
+export function isBuiltinFunction(name: string, isGlobalName: boolean = true): boolean {
   if (isGlobalName) {
     // Builtins are declared in assembly.d.ts exclusively
-    if (name.substring(0, 14) !== "assembly.d.ts/") return false;
-    name = name.substring(14);
+    if (!util.startsWith(name, LIB_PREFIX)) return false;
+    name = name.substring(LIB_PREFIX.length);
     const p = name.indexOf("<");
     if (p > -1)
       name = name.substring(0, p);
@@ -93,11 +103,11 @@ export const runtimeNames = [
 ];
 
 /** Tests if the specified function name corresponds to a linked runtime function. */
-export function isRuntime(name: string, isGlobalName: boolean = true): boolean {
+export function isRuntimeFunction(name: string, isGlobalName: boolean = true): boolean {
   if (isGlobalName) {
     // Builtins are declared in assembly.d.ts exclusively
-    if (name.substring(0, 14) !== "assembly.d.ts/") return false;
-    name = name.substring(14);
+    if (!util.startsWith(name, LIB_PREFIX)) return false;
+    name = name.substring(LIB_PREFIX.length);
     const p = name.indexOf("<");
     if (p > -1)
       name = name.substring(0, p);

@@ -21,7 +21,7 @@
   (local $0 i32)
   (set_local $0
    (call $B
-    (call $assembly.d.ts/malloc
+    (call $lib:malloc
      (i32.const 0)
     )
    )

@@ -1,7 +1,7 @@
 /** @module assemblyscript/reflection */ /** */
 
 import * as binaryen from "binaryen";
-import { isRuntime } from "../builtins";
+import { isRuntimeFunction } from "../builtins";
 import { Class } from "./class";
 import Compiler from "../compiler";
 import { Type, TypeArgumentsMap, voidType } from "./type";
@@ -39,7 +39,7 @@ export abstract class FunctionBase {
   }
 
   /** Tests if this function is an import. */
-  get isImport(): boolean { return util.isDeclare(this.declaration) && (this.compiler.options.noRuntime || typescript.getSourceFileOfNode(this.declaration) !== this.compiler.libraryFile || !isRuntime(this.name)); }
+  get isImport(): boolean { return util.isDeclare(this.declaration) && (this.compiler.options.noRuntime || typescript.getSourceFileOfNode(this.declaration) !== this.compiler.libraryFile || !isRuntimeFunction(this.name)); }
 
   /** Tests if this function is exported. */
   get isExport(): boolean { return util.isExport(this.declaration, true) && typescript.getSourceFileOfNode(this.declaration) === this.compiler.entryFile; }
@@ -135,7 +135,7 @@ export class Function extends FunctionBase {
   constructor(compiler: Compiler, name: string, template: FunctionTemplate, typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], typeArgumentsMap: TypeArgumentsMap, parameters: FunctionParameter[], returnType: Type, parent?: Class, body?: typescript.Block | typescript.Expression) {
     super(compiler, name, template.declaration);
 
-    if (!this.compiler.options.noRuntime && isRuntime(this.name, true))
+    if (!this.compiler.options.noRuntime && isRuntimeFunction(this.name, true))
       this.internalName = "." + this.simpleName;
     else
       this.internalName = this.name;

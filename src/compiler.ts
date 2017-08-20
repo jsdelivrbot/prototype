@@ -3,6 +3,7 @@
 import * as base64 from "@protobufjs/base64";
 import * as binaryen from "binaryen";
 import * as Long from "long";
+import * as nodePath from "path";
 
 import * as builtins from "./builtins";
 import * as expressions from "./expressions";
@@ -13,6 +14,11 @@ import * as reflection from "./reflection";
 import * as statements from "./statements";
 import * as typescript from "./typescript";
 import * as util from "./util";
+
+/** Library name prefix. */
+export const LIB_PREFIX = "lib:";
+/** Standard name prefix. */
+export const STD_PREFIX = "std:";
 
 /** Compiler options. */
 export interface CompilerOptions {
@@ -251,13 +257,14 @@ export class Compiler {
 
   /** Mangles a global name (of a function, a class, ...) for use with binaryen. */
   mangleGlobalName(name: string, sourceFile: typescript.SourceFile) {
-    if (sourceFile === this.libraryFile) {
-      name = "assembly.d.ts/" + name;
-    } else if (sourceFile !== this.entryFile) {
-      name = sourceFile.fileName
+    if (sourceFile === this.libraryFile)
+      name = LIB_PREFIX + name;
+    else if (/^std\//.test(sourceFile.fileName))
+      name = STD_PREFIX + name;
+    else if (sourceFile !== this.entryFile)
+      name = nodePath.relative(nodePath.dirname(this.entryFile.fileName), sourceFile.fileName)
       .replace(/\\/g, "/")
       .replace(/[^a-zA-Z0-9\.\/$]/g, "") + "/" + name;
-    }
     return name;
   }
 
@@ -395,12 +402,12 @@ export class Compiler {
     } else {
       let value: number = 0;
       switch (name) {
-        case "assembly.d.ts/NaN":
-        case "assembly.d.ts/NaNf":
+        case LIB_PREFIX + "NaN":
+        case LIB_PREFIX + "NaNf":
           value = NaN;
           break;
-        case "assembly.d.ts/Infinity":
-        case "assembly.d.ts/Infinityf":
+        case LIB_PREFIX + "Infinity":
+        case LIB_PREFIX + "Infinityf":
           value = Infinity;
           break;
       }
@@ -471,7 +478,7 @@ export class Compiler {
     let instance: reflection.Function | undefined;
     if (template.isGeneric) {
       // special case: generic builtins evaluate type parameters dynamically and have a known return type
-      if (builtins.isBuiltin(name, false))
+      if (builtins.isBuiltinFunction(name, false))
         instance = new reflection.Function(this, name, template, [], {}, [], this.resolveType(<typescript.TypeNode>template.declaration.type, true) || reflection.voidType);
     } else
       instance = template.resolve([]);
@@ -743,27 +750,12 @@ export class Compiler {
     this.currentFunction = previousFunction;
   }
 
-  /** Splits an import name possibly separated with a `$` character to a module name and a name. Defaults to `env` as the module name. */
-  static splitImportName(name: string): { moduleName: string, name: string } {
-    let moduleName;
-    const idx = name.indexOf("$");
-    if (idx > 0) {
-      moduleName = name.substring(0, idx);
-      name = name.substring(idx + 1);
-    } else
-      moduleName = "env";
-    return {
-      moduleName,
-      name
-    };
-  }
-
   /** Compiles a malloc invocation using the specified byte size. */
   compileMallocInvocation(size: number, clearMemory: boolean = true): binaryen.Expression {
     const op = this.module;
 
-    const mallocFunction = this.functions["assembly.d.ts/malloc"];
-    const memsetFunction = this.functions["assembly.d.ts/memset"];
+    const mallocFunction = this.functions[LIB_PREFIX + "malloc"];
+    const memsetFunction = this.functions[LIB_PREFIX + "memset"];
 
     // Simplify if possible but always obtain a pointer for consistency
     if (size === 0 || !clearMemory)
@@ -795,14 +787,29 @@ export class Compiler {
       if (instance.imported)
         throw Error("duplicate compilation of imported function " + instance);
 
-      const importName = Compiler.splitImportName(instance.simpleName);
-      this.module.addImport(instance.name, importName.moduleName, importName.name, instance.binaryenSignature);
+      const sourceFile = typescript.getSourceFileOfNode(instance.declaration);
+      let pos: number;
+
+      let importModuleName: string;
+      let importFunctionName = instance.simpleName;
+
+      if (builtins.isLibraryFile(sourceFile))
+        importModuleName = "lib";
+      else if (builtins.isStandardFile(sourceFile))
+        importModuleName = "std";
+      else if ((pos = importFunctionName.indexOf("$")) > -1) {
+        importModuleName = importFunctionName.substring(0, pos);
+        importFunctionName = importFunctionName.substring(pos + 1);
+      } else
+        importModuleName = "env";
+
+      this.module.addImport(instance.name, importModuleName, importFunctionName, instance.binaryenSignature);
       instance.imported = true;
       return null;
     }
 
     // handle statically linked runtime functions
-    if (builtins.isRuntime(instance.name))
+    if (builtins.isRuntimeFunction(instance.name))
       return null;
 
     // otherwise compile
@@ -1223,7 +1230,7 @@ export class Compiler {
               case "float": return reflection.floatType;
               case "double": return reflection.doubleType;
               case "uintptr": return this.uintptrType;
-              case "string": return this.classes["assembly.d.ts/String"].type;
+              case "string": return this.classes[LIB_PREFIX + "String"].type;
             }
 
             const reference = this.resolveReference(referenceNode.typeName, reflection.ObjectFlags.ClassInclTemplate);
@@ -1242,7 +1249,7 @@ export class Compiler {
       }
 
       case typescript.SyntaxKind.StringKeyword: {
-        const stringClass = this.classes["assembly.d.ts/String"];
+        const stringClass = this.classes[LIB_PREFIX + "String"];
         if (!stringClass)
           throw Error("missing string class");
         return stringClass.type;
@@ -1251,7 +1258,7 @@ export class Compiler {
       case typescript.SyntaxKind.ArrayType:
       {
         const arrayTypeNode = <typescript.ArrayTypeNode>type;
-        const template = this.classTemplates["assembly.d.ts/Array"];
+        const template = this.classTemplates[LIB_PREFIX + "Array"];
         const instance = template.resolve([ arrayTypeNode.elementType ]);
         return instance.type;
       }

@@ -132,6 +132,9 @@ declare class String extends Array<ushort> {
 
 // Console
 
+/** Imported log interface. */
+declare function log(type: int, message: string): void;
+
 /** Console bindings. */
 declare class console {
   /** Logs a message to console. */

@@ -153,3 +153,8 @@ export function wastToWasm(text: string, options?: WastToWasmOptions): Uint8Arra
   module.destroy();
   return wasm;
 }
+
+/** Tests if a string starts with the specified. */
+export function startsWith(str: string, sub: string): boolean {
+  return str.substring(0, sub.length) === sub;
+}

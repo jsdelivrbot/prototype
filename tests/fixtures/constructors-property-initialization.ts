@@ -11,11 +11,13 @@ class B {
   a: int = 1;
   b: int = this.a + 2;
 
-  constructor() {
+  constructor(
+    public c: int
+  ) {
   }
 }
 
 export function test(): void {
   // let a: A = new A();
-  let b: B = new B();
+  let b: B = new B(3);
 }

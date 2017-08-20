@@ -166,7 +166,7 @@ function runTests(kind: string, exports: typeof assemblyscript) {
       test.test(kind + " - interop - " + name, test => {
         testUtil.load(buffer, {
           imports: { // dummy functions for noRuntime=true
-            env: {
+            lib: {
               malloc: function(size: number) { return 0; },
               memset: function(ptr: number, value: number, size: number) { return ptr; }
             }

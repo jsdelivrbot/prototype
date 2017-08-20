@@ -5,8 +5,6 @@ enum LogType {
   Error = 3
 }
 
-declare function log(type: int, message: string): void;
-
 export class console {
 
   static log(message: string): void {

@@ -116,7 +116,7 @@ export function compileCall(compiler: Compiler, node: typescript.CallExpression/
   util.setReflectedType(node, instance.returnType);
 
   // compile built-in call to inline assembly
-  if (builtins.isBuiltin(instance.name, true)) {
+  if (builtins.isBuiltinFunction(instance.name, true)) {
 
     const argumentExpressions: binaryen.Expression[] = new Array(instance.parameters.length);
     for (let i = 0, k = instance.parameters.length; i < k; ++i) {

@@ -46,15 +46,19 @@ declare module 'assemblyscript/builtins' {
     * @module assemblyscript/builtins
     */ /** */
   import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
+  import { Compiler } from "assemblyscript/compiler";
   import * as reflection from "assemblyscript/reflection";
   import * as typescript from "assemblyscript/typescript";
+  /** Tests if the specified file is a library file. */
+  export function isLibraryFile(file: typescript.SourceFile): boolean;
+  /** Tests if the specified file is a standard file. */
+  export function isStandardFile(file: typescript.SourceFile): boolean;
   /** Tests if the specified function name corresponds to a built-in function. */
-  export function isBuiltin(name: string, isGlobalName?: boolean): boolean;
+  export function isBuiltinFunction(name: string, isGlobalName?: boolean): boolean;
   /** An array of the statically linked runtime function names. */
   export const runtimeNames: string[];
   /** Tests if the specified function name corresponds to a linked runtime function. */
-  export function isRuntime(name: string, isGlobalName?: boolean): boolean;
+  export function isRuntimeFunction(name: string, isGlobalName?: boolean): boolean;
   /** A pair of TypeScript expressions. */
   export interface TypeScriptExpressionPair {
       0: typescript.Expression;
@@ -121,6 +125,10 @@ declare module 'assemblyscript/compiler' {
   import Profiler from "assemblyscript/profiler";
   import * as reflection from "assemblyscript/reflection";
   import * as typescript from "assemblyscript/typescript";
+  /** Library name prefix. */
+  export const LIB_PREFIX = "lib:";
+  /** Standard name prefix. */
+  export const STD_PREFIX = "std:";
   /** Compiler options. */
   export interface CompilerOptions {
       /** Whether compilation shall be performed in silent mode without writing to console. Defaults to `false`. */
@@ -265,11 +273,6 @@ declare module 'assemblyscript/compiler' {
       compile(): void;
       /** Compiles the start function if either a user-provided start function is or global initializes are present. */
       maybeCompileStartFunction(): void;
-      /** Splits an import name possibly separated with a `$` character to a module name and a name. Defaults to `env` as the module name. */
-      static splitImportName(name: string): {
-          moduleName: string;
-          name: string;
-      };
       /** Compiles a malloc invocation using the specified byte size. */
       compileMallocInvocation(size: number, clearMemory?: boolean): binaryen.Expression;
       /** Compiles a function. */
@@ -590,6 +593,8 @@ declare module 'assemblyscript/util' {
   }
   /** Converts WebAssembly text format using linear syntax to a binary. Requires wabt.js to be present. */
   export function wastToWasm(text: string, options?: WastToWasmOptions): Uint8Array;
+  /** Tests if a string starts with the specified. */
+  export function startsWith(str: string, sub: string): boolean;
 }
 
 declare module 'assemblyscript/expressions/arrayliteral' {
@@ -787,7 +792,7 @@ declare module 'assemblyscript/expressions/propertyaccess' {
 
 declare module 'assemblyscript/reflection/class' {
   /** @module assemblyscript/reflection */ /** */
-  import Compiler from "assemblyscript/compiler";
+  import { Compiler } from "assemblyscript/compiler";
   import { FunctionTemplate, Function } from "assemblyscript/reflection/function";
   import Property from "assemblyscript/reflection/property";
   import { Type, TypeArgumentsMap } from "assemblyscript/reflection/type";

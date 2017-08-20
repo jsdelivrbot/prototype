@@ -1,6 +1,6 @@
 /** @module assemblyscript/reflection */ /** */
 
-import Compiler from "../compiler";
+import { Compiler, LIB_PREFIX, STD_PREFIX } from "../compiler";
 import { FunctionTemplate, Function } from "./function";
 import Property from "./property";
 import { Type, TypeArgumentsMap, voidType } from "./type";
@@ -64,12 +64,12 @@ export interface ClassMethod {
 
 /** Tests if the specified global name references a built-in array. */
 export function isBuiltinArray(globalName: string) {
-  return /^assembly\.d\.ts\/Array<|^std\/array\.ts\/Array</.test(globalName);
+  return util.startsWith(globalName, LIB_PREFIX + "Array<") || util.startsWith(globalName, STD_PREFIX + "Array<");
 }
 
 /** Tests if the specified global name references a built-in string. */
 export function isBuiltinString(globalName: string) {
-  return globalName === "assembly.d.ts/String";
+  return globalName === LIB_PREFIX + "String";
 }
 
 /** A class handle consisting of its instance, if any, and its template. */

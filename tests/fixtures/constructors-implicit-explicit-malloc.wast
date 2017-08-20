@@ -8,7 +8,7 @@
  (func $TestExplicit (type $ii) (param $0 i32) (result i32)
   (local $1 i32)
   (set_local $1
-   (call $assembly.d.ts/malloc
+   (call $lib:malloc
     (i32.const 1)
    )
   )
@@ -21,7 +21,7 @@
   (local $1 i32)
   (set_local $0
    (call $TestImplicit
-    (call $assembly.d.ts/malloc
+    (call $lib:malloc
      (i32.const 0)
     )
    )
