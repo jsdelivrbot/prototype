@@ -1,7 +1,7 @@
 /** @module assemblyscript/expressions */ /** */
 
 import * as binaryen from "binaryen";
-import Compiler from "../../compiler";
+import { Compiler } from "../../compiler";
 import compileStore from "./store";
 import * as reflection from "../../reflection";
 import * as typescript from "../../typescript";

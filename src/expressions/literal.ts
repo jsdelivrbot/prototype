@@ -118,7 +118,7 @@ export function compileLiteral(compiler: Compiler, node: typescript.LiteralExpre
     case typescript.SyntaxKind.StringLiteral:
     {
       const text = node.text;
-      const offset = compiler.createStaticString(text);
+      const offset = compiler.memory.createString(text, true).offset;
       return compiler.valueOf(compiler.uintptrType, offset);
     }
   }

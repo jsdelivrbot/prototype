@@ -40,6 +40,7 @@
     "docs": "npm run docs:api && npm run docs:std"
   },
   "dependencies": {
+    "@protobufjs/float": "^1.0.2",
     "binaryen": "1.37.19",
     "chalk": "^2.1.0",
     "minimist": "^1.2.0",

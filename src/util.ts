@@ -6,6 +6,7 @@
 import * as typescript from "./typescript";
 import * as reflection from "./reflection";
 import * as wabt from "wabt";
+import * as float from "@protobufjs/float";
 
 /** Tests if the specified node, or optionally either its parent, has an 'export' modifier. */
 export function isExport(node: typescript.Node, checkParent: boolean = false): boolean {
@@ -157,4 +158,51 @@ export function wastToWasm(text: string, options?: WastToWasmOptions): Uint8Arra
 /** Tests if a string starts with the specified. */
 export function startsWith(str: string, sub: string): boolean {
   return str.substring(0, sub.length) === sub;
+}
+
+/** Writes an 8-bit integer value to a buffer at the specified offset. */
+export function writeByte(buffer: Uint8Array, offset: number, value: number): number {
+  buffer[offset] = value;
+  return 1;
+}
+
+/** Writes a 1-bit integer value to a buffer at the specified offset. */
+export function writeBool(buffer: Uint8Array, offset: number, value: any): number {
+  buffer[offset] = value ? 1 : 0;
+  return 1;
+}
+
+/** Writes a 16-bit integer value to a buffer at the specified offset. */
+export function writeShort(buffer: Uint8Array, offset: number, value: number): number {
+  buffer[offset    ] =  value       & 0xff;
+  buffer[offset + 1] = (value >> 8) & 0xff;
+  return 2;
+}
+
+/** Writes a 32-bit integer value to a buffer at the specified offset. */
+export function writeInt(buffer: Uint8Array, offset: number, value: number): number {
+  buffer[offset    ] =  value         & 0xff;
+  buffer[offset + 1] = (value >>>  8) & 0xff;
+  buffer[offset + 2] = (value >>> 16) & 0xff;
+  buffer[offset + 3] =  value >>> 24;
+  return 4;
+}
+
+/** Writes a 64-bit integer value to a buffer at the specified offset. */
+export function writeLong(buffer: Uint8Array, offset: number, value: Long): number {
+  writeInt(buffer, offset    , value.low);
+  writeInt(buffer, offset + 4, value.high);
+  return 8;
+}
+
+/** Writes a 32-bit float value to a buffer at the specified offset. */
+export function writeFloat(buffer: Uint8Array, offset: number, value: number): number {
+  float.writeFloatLE(value, buffer, offset);
+  return 4;
+}
+
+/** Writes a 64-bit float value to a buffer at the specified offset. */
+export function writeDouble(buffer: Uint8Array, offset: number, value: number): number {
+  float.writeDoubleLE(value, buffer, offset);
+  return 8;
 }

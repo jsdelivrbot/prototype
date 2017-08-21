@@ -9,6 +9,7 @@ import * as builtins from "./builtins";
 import * as expressions from "./expressions";
 import compileStore from "./expressions/helpers/store";
 import * as library from "./library";
+import Memory from "./memory";
 import Profiler from "./profiler";
 import * as reflection from "./reflection";
 import * as statements from "./statements";
@@ -44,14 +45,6 @@ export enum CompilerTarget {
   WASM64
 }
 
-/** A static memory segment. */
-export interface CompilerMemorySegment {
-  /** Offset in linear memory. */
-  offset: Long;
-  /** Data in linear memory. */
-  buffer: Uint8Array;
-}
-
 // Malloc, free, etc. is present as a base64 encoded blob and prepared once when required.
 let runtimeCache: Uint8Array;
 
@@ -79,14 +72,11 @@ export class Compiler {
   module: binaryen.Module;
   signatures: { [key: string]: binaryen.Signature } = {};
   globalInitializers: binaryen.Expression[] = [];
-  memoryBase: Long;
-  memorySegments: CompilerMemorySegment[] = [];
 
   // Codegen
   target: CompilerTarget;
   profiler = new Profiler();
   currentFunction: reflection.Function;
-  stringPool: { [key: string]: CompilerMemorySegment } = {};
   runtimeExports: string[];
 
   // Reflection
@@ -100,6 +90,7 @@ export class Compiler {
   startFunction: reflection.Function;
   startFunctionBody: typescript.Statement[] = [];
   pendingImplementations: { [key: string]: reflection.ClassTemplate } = {};
+  memory: Memory;
 
   /**
    * Compiles an AssemblyScript file to WebAssembly.
@@ -232,7 +223,7 @@ export class Compiler {
     }
 
     this.uintptrType = this.target === CompilerTarget.WASM64 ? reflection.uintptrType64 : reflection.uintptrType32;
-    this.memoryBase = Long.fromInt(32, true); // NULL + HEAP + MSPACE + GC, each aligned to 8 bytes
+    this.memory = new Memory(this, 32); // NULL + HEAP + MSPACE + GC, each aligned to 8 bytes
 
     const sourceFiles = program.getSourceFiles();
     for (let i = sourceFiles.length - 1; i >= 0; --i) {
@@ -415,46 +406,6 @@ export class Compiler {
         global.value = value;
       op.addGlobal(name, this.typeOf(type), mutable, this.valueOf(type, value));
     }
-  }
-
-  /** Creates or, if it already exists, looks up a static string and returns its offset in linear memory. */
-  createStaticString(value: string): Long {
-    let pooled = this.stringPool.hasOwnProperty(value) && this.stringPool[value] || undefined;
-    if (!pooled) {
-
-      // align to 4 bytes (length is an int)
-      if (!this.memoryBase.and(3).isZero())
-        this.memoryBase = this.memoryBase.or(3).add(1);
-
-      // calculate length
-      const length = value.length;
-      const buffer = new Uint8Array(8 + 2 * length);
-      if (length < 0 || length > 0x7fffffff)
-        throw Error("string length exceeds INTMAX");
-
-      // prepend header (capacity = length)
-      let offset = 0;
-      buffer[offset++] =  length         & 0xff;
-      buffer[offset++] = (length >>>  8) & 0xff;
-      buffer[offset++] = (length >>> 16) & 0xff;
-      buffer[offset++] = (length >>> 24) & 0xff;
-      for (let i = 0; i < 4; ++i)
-        buffer[offset++] = buffer[i];
-
-      // append UTF-16LE chars
-      for (let i = 0; i < length; ++i) {
-        const charCode = value.charCodeAt(i);
-        buffer[offset++] =  charCode        & 0xff;
-        buffer[offset++] = (charCode >>> 8) & 0xff;
-      }
-
-      this.memorySegments.push(pooled = this.stringPool[value] = <CompilerMemorySegment>{
-        offset: this.memoryBase,
-        buffer: buffer
-      });
-      this.memoryBase = this.memoryBase.add(offset);
-    }
-    return pooled.offset;
   }
 
   /** Initializes a top-level function. */
@@ -673,33 +624,32 @@ export class Compiler {
 
     // setup static memory
     const binaryenSegments: binaryen.MemorySegment[] = [];
-    this.memorySegments.forEach(segment => {
+    this.memory.segments.forEach(segment => {
       binaryenSegments.push({
         offset: this.valueOf(this.uintptrType, segment.offset),
         data: segment.buffer
       });
     });
-    if (!this.memoryBase.and(7).isZero()) // align to 8 bytes
-      this.memoryBase = this.memoryBase.or(7).add(1);
 
     // initialize runtime heap pointer
+    const heapOffset = this.memory.align();
     if (!this.options.noRuntime) {
       binaryenSegments.unshift({
         offset: this.valueOf(this.uintptrType, 8),
         data: new Uint8Array([
-           this.memoryBase.low          & 0xff,
-          (this.memoryBase.low  >>>  8) & 0xff,
-          (this.memoryBase.low  >>> 16) & 0xff,
-          (this.memoryBase.low  >>> 24) & 0xff,
-           this.memoryBase.high         & 0xff,
-          (this.memoryBase.high >>>  8) & 0xff,
-          (this.memoryBase.high >>> 16) & 0xff,
-          (this.memoryBase.high >>> 24) & 0xff
+           heapOffset.low          & 0xff,
+          (heapOffset.low  >>>  8) & 0xff,
+          (heapOffset.low  >>> 16) & 0xff,
+          (heapOffset.low  >>> 24) & 0xff,
+           heapOffset.high         & 0xff,
+          (heapOffset.high >>>  8) & 0xff,
+          (heapOffset.high >>> 16) & 0xff,
+          (heapOffset.high >>> 24) & 0xff
         ])
       });
     }
 
-    const initialSize = Math.floor((this.memoryBase.sub(1).toNumber()) / 65536) + 1;
+    const initialSize = Math.floor((heapOffset.sub(1).toNumber()) / 65536) + 1;
     this.module.setMemory(initialSize, 0xffff, this.options.noRuntime ? "memory" :  undefined, binaryenSegments);
 
     // compile start function (initializes malloc mspaces)

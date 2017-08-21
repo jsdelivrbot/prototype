@@ -122,6 +122,7 @@ declare module 'assemblyscript/builtins' {
 declare module 'assemblyscript/compiler' {
   import * as binaryen from "binaryen";
   import * as Long from "long";
+  import Memory from "assemblyscript/memory";
   import Profiler from "assemblyscript/profiler";
   import * as reflection from "assemblyscript/reflection";
   import * as typescript from "assemblyscript/typescript";
@@ -151,13 +152,6 @@ declare module 'assemblyscript/compiler' {
       /** 64-bit WebAssembly target using ulong pointers. */
       WASM64 = 1,
   }
-  /** A static memory segment. */
-  export interface CompilerMemorySegment {
-      /** Offset in linear memory. */
-      offset: Long;
-      /** Data in linear memory. */
-      buffer: Uint8Array;
-  }
   /**
     * The AssemblyScript compiler.
     *
@@ -178,14 +172,9 @@ declare module 'assemblyscript/compiler' {
           [key: string]: binaryen.Signature;
       };
       globalInitializers: binaryen.Expression[];
-      memoryBase: Long;
-      memorySegments: CompilerMemorySegment[];
       target: CompilerTarget;
       profiler: Profiler;
       currentFunction: reflection.Function;
-      stringPool: {
-          [key: string]: CompilerMemorySegment;
-      };
       runtimeExports: string[];
       uintptrType: reflection.Type;
       functionTemplates: {
@@ -211,6 +200,7 @@ declare module 'assemblyscript/compiler' {
       pendingImplementations: {
           [key: string]: reflection.ClassTemplate;
       };
+      memory: Memory;
       /**
         * Compiles an AssemblyScript file to WebAssembly.
         * @param filename Entry file name
@@ -257,8 +247,6 @@ declare module 'assemblyscript/compiler' {
       initializeGlobal(node: typescript.VariableStatement): void;
       /** Adds a global variable. */
       addGlobal(name: string, type: reflection.Type, mutable: boolean, initializerNode?: typescript.Expression): void;
-      /** Creates or, if it already exists, looks up a static string and returns its offset in linear memory. */
-      createStaticString(value: string): Long;
       /** Initializes a top-level function. */
       initializeFunction(node: typescript.FunctionDeclaration): reflection.FunctionHandle;
       /** Initializes a class. */
@@ -595,6 +583,62 @@ declare module 'assemblyscript/util' {
   export function wastToWasm(text: string, options?: WastToWasmOptions): Uint8Array;
   /** Tests if a string starts with the specified. */
   export function startsWith(str: string, sub: string): boolean;
+  /** Writes an 8-bit integer value to a buffer at the specified offset. */
+  export function writeByte(buffer: Uint8Array, offset: number, value: number): number;
+  /** Writes a 1-bit integer value to a buffer at the specified offset. */
+  export function writeBool(buffer: Uint8Array, offset: number, value: any): number;
+  /** Writes a 16-bit integer value to a buffer at the specified offset. */
+  export function writeShort(buffer: Uint8Array, offset: number, value: number): number;
+  /** Writes a 32-bit integer value to a buffer at the specified offset. */
+  export function writeInt(buffer: Uint8Array, offset: number, value: number): number;
+  /** Writes a 64-bit integer value to a buffer at the specified offset. */
+  export function writeLong(buffer: Uint8Array, offset: number, value: Long): number;
+  /** Writes a 32-bit float value to a buffer at the specified offset. */
+  export function writeFloat(buffer: Uint8Array, offset: number, value: number): number;
+  /** Writes a 64-bit float value to a buffer at the specified offset. */
+  export function writeDouble(buffer: Uint8Array, offset: number, value: number): number;
+}
+
+declare module 'assemblyscript/memory' {
+  /**
+    * Static memory utilizies.
+    *
+    * @module assemblyscript/builtins
+    */ /** */
+  import Compiler from "assemblyscript/compiler";
+  import * as Long from "long";
+  import * as reflection from "assemblyscript/reflection";
+  /** A static memory segment. */
+  export interface MemorySegment {
+      /** Offset in static memory. */
+      offset: Long;
+      /** Contents. */
+      buffer: Uint8Array;
+  }
+  /** A static memory. */
+  export class Memory {
+      /** Compiler reference. */
+      compiler: Compiler;
+      /** Base offset. */
+      baseOffset: Long;
+      /** Current offset. */
+      currentOffset: Long;
+      /** Static memory segments. */
+      segments: MemorySegment[];
+      /** Pool of reusable static strings. */
+      stringPool: {
+          [key: string]: MemorySegment;
+      };
+      /** Constructs a new static memory instance. */
+      constructor(compiler: Compiler, baseOffset: number | Long);
+      /** Aligns the current offset to 8 bytes. */
+      align(): Long;
+      /** Creates a static string. */
+      createString(value: string, reuse?: boolean): MemorySegment;
+      /** Creates a static array. */
+      createArray(values: Array<number | Long>, type: reflection.Type): MemorySegment;
+  }
+  export { Memory as default };
 }
 
 declare module 'assemblyscript/expressions/arrayliteral' {
