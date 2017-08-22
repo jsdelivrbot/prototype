@@ -56,12 +56,14 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
       resultType = commonType;
       break;
 
-    // <<, <<=, >>, >>=
+    // <<, <<=, >>, >>=, >>>, >>>=
     // use left type, derive right type to compatible int
     case typescript.SyntaxKind.LessThanLessThanToken:
     case typescript.SyntaxKind.LessThanLessThanEqualsToken:
     case typescript.SyntaxKind.GreaterThanGreaterThanToken:
     case typescript.SyntaxKind.GreaterThanGreaterThanEqualsToken:
+    case typescript.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+    case typescript.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
       if (leftType.isAnyFloat) { // will actually generate an implicit conversion error but it's here for completeness
         left = compiler.compileExpression(node.left, reflection.longType, reflection.longType, false);
         leftType = reflection.longType;
@@ -273,18 +275,16 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
 
       case typescript.SyntaxKind.SlashToken:
       case typescript.SyntaxKind.SlashEqualsToken:
-        if (resultType.isSigned)
-          result = category.div_s(left, right);
-        else
-          result = category.div_u(left, right);
+        result = resultType.isSigned
+          ? category.div_s(left, right)
+          : category.div_u(left, right);
         break;
 
       case typescript.SyntaxKind.PercentToken:
       case typescript.SyntaxKind.PercentEqualsToken:
-        if (resultType.isSigned)
-          result = category.rem_s(left, right);
-        else
-          result = category.rem_u(left, right);
+        result = resultType.isSigned
+          ? category.rem_s(left, right)
+          : category.rem_u(left, right);
         break;
 
       case typescript.SyntaxKind.AmpersandToken:
@@ -309,10 +309,14 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
 
       case typescript.SyntaxKind.GreaterThanGreaterThanToken:
       case typescript.SyntaxKind.GreaterThanGreaterThanEqualsToken:
-        if (resultType.isSigned)
-          result = category.shr_s(left, right);
-        else
-          result = category.shr_u(left, right);
+        result = resultType.isSigned
+          ? category.shr_s(left, right)
+          : category.shr_u(left, right);
+        break;
+
+      case typescript.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+      case typescript.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+        result = category.shr_u(left, right);
         break;
 
       // Logical
@@ -327,31 +331,27 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
         break;
 
       case typescript.SyntaxKind.GreaterThanToken:
-        if (resultType.isSigned)
-          result = category.gt_s(left, right);
-        else
-          result = category.gt_u(left, right);
+        result = resultType.isSigned
+          ? category.gt_s(left, right)
+          : category.gt_u(left, right);
         break;
 
       case typescript.SyntaxKind.GreaterThanEqualsToken:
-        if (resultType.isSigned)
-          result = category.ge_s(left, right);
-        else
-          result = category.ge_u(left, right);
+        result = resultType.isSigned
+          ? category.ge_s(left, right)
+          : category.ge_u(left, right);
         break;
 
       case typescript.SyntaxKind.LessThanToken:
-        if (resultType.isSigned)
-          result = category.lt_s(left, right);
-        else
-          result = category.lt_u(left, right);
+        result = resultType.isSigned
+          ? category.lt_s(left, right)
+          : category.lt_u(left, right);
         break;
 
       case typescript.SyntaxKind.LessThanEqualsToken:
-        if (resultType.isSigned)
-          result = category.le_s(left, right);
-        else
-          result = category.le_u(left, right);
+        result = resultType.isSigned
+          ? category.le_s(left, right)
+          : category.le_u(left, right);
         break;
 
     }
