@@ -115,6 +115,14 @@ export function isRuntimeFunction(name: string, isGlobalName: boolean = true): b
   return runtimeNames.indexOf(name) > -1;
 }
 
+/** Global variable values. */
+export const globals: { [key: string]: number } = {
+  [LIB_PREFIX + "NaN"]: NaN,
+  [LIB_PREFIX + "NaNf"]: NaN,
+  [LIB_PREFIX + "Infinity"]: Infinity,
+  [LIB_PREFIX + "Infinityf"]: Infinity
+};
+
 /** A pair of TypeScript expressions. */
 export interface TypeScriptExpressionPair {
   0: typescript.Expression;

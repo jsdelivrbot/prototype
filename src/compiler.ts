@@ -8,6 +8,7 @@ import * as nodePath from "path";
 import * as builtins from "./builtins";
 import * as expressions from "./expressions";
 import compileStore from "./expressions/helpers/store";
+import * as arrayHelper from "./expressions/helpers/array";
 import * as library from "./library";
 import Memory from "./memory";
 import Profiler from "./profiler";
@@ -362,19 +363,51 @@ export class Compiler {
   /** Adds a global variable. */
   addGlobal(name: string, type: reflection.Type, mutable: boolean, initializerNode?: typescript.Expression): void {
     const op = this.module;
-    let flags: reflection.VariableFlags = reflection.VariableFlags.global;
-    if (!mutable)
-      flags |= reflection.VariableFlags.constant;
 
-    const global = this.globals[name] = new reflection.Variable(this, name, type, flags, 0);
+    const global = this.globals[name] = new reflection.Variable(this, name, type, reflection.VariableFlags.global, 0);
+    if (!mutable)
+      global.flags |= reflection.VariableFlags.constant;
 
     if (initializerNode) {
+      let arrayValues: Array<number | Long> | null;
 
+      // numeric literals become globals right away
       if (initializerNode.kind === typescript.SyntaxKind.NumericLiteral) {
         op.addGlobal(name, this.typeOf(type), mutable, expressions.compileLiteral(this, <typescript.LiteralExpression>initializerNode, type));
 
+      // constant numeric array literals and initializers go to memory
+      } else if (
+        !mutable &&
+        type.isArray &&
+        (
+          initializerNode.kind === typescript.SyntaxKind.ArrayLiteralExpression &&
+          (arrayValues = arrayHelper.evaluateNumericArrayLiteral((<reflection.Class>type.underlyingClass).typeArgumentsMap.T.type, <typescript.ArrayLiteralExpression>initializerNode)) !== null
+        ) || (
+          initializerNode.kind === typescript.SyntaxKind.NewExpression &&
+          (arrayValues = arrayHelper.evaluateNumericArrayInitializer((<reflection.Class>type.underlyingClass).typeArgumentsMap.T.type, <typescript.NewExpression>initializerNode)) !== null
+        )
+      ) {
+        const segment = this.memory.createArray(arrayValues, (<reflection.Class>type.underlyingClass).typeArgumentsMap.T.type);
+        op.addGlobal(name, this.typeOf(type), false, this.valueOf(this.uintptrType, segment.offset));
+
+      // constant string literals and initializers go to memory as well (and are not reused)
+      } else if (
+        !mutable &&
+        type.isString &&
+        (
+          initializerNode.kind === typescript.SyntaxKind.StringLiteral &&
+          (arrayValues = arrayHelper.evaluateStringLiteralAsArray(<typescript.StringLiteral>initializerNode)) !== null
+        ) || (
+          initializerNode.kind === typescript.SyntaxKind.NewExpression &&
+          (arrayValues = arrayHelper.evaluateStringInitializerAsArray(<typescript.NewExpression>initializerNode)) !== null
+        )
+      ) {
+        const segment = this.memory.createArray(arrayValues, (<reflection.Class>type.underlyingClass).typeArgumentsMap.T.type);
+        op.addGlobal(name, this.typeOf(type), false, this.valueOf(this.uintptrType, segment.offset));
+
+      // mutables become zeroed globals with a start function initializer
       } else if (mutable) {
-        op.addGlobal(name, this.typeOf(type), mutable, this.valueOf(type, 0));
+        op.addGlobal(name, this.typeOf(type), true, this.valueOf(type, 0));
 
         if (!this.startFunction)
           this.startFunction = createStartFunction(this);
@@ -387,23 +420,22 @@ export class Compiler {
         );
 
         this.currentFunction = previousFunction;
+
       } else
         this.report(initializerNode, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, initializerNode.kind, "Compiler#addGlobal");
 
     } else {
-      let value: number = 0;
-      switch (name) {
-        case LIB_PREFIX + "NaN":
-        case LIB_PREFIX + "NaNf":
-          value = NaN;
-          break;
-        case LIB_PREFIX + "Infinity":
-        case LIB_PREFIX + "Infinityf":
-          value = Infinity;
-          break;
-      }
-      if (global.isConstant) // enable inlining so these globals can be eliminated by the optimizer
+
+      let value = 0;
+
+      // handle built-ins
+      if (builtins.globals.hasOwnProperty(name))
+        value = builtins.globals[name];
+
+      // enable inlining if constant
+      if (global.isConstant)
         global.value = value;
+
       op.addGlobal(name, this.typeOf(type), mutable, this.valueOf(type, value));
     }
   }
@@ -634,18 +666,11 @@ export class Compiler {
     // initialize runtime heap pointer
     const heapOffset = this.memory.align();
     if (!this.options.noRuntime) {
+      const buffer = new Uint8Array(8);
+      util.writeLong(buffer, 0, heapOffset);
       binaryenSegments.unshift({
         offset: this.valueOf(this.uintptrType, 8),
-        data: new Uint8Array([
-           heapOffset.low          & 0xff,
-          (heapOffset.low  >>>  8) & 0xff,
-          (heapOffset.low  >>> 16) & 0xff,
-          (heapOffset.low  >>> 24) & 0xff,
-           heapOffset.high         & 0xff,
-          (heapOffset.high >>>  8) & 0xff,
-          (heapOffset.high >>> 16) & 0xff,
-          (heapOffset.high >>> 24) & 0xff
-        ])
+        data: buffer
       });
     }
 

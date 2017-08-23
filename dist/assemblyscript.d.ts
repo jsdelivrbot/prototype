@@ -59,6 +59,10 @@ declare module 'assemblyscript/builtins' {
   export const runtimeNames: string[];
   /** Tests if the specified function name corresponds to a linked runtime function. */
   export function isRuntimeFunction(name: string, isGlobalName?: boolean): boolean;
+  /** Global variable values. */
+  export const globals: {
+      [key: string]: number;
+  };
   /** A pair of TypeScript expressions. */
   export interface TypeScriptExpressionPair {
       0: typescript.Expression;
@@ -471,6 +475,7 @@ declare module 'assemblyscript/typescript' {
   export import SetAccessorDeclaration = ts.SetAccessorDeclaration;
   export import SourceFile = ts.SourceFile;
   export import Statement = ts.Statement;
+  export import StringLiteral = ts.StringLiteral;
   export import SwitchStatement = ts.SwitchStatement;
   export import Symbol = ts.Symbol;
   export import SyntaxKind = ts.SyntaxKind;

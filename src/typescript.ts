@@ -80,6 +80,7 @@ export import ScriptTarget = ts.ScriptTarget;
 export import SetAccessorDeclaration = ts.SetAccessorDeclaration;
 export import SourceFile = ts.SourceFile;
 export import Statement = ts.Statement;
+export import StringLiteral = ts.StringLiteral;
 export import SwitchStatement = ts.SwitchStatement;
 export import Symbol = ts.Symbol;
 export import SyntaxKind = ts.SyntaxKind;

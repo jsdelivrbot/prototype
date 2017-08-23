@@ -1,4 +1,5 @@
  (export "testInt" (func $testInt))
+ (export "testLong" (func $testLong))
  (export "testFloat" (func $testFloat))
  (export "testDouble" (func $testDouble))
  (export "memory" (memory $0))
@@ -97,6 +98,140 @@
    (i32.shr_s
     (get_local $0)
     (get_local $1)
+   )
+  )
+  (drop
+   (i32.shr_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+ )
+ (func $testLong (type $IIiv) (param $0 i64) (param $1 i64) (param $2 i32)
+  (drop
+   (i64.add
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.sub
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.mul
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.div_s
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.eq
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.ne
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.gt_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.ge_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.lt_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.le_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.rem_s
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.and
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.or
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.xor
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.shl
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.shr_s
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.shr_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.shl
+    (get_local $0)
+    (i64.extend_s/i32
+     (get_local $2)
+    )
+   )
+  )
+  (drop
+   (i64.shr_s
+    (get_local $0)
+    (i64.extend_s/i32
+     (get_local $2)
+    )
+   )
+  )
+  (drop
+   (i64.shr_u
+    (get_local $0)
+    (i64.extend_s/i32
+     (get_local $2)
+    )
    )
   )
  )

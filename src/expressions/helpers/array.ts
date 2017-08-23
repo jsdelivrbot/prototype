@@ -2,6 +2,7 @@
 
 import * as binaryen from "binaryen";
 import { Compiler } from "../../compiler";
+import * as Long from "long";
 import compileStore from "./store";
 import * as reflection from "../../reflection";
 import * as typescript from "../../typescript";
@@ -47,3 +48,70 @@ export function compileNewArray(compiler: Compiler, elementType: reflection.Type
 }
 
 export { compileNewArray as default };
+
+/** Evaluates a numeric array literal. Returns `null` if any element is not a numeric literal. */
+export function evaluateNumericArrayLiteral(elementType: reflection.Type, node: typescript.ArrayLiteralExpression): Array<number | Long> | null {
+  if (!(elementType.isAnyFloat || elementType.isAnyInteger))
+    return null;
+  const array = new Array(node.elements.length);
+  let index = 0;
+  for (const element of node.elements) {
+    switch (element.kind) {
+      case typescript.SyntaxKind.NumericLiteral:
+        array[index++] = elementType.isLong
+          ? Long.fromString((<typescript.NumericLiteral>element).text, !elementType.isSigned)
+          : elementType.isAnyFloat
+            ? parseFloat((<typescript.NumericLiteral>element).text)
+            : parseInt((<typescript.NumericLiteral>element).text, 10) | 0;
+        break;
+      case typescript.SyntaxKind.OmittedExpression:
+        array[index++] = 0;
+        break;
+      default:
+        return null;
+    }
+  }
+  return array;
+}
+
+/** Evaluates a numeric array initializer. Returns `null` if it isn't (a proper) one. */
+export function evaluateNumericArrayInitializer(elementType: reflection.Type, node: typescript.NewExpression): number[] | null {
+  if (!(
+    (elementType.isAnyFloat || elementType.isAnyInteger) &&
+    node.expression.kind === typescript.SyntaxKind.Identifier && typescript.getTextOfNode(node.expression) === "Array" &&
+    node.arguments && node.arguments.length === 1 && node.arguments[0].kind === typescript.SyntaxKind.NumericLiteral
+  ))
+    return null;
+  const length = parseInt((<typescript.NumericLiteral>node.arguments[0]).text, 10);
+  if (length < 0 || length > 0x7fffffff)
+    return null;
+  const array = new Array(length);
+  for (let i = 0; i < length; ++i)
+    array[i] = 0;
+  return array;
+}
+
+/** Evaluates a string literal as an array. */
+export function evaluateStringLiteralAsArray(node: typescript.StringLiteral): number[] {
+  const text = node.text;
+  const array = <number[]><any>new Uint16Array(text.length);
+  for (let i = 0; i < text.length; ++i)
+    array[i] = text.charCodeAt(i);
+  return array;
+}
+
+/** Evaluates a string initializer as an array. Returns `null` if it isn't (a proper) one. */
+export function evaluateStringInitializerAsArray(node: typescript.NewExpression): number[] | null {
+  if (!(
+    node.expression.kind === typescript.SyntaxKind.Identifier && typescript.getTextOfNode(node.expression) === "String" &&
+    node.arguments && node.arguments.length === 1 && node.arguments[0].kind === typescript.SyntaxKind.NumericLiteral
+  ))
+    return null;
+  const length = parseInt((<typescript.NumericLiteral>node.arguments[0]).text, 10);
+  if (length < 0 || length > 0x7fffffff)
+    return null;
+  const array = <number[]><any>new Uint16Array(length);
+  for (let i = 0; i < length; ++i)
+    array[i] = 0;
+  return array;
+}

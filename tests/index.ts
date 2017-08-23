@@ -232,10 +232,10 @@ function runTests(kind: string, exports: typeof assemblyscript) {
 
 // utility
 
-/** Strips everything before the first export. */
+/** Strips everything before the first data or export segment. */
 function distill(text: string): string {
   text = text.replace(/\r\n/g, "\n");
-  const match = /^ *\(export/m.exec(text);
+  const match = /^ *\((data|export)/m.exec(text);
   if (match)
     return text.substring(match.index).replace(/\n\)\n?$/, "\n");
   return text;
