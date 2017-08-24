@@ -25,6 +25,7 @@
   "scripts": {
     "build:runtime": "node scripts/build-runtime",
     "build:typescript": "tsc -P lib/typescript && echo export = ts; >> lib/typescript/build/index.d.ts",
+    "build:loader": "tsc -P lib/loader/src",
     "build:alldeps": "node scripts/build-check && npm run build:runtime && npm run build:typescript",
     "build:diagnostics": "node scripts/build-diagnostics",
     "build:library": "node scripts/build-library",

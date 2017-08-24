@@ -1,7 +1,7 @@
 import * as tape from "tape";
-import { hexdump, IModule, arrayHeaderSize, LogType } from "../util";
+import { hexdump, Module, arrayHeaderSize, LogType } from "../util";
 
-export function test(test: tape.Test, module: IModule) {
+export function test(test: tape.Test, module: Module) {
   let logCount = 0;
   let infoCount = 0;
   let warnCount = 0;

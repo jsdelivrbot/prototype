@@ -174,7 +174,7 @@ function runTests(kind: string, exports: typeof assemblyscript) {
         })
         .then(module => runner(test, module))
         .catch(err => {
-          test.fail("loading " + name + ".wasm should not be rejected (" + err.message + ")");
+          test.fail("should not be rejected (" + err.message + ")");
           console.log(err.stack.replace(/^/mg, "> "));
           test.end();
         });

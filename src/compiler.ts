@@ -405,8 +405,11 @@ export class Compiler {
         const segment = this.memory.createArray(arrayValues, (<reflection.Class>type.underlyingClass).typeArgumentsMap.T.type);
         op.addGlobal(name, this.typeOf(type), false, this.valueOf(this.uintptrType, segment.offset));
 
-      // mutables become zeroed globals with a start function initializer
-      } else if (mutable) {
+      // mutables (and everything else) become zeroed globals with a start function initializer
+      } else {
+        if (!mutable)
+          this.report(initializerNode, typescript.DiagnosticsEx.Compiling_global_with_unsupported_constant_initializer_expression_as_mutable);
+
         op.addGlobal(name, this.typeOf(type), true, this.valueOf(type, 0));
 
         if (!this.startFunction)
@@ -420,9 +423,7 @@ export class Compiler {
         );
 
         this.currentFunction = previousFunction;
-
-      } else
-        this.report(initializerNode, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, initializerNode.kind, "Compiler#addGlobal");
+      }
 
     } else {
 

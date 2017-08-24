@@ -1,15 +1,16 @@
 import * as tape from "tape";
-import { hexdump, IModule, arrayHeaderSize } from "../util";
+import { hexdump, Module, arrayHeaderSize } from "../util";
 
-export function test(test: tape.Test, module: IModule) {
+export function test(test: tape.Test, module: Module) {
 
   const exports = module.exports;
+  const memory = module.memory;
 
   // getArray(): int[] -> pointer
   let ptr = exports.getArray() >>> 0;
 
   // verify initial contents
-  console.log(hexdump(module.buffer, ptr, arrayHeaderSize + 12));
+  console.log(hexdump(memory, ptr, arrayHeaderSize + 12));
   test.strictEqual(exports.getArrayCapacity(), 3, "should have initialized an array of capacity 3");
   test.strictEqual(exports.getArrayLength(), 3, "should have initialized an array of size 3");
   test.strictEqual(exports.getArrayElement(0), 1, "should have initialized a[0] = 1");
@@ -19,17 +20,17 @@ export function test(test: tape.Test, module: IModule) {
   test.strictEqual(exports.getArrayElement2(), 3, "should get a[2] = 3 (optimized)");
 
   // create a new array (this calls malloc) of size 3 with 4-byte (int) elements
-  let array = module.array.create(3, 4);
+  let array = memory.array.create(3, 4);
 
   // set values to 4, 5, 6
   for (let i = 0; i < 3; ++i)
-    module.int.set(array.base + i * 4, i + 4);
+    memory.int.set(array.base + i * 4, i + 4);
 
   // set the entire array by reference (its pointer value)
   exports.setArray(array.ptr);
 
   // verify that 'a' now references the new array
-  console.log(hexdump(module.buffer, array.ptr, arrayHeaderSize + 12));
+  console.log(hexdump(memory, array.ptr, arrayHeaderSize + 12));
   test.strictEqual(exports.getArray(), array.ptr, "should now reference the temporary array");
   test.strictEqual(exports.getArrayElement(0), 4, "should return a[0] = 4");
   test.strictEqual(exports.getArrayElement(1), 5, "should return a[1] = 5");
@@ -41,7 +42,7 @@ export function test(test: tape.Test, module: IModule) {
   exports.setArrayElement(2, 9);
 
   // verify that the values have been changed
-  console.log(hexdump(module.buffer, array.ptr, arrayHeaderSize + 12));
+  console.log(hexdump(memory, array.ptr, arrayHeaderSize + 12));
   test.strictEqual(exports.getArray(), array.ptr, "should still reference the temporary array");
   test.strictEqual(exports.getArrayElement(0), 7, "should return a[0] = 7");
   test.strictEqual(exports.getArrayElement(1), 8, "should return a[1] = 8");
@@ -51,7 +52,7 @@ export function test(test: tape.Test, module: IModule) {
   exports.setArrayFrom(ptr);
 
   // verify that the values have been changed
-  console.log(hexdump(module.buffer, array.ptr, arrayHeaderSize + 12));
+  console.log(hexdump(memory, array.ptr, arrayHeaderSize + 12));
   test.strictEqual(exports.getArray(), array.ptr, "should still reference the temporary array");
   test.strictEqual(exports.getArrayElement(0), 1, "should return a[0] = 1");
   test.strictEqual(exports.getArrayElement(1), 2, "should return a[1] = 2");
@@ -62,7 +63,7 @@ export function test(test: tape.Test, module: IModule) {
   exports.free(array.ptr);
 
   // verify that the reference has been changed
-  console.log(hexdump(module.buffer, ptr, arrayHeaderSize + 12));
+  console.log(hexdump(memory, ptr, arrayHeaderSize + 12));
   test.strictEqual(exports.getArray(), ptr, "should now reference the initial array again");
   test.strictEqual(exports.getArrayElement(0), 1, "should return a[0] = 1");
   test.strictEqual(exports.getArrayElement(1), 2, "should return a[1] = 2");

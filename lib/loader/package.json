@@ -27,7 +27,7 @@
     "README.md"
   ],
   "dependencies": {
-    "@types/long": "^3.0.31",
+    "@types/long": "^3.0.32",
     "@types/webassembly-js-api": "0.0.1",
     "long": "^3.2.0"
   }

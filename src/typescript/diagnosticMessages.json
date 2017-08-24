@@ -82,5 +82,9 @@
   "Function without a return type cannot return a value.": {
     "code": 120,
     "category": "Error"
+  },
+  "Compiling global with unsupported constant initializer expression as mutable.": {
+    "code": 121,
+    "category": "Warning"
   }
 }

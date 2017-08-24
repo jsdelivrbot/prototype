@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "types": [
+      "webassembly-js-api",
+      "long",
+      "node"
+    ],
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "declaration": true,
+    "outDir": "..",
+    "removeComments": true
+  },
+  "files": [
+    "index.ts"
+  ]
+}
