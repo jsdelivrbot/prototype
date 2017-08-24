@@ -147,7 +147,7 @@ API
   * **create**(value: `string`): `number`<br />
     Creates a string in memory and returns its pointer.
 
-* **initializeMemory**(memoryInstance: `WebAssembly.Memory`, malloc: `Function`, memset: `Function`): `Memory`**<br />
+* **initializeMemory**(memoryInstance: `WebAssembly.Memory`, malloc: `Function`, memset: `Function`): `Memory`<br />
   Just populates a WebAssembly Memory instance with the AssemblyScript-typical accessors.
 
 * **xfetch**(file: `string`): `Promise<Response>`<br />

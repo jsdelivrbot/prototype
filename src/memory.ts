@@ -47,6 +47,14 @@ export class Memory {
       : this.currentOffset = this.currentOffset.or(7).add(1);
   }
 
+  /** Creates a static segment. */
+  /* createBuffer(buffer: Uint8Array): MemorySegment {
+    const offset = this.align();
+    const segment = { offset, buffer };
+    this.segments.push(segment);
+    return segment;
+  } */
+
   /** Creates a static string. */
   createString(value: string, reuse: boolean = true): MemorySegment {
     if (reuse && this.stringPool.hasOwnProperty(value))
@@ -64,7 +72,7 @@ export class Memory {
   }
 
   /** Creates a static array. */
-  createArray(values: Array<number | Long>, type: reflection.Type): MemorySegment {
+  createArray(values: Array<number | Long | string | null>, type: reflection.Type): MemorySegment {
     const startOffset = this.align();
     const length = values.length;
     const buffer = new Uint8Array(this.compiler.arrayHeaderSize + type.size * length);
@@ -109,7 +117,7 @@ export class Memory {
       case reflection.TypeKind.long:
       case reflection.TypeKind.ulong:
         for (const value of values)
-          innerOffset += util.writeLong(buffer, innerOffset, Long.fromValue(value));
+          innerOffset += util.writeLong(buffer, innerOffset, Long.fromValue(<Long>value));
         break;
 
       case reflection.TypeKind.uintptr: {
@@ -118,7 +126,7 @@ export class Memory {
             innerOffset += util.writeInt(buffer, innerOffset, Long.isLong(value) ? (<Long>value).toInt() : <number>value);
         else
           for (const value of values)
-            innerOffset += util.writeLong(buffer, innerOffset, Long.fromValue(value));
+            innerOffset += util.writeLong(buffer, innerOffset, Long.fromValue(<Long>value));
         break;
       }
       case reflection.TypeKind.float:
@@ -138,9 +146,7 @@ export class Memory {
     return segment;
   }
 
-  // TODO
-  // createInstance(values: { [key: string]: any }, type: reflection.Class): MemorySegment {
-  // }
+  // createInstance ?
 }
 
 export { Memory as default };

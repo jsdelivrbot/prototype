@@ -201,3 +201,9 @@ export function printDiagnostic(diagnostic: Diagnostic): void {
       (console.error || console.log)(formatDiagnostics([ diagnostic ], defaultFormatDiagnosticsHost));
   }
 }
+
+/** Gets the name of a symbol.  */
+export function getNameOfSymbol(symbol: Symbol): string {
+  // FIXME: there's probably a better way than using a Symbol at all
+  return <string>symbol.escapedName;
+}

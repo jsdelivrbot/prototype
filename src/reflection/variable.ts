@@ -43,6 +43,8 @@ export class Variable {
   get isConstant(): boolean { return (this.flags & VariableFlags.constant) !== 0; }
   /** Tests if this is a global variable. */
   get isGlobal(): boolean { return (this.flags & VariableFlags.global) !== 0; }
+  /** Tests if this variable's value is inlined. */
+  get isInlined(): boolean { return this.isConstant && this.value != null; }
 
   toString(): string { return this.name; }
 }

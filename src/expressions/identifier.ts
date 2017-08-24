@@ -17,8 +17,8 @@ export function compileIdentifier(compiler: Compiler, node: typescript.Identifie
     const variable = <reflection.Variable>reference;
     util.setReflectedType(node, variable.type);
 
-    if (variable.isConstant && variable.value != null) // inline
-      return compiler.valueOf(variable.type, variable.value);
+    if (variable.isInlined)
+      return compiler.valueOf(variable.type, <number | Long>variable.value);
 
     return variable.isGlobal
       ? op.getGlobal(variable.name, compiler.typeOf(variable.type))

@@ -2,8 +2,10 @@
 
 import * as binaryen from "binaryen";
 import { Compiler } from "../compiler";
+import { tryParseLiteral } from "../expressions/literal";
 import * as reflection from "../reflection";
 import * as typescript from "../typescript";
+import * as util from "../util";
 
 /** Compiles a variable declaration statement. */
 export function compileVariable(compiler: Compiler, node: typescript.VariableStatement): binaryen.Statement {
@@ -18,6 +20,7 @@ export function compileVariableDeclarationList(compiler: Compiler, node: typescr
 
   const initializers: binaryen.Expression[] = [];
   let lastType: reflection.Type | undefined;
+  const mutable = !util.isConst(node);
   for (let i = 0, k = node.declarations.length; i < k; ++i) {
     const declaration = node.declarations[i];
     const declarationName = typescript.getTextOfNode(declaration.name);
@@ -34,7 +37,21 @@ export function compileVariableDeclarationList(compiler: Compiler, node: typescr
       compiler.report(declaration.name, typescript.DiagnosticsEx.Type_expected);
       continue;
     }
-    const local = compiler.currentFunction.addLocal(declarationName, declarationType);
+    if (!mutable && declarationType.isNumeric) { // try to inline
+      if (declaration.initializer) {
+        if (declaration.initializer.kind === typescript.SyntaxKind.NumericLiteral) {
+          const parsed = tryParseLiteral(<typescript.LiteralExpression>declaration.initializer, declarationType);
+          if (parsed !== null) {
+            compiler.currentFunction.addLocal(declarationName, declarationType, false, <number | Long>parsed);
+            continue;
+          }
+        }
+      } else {
+        compiler.currentFunction.addLocal(declarationName, declarationType, false, 0);
+        continue;
+      }
+    }
+    const local = compiler.currentFunction.addLocal(declarationName, declarationType, mutable);
     if (declaration.initializer)
       initializers.push(op.setLocal(local.index, compiler.compileExpression(declaration.initializer, declarationType, declarationType, false)));
   }

@@ -178,8 +178,8 @@ export class Function extends FunctionBase {
   get breakLabel(): string { return this.breakNumber + "." + this.breakDepth; }
 
   /** Introduces an additional local variable of the specified name and type. */
-  addLocal(name: string, type: Type): Variable {
-    const variable = new Variable(this.compiler, name, type, VariableFlags.none, this.locals.length);
+  addLocal(name: string, type: Type, mutable: boolean = true, value?: number | Long): Variable {
+    const variable = new Variable(this.compiler, name, type, mutable ? VariableFlags.none : VariableFlags.constant, this.locals.length, value);
     this.locals.push(variable);
     this.localsByName[variable.name] = variable;
     return variable;

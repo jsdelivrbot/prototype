@@ -348,7 +348,7 @@ export class Compiler {
         if (!declaration.symbol)
           throw Error("symbol expected");
 
-        const name = this.mangleGlobalName(<string>declaration.symbol.escapedName, typescript.getSourceFileOfNode(declaration));
+        const name = this.mangleGlobalName(typescript.getNameOfSymbol(declaration.symbol), typescript.getSourceFileOfNode(declaration));
         const type = this.resolveType(declaration.type);
 
         if (type)
@@ -369,10 +369,17 @@ export class Compiler {
       global.flags |= reflection.VariableFlags.constant;
 
     if (initializerNode) {
-      let arrayValues: Array<number | Long> | null;
+      let arrayValues: Array<number | Long | string | null> | null;
 
       // numeric literals become globals right away
       if (initializerNode.kind === typescript.SyntaxKind.NumericLiteral) {
+        if (global.isConstant) {
+          const parsed = expressions.tryParseLiteral(<typescript.LiteralExpression>initializerNode, type);
+          if (parsed !== null) { // inline
+            global.value = <number | Long>parsed;
+            return;
+          }
+        }
         op.addGlobal(name, this.typeOf(type), mutable, expressions.compileLiteral(this, <typescript.LiteralExpression>initializerNode, type));
 
       // constant numeric array literals and initializers go to memory
@@ -381,10 +388,10 @@ export class Compiler {
         type.isArray &&
         (
           initializerNode.kind === typescript.SyntaxKind.ArrayLiteralExpression &&
-          (arrayValues = arrayHelper.evaluateNumericArrayLiteral((<reflection.Class>type.underlyingClass).typeArgumentsMap.T.type, <typescript.ArrayLiteralExpression>initializerNode)) !== null
+          (arrayValues = expressions.tryParseArrayLiteral(<typescript.ArrayLiteralExpression>initializerNode, type)) !== null
         ) || (
           initializerNode.kind === typescript.SyntaxKind.NewExpression &&
-          (arrayValues = arrayHelper.evaluateNumericArrayInitializer((<reflection.Class>type.underlyingClass).typeArgumentsMap.T.type, <typescript.NewExpression>initializerNode)) !== null
+          (arrayValues = arrayHelper.evaluateNumericArrayInitializer(<typescript.NewExpression>initializerNode, (<reflection.Class>type.underlyingClass).typeArgumentsMap.T.type)) !== null
         )
       ) {
         const segment = this.memory.createArray(arrayValues, (<reflection.Class>type.underlyingClass).typeArgumentsMap.T.type);
@@ -433,9 +440,11 @@ export class Compiler {
       if (builtins.globals.hasOwnProperty(name))
         value = builtins.globals[name];
 
-      // enable inlining if constant
-      if (global.isConstant)
+      // inline if constant
+      if (global.isConstant) {
         global.value = value;
+        return;
+      }
 
       op.addGlobal(name, this.typeOf(type), mutable, this.valueOf(type, value));
     }
@@ -715,7 +724,8 @@ export class Compiler {
     // make sure to check for additional locals
     const additionalLocals: binaryen.Type[] = [];
     for (i = 0; i < this.startFunction.locals.length; ++i)
-      additionalLocals.push(this.typeOf(this.startFunction.locals[i].type));
+      if (!this.startFunction.locals[i].isInlined)
+        additionalLocals.push(this.typeOf(this.startFunction.locals[i].type));
 
     // and finally add the function
     const startSignature = this.getOrAddSignature([], reflection.voidType);
@@ -795,7 +805,7 @@ export class Compiler {
     const body: binaryen.Statement[] = [];
     const previousFunction = this.currentFunction;
     this.currentFunction = instance;
-    const initialLocalsIndex = instance.locals.length;
+    const initialLocalsLength = instance.locals.length;
 
     for (let i = /* skip this */ 1; i < instance.parameters.length; ++i) {
       const param = instance.parameters[i];
@@ -851,7 +861,12 @@ export class Compiler {
 
     } // TODO: what to do with instance property initializers with explicit malloc? set afterwards, using the ctor's return value?
 
-    const additionalLocals = instance.locals.slice(initialLocalsIndex).map(local => this.typeOf(local.type));
+    const additionalLocals: binaryen.Type[] = [];
+    for (let i = initialLocalsLength; i < instance.locals.length; ++i) {
+      const local = instance.locals[i];
+      if (!local.isInlined)
+        additionalLocals.push(this.typeOf(local.type));
+    }
     const binaryenFunction = instance.binaryenFunction = this.module.addFunction(instance.name, instance.binaryenSignature, additionalLocals, op.block("", body));
 
     if (instance.isExport)
@@ -1122,7 +1137,7 @@ export class Compiler {
   maybeResolveAlias(symbol: typescript.Symbol): typescript.Symbol {
 
     // Exit early (before hitting 'number') if it's a built in type
-    switch (symbol.escapedName) {
+    switch (typescript.getNameOfSymbol(symbol)) {
       case "byte":
       case "sbyte":
       case "short":
@@ -1193,7 +1208,7 @@ export class Compiler {
           if (symbol) {
 
             // Exit early if it's a basic type
-            switch (symbol.escapedName) {
+            switch (typescript.getNameOfSymbol(symbol)) {
               case "byte": return reflection.byteType;
               case "sbyte": return reflection.sbyteType;
               case "short": return reflection.shortType;
@@ -1258,7 +1273,7 @@ export class Compiler {
 
       for (let i = 0, k = symbol.declarations.length; i < k; ++i) {
         const declaration = symbol.declarations[i];
-        const globalName = this.mangleGlobalName(<string>symbol.escapedName, typescript.getSourceFileOfNode(declaration));
+        const globalName = this.mangleGlobalName(typescript.getNameOfSymbol(symbol), typescript.getSourceFileOfNode(declaration));
 
         if (filter & reflection.ObjectFlags.Variable && this.globals[globalName])
           return this.globals[globalName];

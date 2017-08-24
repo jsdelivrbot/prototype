@@ -2,7 +2,6 @@
 
 import * as binaryen from "binaryen";
 import { Compiler } from "../../compiler";
-import * as Long from "long";
 import compileStore from "./store";
 import * as reflection from "../../reflection";
 import * as typescript from "../../typescript";
@@ -49,35 +48,10 @@ export function compileNewArray(compiler: Compiler, elementType: reflection.Type
 
 export { compileNewArray as default };
 
-/** Evaluates a numeric array literal. Returns `null` if any element is not a numeric literal. */
-export function evaluateNumericArrayLiteral(elementType: reflection.Type, node: typescript.ArrayLiteralExpression): Array<number | Long> | null {
-  if (!(elementType.isAnyFloat || elementType.isAnyInteger))
-    return null;
-  const array = new Array(node.elements.length);
-  let index = 0;
-  for (const element of node.elements) {
-    switch (element.kind) {
-      case typescript.SyntaxKind.NumericLiteral:
-        array[index++] = elementType.isLong
-          ? Long.fromString((<typescript.NumericLiteral>element).text, !elementType.isSigned)
-          : elementType.isAnyFloat
-            ? parseFloat((<typescript.NumericLiteral>element).text)
-            : parseInt((<typescript.NumericLiteral>element).text, 10) | 0;
-        break;
-      case typescript.SyntaxKind.OmittedExpression:
-        array[index++] = 0;
-        break;
-      default:
-        return null;
-    }
-  }
-  return array;
-}
-
 /** Evaluates a numeric array initializer. Returns `null` if it isn't (a proper) one. */
-export function evaluateNumericArrayInitializer(elementType: reflection.Type, node: typescript.NewExpression): number[] | null {
+export function evaluateNumericArrayInitializer(node: typescript.NewExpression, elementType: reflection.Type): number[] | null {
   if (!(
-    (elementType.isAnyFloat || elementType.isAnyInteger) &&
+    elementType.isNumeric &&
     node.expression.kind === typescript.SyntaxKind.Identifier && typescript.getTextOfNode(node.expression) === "Array" &&
     node.arguments && node.arguments.length === 1 && node.arguments[0].kind === typescript.SyntaxKind.NumericLiteral
   ))

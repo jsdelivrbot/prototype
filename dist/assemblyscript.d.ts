@@ -502,6 +502,8 @@ declare module 'assemblyscript/typescript' {
   export function formatDiagnosticsWithColorAndContext(diagnostics: Diagnostic[], host?: FormatDiagnosticsHost): string;
   /** Prints a diagnostic message to console. */
   export function printDiagnostic(diagnostic: Diagnostic): void;
+  /** Gets the name of a symbol.  */
+  export function getNameOfSymbol(symbol: Symbol): string;
 }
 
 declare module 'assemblyscript/statements' {
@@ -641,7 +643,7 @@ declare module 'assemblyscript/memory' {
       /** Creates a static string. */
       createString(value: string, reuse?: boolean): MemorySegment;
       /** Creates a static array. */
-      createArray(values: Array<number | Long>, type: reflection.Type): MemorySegment;
+      createArray(values: Array<number | Long | string | null>, type: reflection.Type): MemorySegment;
   }
   export { Memory as default };
 }
@@ -650,10 +652,13 @@ declare module 'assemblyscript/expressions/arrayliteral' {
   /** @module assemblyscript/expressions */ /** */
   import * as binaryen from "binaryen";
   import Compiler from "assemblyscript/compiler";
+  import * as Long from "long";
   import * as reflection from "assemblyscript/reflection";
   import * as typescript from "assemblyscript/typescript";
   /** Compiles an array literal expression. */
   export function compileArrayLiteral(compiler: Compiler, node: typescript.ArrayLiteralExpression, contextualType: reflection.Type): binaryen.Expression;
+  /** Tries to parse an array literal expression. Returns `null` if that's not possible. */
+  export function tryParseArrayLiteral(node: typescript.ArrayLiteralExpression, contextualType: reflection.Type): Array<number | Long | string | null> | null;
 }
 
 declare module 'assemblyscript/expressions/as' {
@@ -766,11 +771,22 @@ declare module 'assemblyscript/expressions/literal' {
   /** @module assemblyscript/expressions */ /** */
   import * as binaryen from "binaryen";
   import Compiler from "assemblyscript/compiler";
+  import * as Long from "long";
   import * as reflection from "assemblyscript/reflection";
   import * as typescript from "assemblyscript/typescript";
   /** Compiles a literal expression. */
   export function compileLiteral(compiler: Compiler, node: typescript.LiteralExpression, contextualType: reflection.Type, negate?: boolean): binaryen.Expression;
   export { compileLiteral as default };
+  /** Tries to parse a boolean value. Returns `null` if that's not possible. */
+  export function tryParseBool(text: string): 0 | 1 | null;
+  /** Tries to parse an integer value. Returns `null` if that's not possible. */
+  export function tryParseInt(text: string): number | null;
+  /** Tries to parse a long value. Returns `null` if that's not possible. */
+  export function tryParseLong(text: string, unsigned?: boolean): Long | null;
+  /** Tries to parse a float value. Returns `null` if that's not possible. */
+  export function tryParseFloat(text: string): number | null;
+  /** Tries to parse a literal expression. Returns `null` if that's not possible. */
+  export function tryParseLiteral(node: typescript.LiteralExpression, contextualType: reflection.Type, negate?: boolean): number | Long | string | null;
 }
 
 declare module 'assemblyscript/expressions/new' {
@@ -1094,7 +1110,7 @@ declare module 'assemblyscript/reflection/function' {
       /** Gets the current break label for use with binaryen loops and blocks. */
       readonly breakLabel: string;
       /** Introduces an additional local variable of the specified name and type. */
-      addLocal(name: string, type: Type): Variable;
+      addLocal(name: string, type: Type, mutable?: boolean, value?: number | Long): Variable;
       /** Introduces an additional unique local variable of the specified type. */
       addUniqueLocal(type: Type, prefix?: string): Variable;
       /** Compiles a call to this function using the specified arguments. Arguments to instance functions include `this` as the first argument or can specifiy it in `thisArg`. */
@@ -1213,6 +1229,8 @@ declare module 'assemblyscript/reflection/type' {
       readonly isAnyInteger: boolean;
       /** Tests if this is a float type of any size. */
       readonly isAnyFloat: boolean;
+      /** Tests if this is a numeric type of any size. */
+      readonly isNumeric: boolean;
       /** Tests if this is a signed integer type of any size. */
       readonly isSigned: boolean;
       /** Tests if this is an 8-bit integer type of any signage. */
@@ -1310,6 +1328,8 @@ declare module 'assemblyscript/reflection/variable' {
       readonly isConstant: boolean;
       /** Tests if this is a global variable. */
       readonly isGlobal: boolean;
+      /** Tests if this variable's value is inlined. */
+      readonly isInlined: boolean;
       toString(): string;
   }
   export { Variable as default };
@@ -1441,6 +1461,12 @@ declare module 'assemblyscript/typescript/diagnosticMessages.generated' {
           message: string;
       };
       Function_without_a_return_type_cannot_return_a_value: {
+          code: number;
+          category: DiagnosticCategory;
+          key: string;
+          message: string;
+      };
+      Compiling_global_with_unsupported_constant_initializer_expression_as_mutable: {
           code: number;
           category: DiagnosticCategory;
           key: string;

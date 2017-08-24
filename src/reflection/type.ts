@@ -70,6 +70,8 @@ export class Type {
   get isAnyInteger(): boolean { return this.kind >= TypeKind.FirstInteger && this.kind <= TypeKind.LastInteger; }
   /** Tests if this is a float type of any size. */
   get isAnyFloat(): boolean { return this.kind >= TypeKind.FirstFloat && this.kind <= TypeKind.LastFloat; }
+  /** Tests if this is a numeric type of any size. */
+  get isNumeric(): boolean { return !this.isClass; }
   /** Tests if this is a signed integer type of any size. */
   get isSigned(): boolean { return this.kind >= TypeKind.FirstSigned && this.kind <= TypeKind.LastSigned; }
   /** Tests if this is an 8-bit integer type of any signage. */
