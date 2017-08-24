@@ -1,9 +1,23 @@
 //! { "noRuntime": true }
 
 const a: int = 123;
-const b: double = 3.1415;
 
-export function test(): double {
-  const c: double = 2.0;
-  return a * b * c; // still includes a conversion
+export function testGlobal(): int {
+  return a;
+}
+
+const b: int = -123;
+
+export function testGlobalNeg(): int {
+  return b;
+}
+
+export function testLocal(): int {
+  const c: int = 123;
+  return c;
+}
+
+export function testLocalNeg(): int {
+  const d: int = -123;
+  return d;
 }

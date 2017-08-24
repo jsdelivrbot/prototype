@@ -372,9 +372,15 @@ export class Compiler {
       let arrayValues: Array<number | Long | string | null> | null;
 
       // numeric literals become globals right away
-      if (initializerNode.kind === typescript.SyntaxKind.NumericLiteral) {
+      if (initializerNode.kind === typescript.SyntaxKind.NumericLiteral || (initializerNode.kind === typescript.SyntaxKind.PrefixUnaryExpression) && (<typescript.PrefixUnaryExpression>initializerNode).operator === typescript.SyntaxKind.MinusToken && (<typescript.PrefixUnaryExpression>initializerNode).operand.kind === typescript.SyntaxKind.NumericLiteral) {
         if (global.isConstant) {
-          const parsed = expressions.tryParseLiteral(<typescript.LiteralExpression>initializerNode, type);
+          let initializer = initializerNode;
+          let negate = false;
+          if (initializer.kind === typescript.SyntaxKind.PrefixUnaryExpression) {
+            negate = true;
+            initializer = (<typescript.PrefixUnaryExpression>initializer).operand;
+          }
+          const parsed = expressions.tryParseLiteral(<typescript.LiteralExpression>initializer, type, negate);
           if (parsed !== null) { // inline
             global.value = <number | Long>parsed;
             return;
@@ -824,7 +830,7 @@ export class Compiler {
       const blockNode = <typescript.Block>instance.body;
       for (let i = 0, k = blockNode.statements.length; i < k; ++i) {
         const statementNode = blockNode.statements[i];
-        body.push(this.compileStatement(statementNode));
+        body.push(this.compileStatement(statementNode)); // TODO: filter out nops?
       }
     } else {
       const expressionNode = <typescript.Expression>instance.body;

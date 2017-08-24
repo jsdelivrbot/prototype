@@ -335,6 +335,8 @@ declare module 'assemblyscript/expressions' {
   import * as typescript from "assemblyscript/typescript";
   /** Compiles any supported expression. */
   export function compile(compiler: Compiler, node: typescript.Expression, contextualType: reflection.Type): binaryen.Expression;
+  /** Evaluates any supported expression. Returns `null` if that's not possible. */
+  export function evaluate(node: typescript.Expression, contextualType: reflection.Type): number | Long | string | Array<number | Long | string | null> | null;
 }
 
 declare module 'assemblyscript/library' {

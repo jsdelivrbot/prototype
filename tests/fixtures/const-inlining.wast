@@ -1,16 +1,27 @@
- (export "test" (func $test))
+ (export "testGlobal" (func $testGlobal))
+ (export "testGlobalNeg" (func $testGlobalNeg))
+ (export "testLocal" (func $testLocal))
+ (export "testLocalNeg" (func $testLocalNeg))
  (export "memory" (memory $0))
- (func $test (type $F) (result f64)
+ (func $testGlobal (type $i) (result i32)
+  (return
+   (i32.const 123)
+  )
+ )
+ (func $testGlobalNeg (type $i) (result i32)
+  (return
+   (i32.const -123)
+  )
+ )
+ (func $testLocal (type $i) (result i32)
   (nop)
   (return
-   (f64.mul
-    (f64.mul
-     (f64.convert_s/i32
-      (i32.const 123)
-     )
-     (f64.const 3.1415)
-    )
-    (f64.const 2)
-   )
+   (i32.const 123)
+  )
+ )
+ (func $testLocalNeg (type $i) (result i32)
+  (nop)
+  (return
+   (i32.const -123)
   )
  )

@@ -39,8 +39,14 @@ export function compileVariableDeclarationList(compiler: Compiler, node: typescr
     }
     if (!mutable && declarationType.isNumeric) { // try to inline
       if (declaration.initializer) {
-        if (declaration.initializer.kind === typescript.SyntaxKind.NumericLiteral) {
-          const parsed = tryParseLiteral(<typescript.LiteralExpression>declaration.initializer, declarationType);
+        let initializer = declaration.initializer;
+        let negate = false;
+        if (initializer.kind === typescript.SyntaxKind.PrefixUnaryExpression && (<typescript.PrefixUnaryExpression>initializer).operator === typescript.SyntaxKind.MinusToken) {
+          negate = true;
+          initializer = (<typescript.PrefixUnaryExpression>initializer).operand;
+        }
+        if (initializer.kind === typescript.SyntaxKind.NumericLiteral) {
+          const parsed = tryParseLiteral(<typescript.LiteralExpression>initializer, declarationType, negate);
           if (parsed !== null) {
             compiler.currentFunction.addLocal(declarationName, declarationType, false, <number | Long>parsed);
             continue;

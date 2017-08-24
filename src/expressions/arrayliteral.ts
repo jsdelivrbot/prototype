@@ -35,9 +35,14 @@ export function tryParseArrayLiteral(node: typescript.ArrayLiteralExpression, co
   const values = new Array<number | Long | string | null>(elementCount);
 
   for (let i = 0; i < elementCount; ++i) {
-    const element = node.elements[i];
+    let element = node.elements[i];
+    let negate = false;
+    if (element.kind === typescript.SyntaxKind.PrefixUnaryExpression && (<typescript.PrefixUnaryExpression>element).operator === typescript.SyntaxKind.MinusToken) {
+      negate = true;
+      element = (<typescript.PrefixUnaryExpression>element).operand;
+    }
     if (element.kind >= typescript.SyntaxKind.FirstLiteralToken && element.kind <= typescript.SyntaxKind.LastLiteralToken) {
-      const value = tryParseLiteral(<typescript.LiteralExpression>element, elementType);
+      const value = tryParseLiteral(<typescript.LiteralExpression>element, elementType, negate);
       if (value === null)
         return null;
       values[i] = value;

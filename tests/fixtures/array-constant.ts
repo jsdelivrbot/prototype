@@ -1,6 +1,6 @@
 //! { "noRuntime": true }
 
-const arrayLiteral: int[] = [1,2,3];
+const arrayLiteral: int[] = [1,2,,-4];
 
 export function getArrayLiteral(): int[] {
   return arrayLiteral;

@@ -41,7 +41,9 @@ import {
   compilePostfixUnary,
   compilePrefixUnary,
   compilePropertyAccess,
-  compileOmitted
+  compileOmitted,
+  tryParseLiteral,
+  tryParseArrayLiteral
 } from "./expressions";
 
 /** Compiles any supported expression. */
@@ -112,4 +114,43 @@ export function compile(compiler: Compiler, node: typescript.Expression, context
   compiler.report(node, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.kind, "expressions.compile");
   util.setReflectedType(node, contextualType);
   return op.unreachable();
+}
+
+/** Evaluates any supported expression. Returns `null` if that's not possible. */
+export function evaluate(node: typescript.Expression, contextualType: reflection.Type): number | Long | string | Array<number | Long | string | null> | null {
+
+  // TODO: See https://github.com/dcodeIO/AssemblyScript/issues/100
+
+  // A code search for "=== typescript.SyntaxKind.PrefixUnaryExpression" should yield any locations
+  // where support for negation has been hard coded instead.
+
+  switch (node.kind) {
+
+    case typescript.SyntaxKind.ParenthesizedExpression:
+      return evaluate((<typescript.ParenthesizedExpression>node).expression, contextualType);
+
+    case typescript.SyntaxKind.PrefixUnaryExpression: {
+      const expr = <typescript.PrefixUnaryExpression>node;
+      if (expr.operator === typescript.SyntaxKind.MinusToken && expr.operand.kind === typescript.SyntaxKind.NumericLiteral)
+        return tryParseLiteral(<typescript.NumericLiteral>expr.operand, contextualType, true);
+      return null;
+    }
+
+    case typescript.SyntaxKind.NumericLiteral:
+      if (!contextualType.isNumeric)
+        return null;
+      return tryParseLiteral(<typescript.NumericLiteral>node, contextualType);
+
+    case typescript.SyntaxKind.StringLiteral:
+      if (!contextualType.isString)
+        return null;
+      return tryParseLiteral(<typescript.StringLiteral>node, contextualType);
+
+    case typescript.SyntaxKind.ArrayLiteralExpression:
+      if (!contextualType.isArray)
+        return null;
+      return tryParseArrayLiteral(<typescript.ArrayLiteralExpression>node, contextualType);
+
+  }
+  return null;
 }
