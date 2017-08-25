@@ -121,6 +121,7 @@ declare module 'assemblyscript/builtins' {
   export function isNaN(compiler: Compiler, node: typescript.Expression, expr: binaryen.Expression): binaryen.Expression;
   /** Compiles a check for a finite number operation. */
   export function isFinite(compiler: Compiler, node: typescript.Expression, expr: binaryen.Expression): binaryen.Expression;
+  export function internal_fmod(compiler: Compiler, nodes: TypeScriptExpressionPair, exprs: BinaryenExpressionPair): binaryen.Expression;
 }
 
 declare module 'assemblyscript/compiler' {

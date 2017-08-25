@@ -1,6 +1,7 @@
 /** @module assemblyscript/expressions */ /** */
 
 import * as binaryen from "binaryen";
+import * as builtins from "../builtins";
 import Compiler from "../compiler";
 import compileElementAccess from "./elementaccess";
 import compilePropertyAccess from "./propertyaccess";
@@ -217,7 +218,8 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
 
       case typescript.SyntaxKind.PercentToken:
       case typescript.SyntaxKind.PercentEqualsToken:
-        // TODO: maybe emulate, not a built-in operation
+        // FIXME: this uses a naive imlementation
+        result = builtins.internal_fmod(compiler, [ node.left, node.right ], [ left, right ]);
         break;
 
       // Logical

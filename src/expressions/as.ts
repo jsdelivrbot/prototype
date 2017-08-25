@@ -13,7 +13,7 @@ export function compileAs(compiler: Compiler, node: typescript.AsExpression, con
 
   if (toType) {
     util.setReflectedType(node, toType);
-    return compiler.compileExpression(node.expression, contextualType, toType, true);
+    return compiler.compileExpression(node.expression, toType, toType, true);
   }
 
   util.setReflectedType(node, contextualType);

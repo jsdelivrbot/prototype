@@ -545,3 +545,50 @@ export function isFinite(compiler: Compiler, node: typescript.Expression, expr: 
     )
   );
 }
+
+export function internal_fmod(compiler: Compiler, nodes: TypeScriptExpressionPair, exprs: BinaryenExpressionPair): binaryen.Expression {
+  const op = compiler.module;
+
+  const xType = util.getReflectedType(nodes[0]);
+  const yType = util.getReflectedType(nodes[1]);
+
+  if (!(xType === reflection.doubleType && yType === reflection.doubleType) && !(xType === reflection.floatType && yType === reflection.floatType))
+    throw Error("unsupported operation: " + xType + " / " + yType);
+
+  // FIXME: this is a naive implementation
+  // return x - (((x / y) as long) as double) * y
+
+  const tempName = xType.tempName;
+  const temp = compiler.currentFunction.localsByName[tempName] || compiler.currentFunction.addLocal(tempName, xType);
+  const tempBinaryenType = compiler.typeOf(xType);
+
+  return xType === reflection.doubleType
+    ? op.f64.sub(
+      op.teeLocal(temp.index, exprs[0]), // evaluate x
+      op.f64.mul(
+        op.f64.convert_s.i64(
+          op.i64.trunc_s.f64(
+            op.f64.div(
+              op.getLocal(temp.index, tempBinaryenType), // reuse evaluated x
+              op.teeLocal(temp.index, exprs[1]) // evalute y
+            )
+          )
+        ),
+        op.getLocal(temp.index, tempBinaryenType) // reuse evaluated y
+      )
+    )
+    : op.f32.sub(
+      op.teeLocal(temp.index, exprs[0]), // evaluate x
+      op.f32.mul(
+        op.f32.convert_s.i32(
+          op.i32.trunc_s.f32(
+            op.f32.div(
+              op.getLocal(temp.index, tempBinaryenType), // reuse evaluated x
+              op.teeLocal(temp.index, exprs[1]) // evalute y
+            )
+          )
+        ),
+        op.getLocal(temp.index, tempBinaryenType) // reuse evaluated y
+      )
+    );
+}

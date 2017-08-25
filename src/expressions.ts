@@ -136,15 +136,12 @@ export function evaluate(node: typescript.Expression, contextualType: reflection
       return null;
     }
 
+    case typescript.SyntaxKind.TrueKeyword:
+    case typescript.SyntaxKind.FalseKeyword:
+    case typescript.SyntaxKind.NullKeyword:
     case typescript.SyntaxKind.NumericLiteral:
-      if (!contextualType.isNumeric)
-        return null;
-      return tryParseLiteral(<typescript.NumericLiteral>node, contextualType);
-
     case typescript.SyntaxKind.StringLiteral:
-      if (!contextualType.isString)
-        return null;
-      return tryParseLiteral(<typescript.StringLiteral>node, contextualType);
+      return tryParseLiteral(<typescript.LiteralExpression>node, contextualType);
 
     case typescript.SyntaxKind.ArrayLiteralExpression:
       if (!contextualType.isArray)
