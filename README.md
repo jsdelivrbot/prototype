@@ -3,7 +3,7 @@
 
 [AssemblyScript](https://github.com/AssemblyScript) defines a subset of [TypeScript](http://www.typescriptlang.org) that it compiles to [WebAssembly](http://webassembly.org). It aims to provide everyone with an existing background in TypeScript and standard JavaScript-APIs with a comfortable way to compile to WebAssembly, eliminating the need to switch between languages or to learn new ones just for this purpose.
 
-Try it out [in your browser](http://assemblyscript.github.io/assemblyscript/)!
+Try it out [in your browser](http://assemblyscript.org/try)!
 
 [![npm](https://img.shields.io/npm/v/assemblyscript.svg)](https://www.npmjs.com/package/assemblyscript) [![Build Status](https://travis-ci.org/AssemblyScript/assemblyscript.svg?branch=master)](https://travis-ci.org/AssemblyScript/assemblyscript) [![npm](https://img.shields.io/npm/dm/assemblyscript.svg)](https://www.npmjs.com/package/assemblyscript) <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dcode%40dcode.io&item_name=Open%20Source%20Software%20Donation&item_number=dcodeIO%2Fprotobuf.js"><img alt="donate ❤" src="https://img.shields.io/badge/donate-❤-ff2244.svg"></a>
 
@@ -457,16 +457,16 @@ Afterwards, to build the distribution files to [dist/](./dist), run:
 $> npm run build
 ```
 
-To build the documentation to [docs/api/](./docs/api), run:
-
-```
-$> npm run docs
-```
-
 Running the [tests](./tests) (ideally on node.js >= 8):
 
 ```
 $> npm test
+```
+
+To build the documentation to the [website repostory](https://github.com/AssemblyScript/website) checked out next to this repository, run:
+
+```
+$> npm run docs
 ```
 
 ---

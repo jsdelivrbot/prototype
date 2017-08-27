@@ -36,8 +36,8 @@
     "lint": "tslint --config tslint.json src/**/*.ts cli/**/*.ts assembly.d.ts",
     "test": "ts-node tests",
     "test:spec": "ts-node tests | tap-spec",
-    "docs:api": "typedoc --tsconfig src/tsconfig.json --mode modules --name \"AssemblyScript API Documentation\" --out docs/api/ --readme none --ignoreCompilerErrors --excludeNotExported --excludePrivate",
-    "docs:std": "typedoc --tsconfig tsconfig.assembly.json --mode file --name \"AssemblyScript Standard Library Documentation\" --out docs/std/ --readme none --ignoreCompilerErrors --excludeExternals --excludePrivate --includeDeclarations",
+    "docs:api": "typedoc --tsconfig src/tsconfig.json --mode modules --name \"AssemblyScript API Documentation\" --out ../website/docs/api/ --readme none --ignoreCompilerErrors --excludeNotExported --excludePrivate",
+    "docs:std": "typedoc --tsconfig tsconfig.assembly.json --mode file --name \"AssemblyScript Standard Library Documentation\" --out ../website/docs/std/ --readme none --ignoreCompilerErrors --excludeExternals --excludePrivate --includeDeclarations",
     "docs": "npm run docs:api && npm run docs:std"
   },
   "dependencies": {
