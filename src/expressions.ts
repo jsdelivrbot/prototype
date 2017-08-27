@@ -119,7 +119,7 @@ export function compile(compiler: Compiler, node: typescript.Expression, context
 /** Evaluates any supported expression. Returns `null` if that's not possible. */
 export function evaluate(node: typescript.Expression, contextualType: reflection.Type): number | Long | string | Array<number | Long | string | null> | null {
 
-  // TODO: See https://github.com/dcodeIO/AssemblyScript/issues/100
+  // TODO: See https://github.com/AssemblyScript/assemblyscript/issues/100
 
   // A code search for "=== typescript.SyntaxKind.PrefixUnaryExpression" should yield any locations
   // where support for negation has been hard coded instead.

@@ -1,11 +1,11 @@
-![AssemblyScript](https://raw.githubusercontent.com/dcodeIO/AssemblyScript/master/logo.png)
+![AssemblyScript](https://raw.githubusercontent.com/AssemblyScript/assemblyscript/master/logo.png)
 ==============
 
-[AssemblyScript](https://github.com/dcodeIO/AssemblyScript) defines a subset of [TypeScript](http://www.typescriptlang.org) that it compiles to [WebAssembly](http://webassembly.org). It aims to provide everyone with an existing background in TypeScript and standard JavaScript-APIs with a comfortable way to compile to WebAssembly, eliminating the need to switch between languages or to learn new ones just for this purpose.
+[AssemblyScript](https://github.com/AssemblyScript) defines a subset of [TypeScript](http://www.typescriptlang.org) that it compiles to [WebAssembly](http://webassembly.org). It aims to provide everyone with an existing background in TypeScript and standard JavaScript-APIs with a comfortable way to compile to WebAssembly, eliminating the need to switch between languages or to learn new ones just for this purpose.
 
-Try it out in your browser: [dcode.io/AssemblyScript](http://dcode.io/AssemblyScript/)
+Try it out [in your browser](http://assemblyscript.github.io/assemblyscript/)!
 
-[![npm](https://img.shields.io/npm/v/assemblyscript.svg)](https://www.npmjs.com/package/assemblyscript) [![Build Status](https://travis-ci.org/dcodeIO/AssemblyScript.svg?branch=master)](https://travis-ci.org/dcodeIO/AssemblyScript) [![npm](https://img.shields.io/npm/dm/assemblyscript.svg)](https://www.npmjs.com/package/assemblyscript) <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dcode%40dcode.io&item_name=Open%20Source%20Software%20Donation&item_number=dcodeIO%2Fprotobuf.js"><img alt="donate ❤" src="https://img.shields.io/badge/donate-❤-ff2244.svg"></a>
+[![npm](https://img.shields.io/npm/v/assemblyscript.svg)](https://www.npmjs.com/package/assemblyscript) [![Build Status](https://travis-ci.org/AssemblyScript/assemblyscript.svg?branch=master)](https://travis-ci.org/AssemblyScript/assemblyscript) [![npm](https://img.shields.io/npm/dm/assemblyscript.svg)](https://www.npmjs.com/package/assemblyscript) <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dcode%40dcode.io&item_name=Open%20Source%20Software%20Donation&item_number=dcodeIO%2Fprotobuf.js"><img alt="donate ❤" src="https://img.shields.io/badge/donate-❤-ff2244.svg"></a>
 
 Contents
 --------
@@ -127,7 +127,7 @@ Usage
 $> npm install assemblyscript --save-dev
 ```
 
-The environment is configured by either referencing [assembly.d.ts](./assembly.d.ts) directly or by using a `tsconfig.json` that simply extends [tsconfig.assembly.json](https://github.com/dcodeIO/AssemblyScript/blob/master/tsconfig.assembly.json), like so:
+The environment is configured by either referencing [assembly.d.ts](./assembly.d.ts) directly or by using a `tsconfig.json` that simply extends [tsconfig.assembly.json](https://github.com/AssemblyScript/assemblyscript/blob/master/tsconfig.assembly.json), like so:
 
 ```json
 {
@@ -446,8 +446,8 @@ Building
 Clone the GitHub repository and install the development dependencies:
 
 ```
-$> git clone https://github.com/dcodeIO/AssemblyScript.git
-$> cd AssemblyScript
+$> git clone https://github.com/AssemblyScript/assemblyscript.git
+$> cd assemblyscript
 $> npm install
 ```
 

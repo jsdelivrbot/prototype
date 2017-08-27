@@ -556,13 +556,13 @@ export function internal_fmod(compiler: Compiler, nodes: TypeScriptExpressionPai
     throw Error("unsupported operation: " + xType + " / " + yType);
 
   // FIXME: this is a naive implementation
-  // return x - (((x / y) as long) as double) * y
 
   const tempName = xType.tempName;
   const temp = compiler.currentFunction.localsByName[tempName] || compiler.currentFunction.addLocal(tempName, xType);
   const tempBinaryenType = compiler.typeOf(xType);
 
   return xType === reflection.doubleType
+    // x - (((x / y) as long) as double) * y
     ? op.f64.sub(
       op.teeLocal(temp.index, exprs[0]), // evaluate x
       op.f64.mul(
@@ -577,11 +577,12 @@ export function internal_fmod(compiler: Compiler, nodes: TypeScriptExpressionPai
         op.getLocal(temp.index, tempBinaryenType) // reuse evaluated y
       )
     )
+    // x - (((x / y) as long) as float) * y
     : op.f32.sub(
       op.teeLocal(temp.index, exprs[0]), // evaluate x
       op.f32.mul(
-        op.f32.convert_s.i32(
-          op.i32.trunc_s.f32(
+        op.f32.convert_s.i64(
+          op.i64.trunc_s.f32(
             op.f32.div(
               op.getLocal(temp.index, tempBinaryenType), // reuse evaluated x
               op.teeLocal(temp.index, exprs[1]) // evalute y

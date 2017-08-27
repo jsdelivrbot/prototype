@@ -1,4 +1,4 @@
-[AssemblyScript](https://github.com/dcodeIO/AssemblyScript)'s memory management runtime in C based on [musl](http://www.musl-libc.org/), [dlmalloc](http://g.oswego.edu/dl/html/malloc.html) and [tgc](https://github.com/orangeduck/tgc).
+[AssemblyScript](https://github.com/AssemblyScript)'s memory management runtime in C based on [musl](http://www.musl-libc.org/), [dlmalloc](http://g.oswego.edu/dl/html/malloc.html) and [tgc](https://github.com/orangeduck/tgc).
 
 Memory layout
 -------------

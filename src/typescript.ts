@@ -1,7 +1,7 @@
 /**
  * The relevant parts of TypeScript.
  *
- * For all exports, see: https://github.com/dcodeIO/AssemblyScript/blob/master/src/typescript.ts
+ * For all exports, see: https://github.com/AssemblyScript/assemblyscript/blob/master/src/typescript.ts
  *
  * @module assemblyscript/typescript
  * @preferred

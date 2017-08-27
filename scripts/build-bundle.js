@@ -17,7 +17,7 @@ var banner = [
   " * @license AssemblyScript v" + require("../package.json").version + " (c) 2017, Daniel Wirtz",
   " * Compiled " + (new Date()).toUTCString().replace("GMT", "UTC"),
   " * Licensed under the Apache-License, Version 2.0",
-  " * see: https://github.com/dcodeIO/AssemblyScript for details",
+  " * see: https://github.com/AssemblyScript for details",
   " */"
 ].join("\n") + "\n";
 

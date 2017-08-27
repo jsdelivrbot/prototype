@@ -6,10 +6,10 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dcodeIO/AssemblyScript.git"
+    "url": "https://github.com/AssemblyScript/assemblyscript.git"
   },
   "bugs": {
-    "url": "https://github.com/dcodeIO/AssemblyScript/issues"
+    "url": "https://github.com/AssemblyScript/assemblyscript/issues"
   },
   "keywords": [
     "webassembly",

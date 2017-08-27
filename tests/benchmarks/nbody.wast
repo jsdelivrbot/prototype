@@ -8,20 +8,14 @@
  (type $iFFFi (func (param i32 f64 f64 f64) (result i32)))
  (type $iFv (func (param i32 f64)))
  (type $v (func))
- (import "env" "malloc" (func $assembly.d.ts/malloc (param i32) (result i32)))
- (import "env" "memset" (func $assembly.d.ts/memset (param i32 i32 i32) (result i32)))
- (global $assembly.d.ts/NaN f64 (f64.const nan:0x8000000000000))
- (global $assembly.d.ts/NaNf f32 (f32.const nan:0x400000))
- (global $assembly.d.ts/Infinity f64 (f64.const inf))
- (global $assembly.d.ts/Infinityf f32 (f32.const inf))
- (global $PI f64 (f64.const 3.141592653589793))
+ (import "lib" "malloc" (func $lib:malloc (param i32) (result i32)))
+ (import "lib" "memset" (func $lib:memset (param i32 i32 i32) (result i32)))
  (global $SOLAR_MASS (mut f64) (f64.const 0))
- (global $DAYS_PER_YEAR f64 (f64.const 365.24))
  (memory $0 1)
  (export "test" (func $test))
  (export "memory" (memory $0))
  (start $.start)
- (func $std/array.ts/Array<Body> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<Body> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -40,7 +34,7 @@
    )
   )
   (set_local $3
-   (call $assembly.d.ts/malloc
+   (call $lib:malloc
     (i32.add
      (i32.const 8)
      (get_local $2)
@@ -59,7 +53,7 @@
    (get_local $1)
   )
   (drop
-   (call $assembly.d.ts/memset
+   (call $lib:memset
     (i32.add
      (get_local $3)
      (i32.const 8)
@@ -108,8 +102,8 @@
  (func $Sun (type $i) (result i32)
   (return
    (call $Body
-    (call $assembly.d.ts/memset
-     (call $assembly.d.ts/malloc
+    (call $lib:memset
+     (call $lib:malloc
       (i32.const 56)
      )
      (i32.const 0)
@@ -128,8 +122,8 @@
  (func $Jupiter (type $i) (result i32)
   (return
    (call $Body
-    (call $assembly.d.ts/memset
-     (call $assembly.d.ts/malloc
+    (call $lib:memset
+     (call $lib:malloc
       (i32.const 56)
      )
      (i32.const 0)
@@ -140,15 +134,15 @@
     (f64.const -0.10362204447112311)
     (f64.mul
      (f64.const 0.001660076642744037)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const 0.007699011184197404)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const -6.90460016972063e-05)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const 9.547919384243266e-04)
@@ -160,8 +154,8 @@
  (func $Saturn (type $i) (result i32)
   (return
    (call $Body
-    (call $assembly.d.ts/memset
-     (call $assembly.d.ts/malloc
+    (call $lib:memset
+     (call $lib:malloc
       (i32.const 56)
      )
      (i32.const 0)
@@ -172,15 +166,15 @@
     (f64.const -0.4035234171143214)
     (f64.mul
      (f64.const -0.002767425107268624)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const 0.004998528012349172)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const 2.3041729757376393e-05)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const 2.858859806661308e-04)
@@ -192,8 +186,8 @@
  (func $Uranus (type $i) (result i32)
   (return
    (call $Body
-    (call $assembly.d.ts/memset
-     (call $assembly.d.ts/malloc
+    (call $lib:memset
+     (call $lib:malloc
       (i32.const 56)
      )
      (i32.const 0)
@@ -204,15 +198,15 @@
     (f64.const -0.22330757889265573)
     (f64.mul
      (f64.const 0.002964601375647616)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const 2.3784717395948095e-03)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const -2.9658956854023756e-05)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const 4.366244043351563e-05)
@@ -224,8 +218,8 @@
  (func $Neptune (type $i) (result i32)
   (return
    (call $Body
-    (call $assembly.d.ts/memset
-     (call $assembly.d.ts/malloc
+    (call $lib:memset
+     (call $lib:malloc
       (i32.const 56)
      )
      (i32.const 0)
@@ -236,15 +230,15 @@
     (f64.const 0.17925877295037118)
     (f64.mul
      (f64.const 2.6806777249038932e-03)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const 0.001628241700382423)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const -9.515922545197159e-05)
-     (get_global $DAYS_PER_YEAR)
+     (f64.const 365.24)
     )
     (f64.mul
      (f64.const 5.1513890204661145e-05)
@@ -929,9 +923,9 @@
   (local $2 i32)
   (local $3 i32)
   (set_local $1
-   (call $std/array.ts/Array<Body>
-    (call $assembly.d.ts/memset
-     (call $assembly.d.ts/malloc
+   (call $std:Array<Body>
+    (call $lib:memset
+     (call $lib:malloc
       (i32.const 8)
      )
      (i32.const 0)
@@ -974,8 +968,8 @@
   )
   (set_local $2
    (call $NBodySystem
-    (call $assembly.d.ts/memset
-     (call $assembly.d.ts/malloc
+    (call $lib:memset
+     (call $lib:malloc
       (i32.const 4)
      )
      (i32.const 0)
@@ -1021,9 +1015,9 @@
    (f64.mul
     (f64.mul
      (f64.const 4)
-     (get_global $PI)
+     (f64.const 3.141592653589793)
     )
-    (get_global $PI)
+    (f64.const 3.141592653589793)
    )
   )
  )
