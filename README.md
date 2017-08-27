@@ -97,7 +97,7 @@ Compiles to:
 )
 ```
 
-See the pre-configured [example project](./examples/project) for a quickstart.
+See [the examples repository](https://github.com/AssemblyScript/examples) for more.
 
 ### Running a module
 
