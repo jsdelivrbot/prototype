@@ -54,21 +54,29 @@ function main(args, callback) {
 
   // otherwise check entry file directory
   else if (files.length)
-    if (!fs.existsSync(configFile = path.join(path.dirname(files[0]), "asconfig.json")))
+    if (!fs.existsSync(configFile = path.join(path.dirname(files[0]), "asconfig.json"))) {
       configFile = undefined;
+      if (!fs.existsSync(configFile = path.join(path.dirname(files[0]), "tsconfig.json")))
+        configFile = undefined;
+    }
 
   // load config file
   if (configFile) {
     try {
       var config = JSON.parse(fs.readFileSync(configFile, "utf8"));
+      if (config.assembly)
+        config = config.assembly;
       if (config.entryFile) {
         if (!files.length) // prefer command line
           files = [ config.entryFile ];
-        delete config.file;
+        delete config.entryFile;
       }
       Object.keys(config).forEach(key => {
-        if (options[key] && key !== "config")
-          argv[key] = config[key];
+        if (options[key] && key !== "config") // prefer command line
+          if (options[key].isPath)
+            argv[key] = path.isAbsolute(config[key]) ? config[key] : path.join(path.dirname(configFile), config[key]);
+          else
+            argv[key] = config[key];
       });
     } catch (e) {
       if (!argv.quiet)

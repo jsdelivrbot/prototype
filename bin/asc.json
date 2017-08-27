@@ -7,7 +7,8 @@
   "outFile": {
     "desc": "Specifies the output file name. Emits text format if ending with .wast\n(sexpr) or .wat (linear). Prints to stdout if omitted.",
     "type": "string",
-    "aliases": [ "o", "outfile", "out-file", "out" ]
+    "aliases": [ "o", "outfile", "out-file", "out" ],
+    "isPath": true
   },
   "optimize": {
     "desc": "Runs optimizing binaryen IR passes.",
@@ -41,7 +42,8 @@
   "textFile": {
     "desc": "Can be used to save text format alongside a binary in one command.",
     "type": "string",
-    "aliases": [ "textfile", "text-file", "textOut", "textout", "text-out" ]
+    "aliases": [ "textfile", "text-file", "textOut", "textout", "text-out" ],
+    "isPath": true
   },
   "noTreeShaking": {
     "desc": "Whether to disable built-in tree-shaking.",
