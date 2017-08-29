@@ -10,7 +10,7 @@ var isDev = fs.existsSync(__dirname + "/../src/index.ts") && path.basename(path.
 var isOut = false;
 
 if (isDev) {
-  if (fs.existsSync(__dirname + "/../out/index.js")) {
+  if (process.argv.indexOf("--debugger") > -1 && fs.existsSync(__dirname + "/../out/index.js")) {
     assemblyscript = require("../out");
     isOut = true;
   } else {

@@ -31,10 +31,20 @@ out.push(
   ""
 );
 
-var runtimeBlob = fs.readFileSync(__dirname + "/../lib/runtime/build/runtime.wasm");
+var runtimeBlob;
+try {
+  runtimeBlob = fs.readFileSync(__dirname + "/../lib/runtime/dist/runtime.wasm").toString("base64");
+} catch (e) {
+  console.error("Runtime submodule (lib/runtime) has not been built. Reusing existing binary instead.");
+  var libSource = fs.readFileSync(__dirname + "/../src/library.ts").toString();
+  var match = /const runtime: string = "([a-zA-Z0-9\+\/]+[=]*)/.exec(libSource);
+  if (!match)
+    throw Error("failed to parse library.ts");
+  runtimeBlob = match[1];
+}
 out.push(
   "/** Precompiled memory management runtime as a base64-encoded string. */",
-  "export const runtime: string = " + JSON.stringify(runtimeBlob.toString("base64")) + ";",
+  "export const runtime: string = " + JSON.stringify(runtimeBlob) + ";",
   ""
 );
 

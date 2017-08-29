@@ -23,17 +23,15 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "build:runtime": "node scripts/build-runtime",
-    "build:typescript": "tsc -P lib/typescript && echo export = ts; >> lib/typescript/build/index.d.ts",
-    "build:alldeps": "node scripts/build-check && npm run build:runtime && npm run build:typescript",
+    "build:runtime": "cd lib/runtime && npm install && npm run build && cd ../..",
+    "build:typescript": "cd lib/typescript && npm install && npm run build && cd ../..",
     "build:diagnostics": "node scripts/build-diagnostics",
     "build:library": "node scripts/build-library",
     "build:bundle": "tsc -P src && node scripts/build-bundle",
-    "build": "npm run build:diagnostics && npm run lint && npm run build:library && npm run build:bundle",
+    "build": "(node scripts/check-typescript || npm run build:typescript) && npm run build:diagnostics && npm run build:library && npm run lint && npm run build:bundle",
     "clean": "node scripts/clean",
     "lint": "tslint --config tslint.json src/**/*.ts cli/**/*.ts assembly.d.ts",
     "test": "ts-node -P tests/tsconfig.json tests",
-    "test:spec": "ts-node tests | tap-spec",
     "docs:api": "typedoc --tsconfig src/tsconfig.json --mode modules --name \"AssemblyScript API Documentation\" --out ../website/docs/api/ --readme none --ignoreCompilerErrors --excludeNotExported --excludePrivate",
     "docs:std": "typedoc --tsconfig tsconfig.assembly.json --mode file --name \"AssemblyScript Standard Library Documentation\" --out ../website/docs/std/ --readme none --ignoreCompilerErrors --excludeExternals --excludePrivate --includeDeclarations",
     "docs": "npm run docs:api && npm run docs:std"
@@ -63,7 +61,6 @@
     "long": "^3.2.0",
     "performance-now": "^2.1.0",
     "rimraf": "^2.6.1",
-    "tap-spec": "^4.1.1",
     "tape": "^4.8.0",
     "ts-node": "^3.3.0",
     "tslint": "^5.7.0",
@@ -72,8 +69,7 @@
     "typescript": "^2.5.1",
     "vinyl-buffer": "^1.0.0",
     "vinyl-fs": "^2.4.4",
-    "vinyl-source-stream": "^1.1.0",
-    "webassembly": "^0.11.0"
+    "vinyl-source-stream": "^1.1.0"
   },
   "browser": {
     "buffer": false,

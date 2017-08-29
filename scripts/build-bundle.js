@@ -60,7 +60,7 @@ browserify({
     name: "assemblyscript",
     main: __dirname + "/../out/index.d.ts",
     exclude: function(file, external) {
-      const excluded = external || /[\/\\^]lib[\/\\]typescript[\/\\]build$/.test(file);
+      const excluded = external || /[\/\\^]lib[\/\\]typescript$/.test(file);
       if (!seen[file])
         console.log("- " + file + (excluded ? " [excluded]" : ""));
       seen[file] = true;

@@ -8,7 +8,7 @@
  */ /** */
 
 import * as nodePath from "path";
-import * as ts from "../lib/typescript/build";
+import * as ts from "../lib/typescript";
 import * as library from "./library";
 
 // With a little help of "Find all references" the following list aims to provide an answer to
@@ -64,6 +64,7 @@ export import Program = ts.Program;
 export import PropertyAccessExpression = ts.PropertyAccessExpression;
 export import PropertyDeclaration = ts.PropertyDeclaration;
 export import Signature = ts.Signature;
+export import System = ts.System;
 export import TypeAliasDeclaration = ts.TypeAliasDeclaration;
 export import TypeChecker = ts.TypeChecker;
 export import TypeNode = ts.TypeNode;

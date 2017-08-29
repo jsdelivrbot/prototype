@@ -443,21 +443,23 @@ Additional documentation
 Building
 --------
 
-Clone the GitHub repository and install the development dependencies:
+Clone the GitHub repository including submodules and install the development dependencies:
 
 ```
-$> git clone https://github.com/AssemblyScript/assemblyscript.git
+$> git clone --recursive https://github.com/AssemblyScript/assemblyscript.git
 $> cd assemblyscript
 $> npm install
 ```
 
-Afterwards, to build the distribution files to [dist/](./dist), run:
+Afterwards, to build the distribution files to *dist/*, run:
 
 ```
 $> npm run build
 ```
 
-Running the [tests](./tests) (ideally on node.js >= 8):
+**Note** that the first invocation of `build` also builds the TypeScript submodule (lib/typescript) and may take some time.
+
+To run the [tests](./tests) (ideally on node.js >= 8):
 
 ```
 $> npm test

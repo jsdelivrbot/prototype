@@ -414,7 +414,7 @@ declare module 'assemblyscript/reflection' {
 }
 
 declare module 'assemblyscript/typescript' {
-  import * as ts from "assemblyscript/--/lib/typescript/build";
+  import * as ts from "assemblyscript/--/lib/typescript";
   export import ArrayLiteralExpression = ts.ArrayLiteralExpression;
   export import ArrayTypeNode = ts.ArrayTypeNode;
   export import AsExpression = ts.AsExpression;
@@ -463,6 +463,7 @@ declare module 'assemblyscript/typescript' {
   export import PropertyAccessExpression = ts.PropertyAccessExpression;
   export import PropertyDeclaration = ts.PropertyDeclaration;
   export import Signature = ts.Signature;
+  export import System = ts.System;
   export import TypeAliasDeclaration = ts.TypeAliasDeclaration;
   export import TypeChecker = ts.TypeChecker;
   export import TypeNode = ts.TypeNode;
