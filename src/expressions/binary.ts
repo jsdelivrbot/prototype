@@ -277,14 +277,14 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
 
       case typescript.SyntaxKind.SlashToken:
       case typescript.SyntaxKind.SlashEqualsToken:
-        result = resultType.isSigned
+        result = operandType.isSigned
           ? category.div_s(left, right)
           : category.div_u(left, right);
         break;
 
       case typescript.SyntaxKind.PercentToken:
       case typescript.SyntaxKind.PercentEqualsToken:
-        result = resultType.isSigned
+        result = operandType.isSigned
           ? category.rem_s(left, right)
           : category.rem_u(left, right);
         break;
@@ -311,7 +311,7 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
 
       case typescript.SyntaxKind.GreaterThanGreaterThanToken:
       case typescript.SyntaxKind.GreaterThanGreaterThanEqualsToken:
-        result = resultType.isSigned
+        result = operandType.isSigned
           ? category.shr_s(left, right)
           : category.shr_u(left, right);
         break;
@@ -333,25 +333,25 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
         break;
 
       case typescript.SyntaxKind.GreaterThanToken:
-        result = resultType.isSigned
+        result = operandType.isSigned
           ? category.gt_s(left, right)
           : category.gt_u(left, right);
         break;
 
       case typescript.SyntaxKind.GreaterThanEqualsToken:
-        result = resultType.isSigned
+        result = operandType.isSigned
           ? category.ge_s(left, right)
           : category.ge_u(left, right);
         break;
 
       case typescript.SyntaxKind.LessThanToken:
-        result = resultType.isSigned
+        result = operandType.isSigned
           ? category.lt_s(left, right)
           : category.lt_u(left, right);
         break;
 
       case typescript.SyntaxKind.LessThanEqualsToken:
-        result = resultType.isSigned
+        result = operandType.isSigned
           ? category.le_s(left, right)
           : category.le_u(left, right);
         break;

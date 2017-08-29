@@ -21,7 +21,7 @@
   (local $4 i32)
   (nop)
   (if
-   (i32.lt_u
+   (i32.lt_s
     (get_local $1)
     (i32.const 0)
    )

@@ -41,25 +41,25 @@
    )
   )
   (drop
-   (i32.gt_u
+   (i32.gt_s
     (get_local $0)
     (get_local $1)
    )
   )
   (drop
-   (i32.ge_u
+   (i32.ge_s
     (get_local $0)
     (get_local $1)
    )
   )
   (drop
-   (i32.lt_u
+   (i32.lt_s
     (get_local $0)
     (get_local $1)
    )
   )
   (drop
-   (i32.le_u
+   (i32.le_s
     (get_local $0)
     (get_local $1)
    )
@@ -145,25 +145,25 @@
    )
   )
   (drop
-   (i64.gt_u
+   (i64.gt_s
     (get_local $0)
     (get_local $1)
    )
   )
   (drop
-   (i64.ge_u
+   (i64.ge_s
     (get_local $0)
     (get_local $1)
    )
   )
   (drop
-   (i64.lt_u
+   (i64.lt_s
     (get_local $0)
     (get_local $1)
    )
   )
   (drop
-   (i64.le_u
+   (i64.le_s
     (get_local $0)
     (get_local $1)
    )

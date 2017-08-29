@@ -12,7 +12,7 @@
      )
     )
     (i32.const 65535)
-    (i32.gt_u
+    (i32.gt_s
      (get_local $0)
      (get_local $1)
     )

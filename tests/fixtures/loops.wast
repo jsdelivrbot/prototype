@@ -17,7 +17,7 @@
      )
     )
     (br_if $continue$1.1
-     (i32.lt_u
+     (i32.lt_s
       (get_local $1)
       (get_local $0)
      )
@@ -36,7 +36,7 @@
   (block $break$1.1
    (loop $continue$1.1
     (if
-     (i32.lt_u
+     (i32.lt_s
       (get_local $1)
       (get_local $0)
      )
@@ -89,7 +89,7 @@
    )
    (loop $continue$1.1
     (if
-     (i32.lt_u
+     (i32.lt_s
       (get_local $1)
       (get_local $0)
      )
@@ -112,7 +112,7 @@
   (block $break$2.1
    (loop $continue$2.1
     (if
-     (i32.lt_u
+     (i32.lt_s
       (get_local $2)
       (get_local $0)
      )
@@ -135,7 +135,7 @@
    )
    (loop $continue$3.1
     (if
-     (i32.lt_u
+     (i32.lt_s
       (get_local $2)
       (get_local $0)
      )
@@ -158,7 +158,7 @@
    )
    (loop $continue$4.1
     (if
-     (i32.lt_u
+     (i32.lt_s
       (get_local $2)
       (get_local $0)
      )

@@ -19,7 +19,7 @@
    )
    (loop $continue$1.1
     (if
-     (i32.lt_u
+     (i32.lt_s
       (get_local $1)
       (get_local $0)
      )
