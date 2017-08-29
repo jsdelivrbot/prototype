@@ -6,7 +6,6 @@
 import * as typescript from "./typescript";
 import * as reflection from "./reflection";
 import * as wabt from "wabt";
-import * as float from "@protobufjs/float";
 
 /** Tests if the specified node, or optionally either its parent, has an 'export' modifier. */
 export function isExport(node: typescript.Node, checkParent: boolean = false): boolean {
@@ -195,14 +194,50 @@ export function writeLong(buffer: Uint8Array, offset: number, value: Long): numb
   return 8;
 }
 
+// float helpers
+const f64 = new Float64Array([ -0 ]);
+const f32 = new Float32Array(f64.buffer);
+const f8b = new Uint8Array(f64.buffer);
+const fle = f8b[7] === 128;
+
 /** Writes a 32-bit float value to a buffer at the specified offset. */
 export function writeFloat(buffer: Uint8Array, offset: number, value: number): number {
-  float.writeFloatLE(value, buffer, offset);
+  f32[0] = value;
+  if (fle) {
+    buffer[offset    ] = f8b[0];
+    buffer[offset + 1] = f8b[1];
+    buffer[offset + 2] = f8b[2];
+    buffer[offset + 3] = f8b[3];
+  } else {
+    buffer[offset    ] = f8b[3];
+    buffer[offset + 1] = f8b[2];
+    buffer[offset + 2] = f8b[1];
+    buffer[offset + 3] = f8b[0];
+  }
   return 4;
 }
 
 /** Writes a 64-bit float value to a buffer at the specified offset. */
 export function writeDouble(buffer: Uint8Array, offset: number, value: number): number {
-  float.writeDoubleLE(value, buffer, offset);
+  f64[0] = value;
+  if (fle) {
+    buffer[offset    ] = f8b[0];
+    buffer[offset + 1] = f8b[1];
+    buffer[offset + 2] = f8b[2];
+    buffer[offset + 3] = f8b[3];
+    buffer[offset + 4] = f8b[4];
+    buffer[offset + 5] = f8b[5];
+    buffer[offset + 6] = f8b[6];
+    buffer[offset + 7] = f8b[7];
+  } else {
+    buffer[offset    ] = f8b[7];
+    buffer[offset + 1] = f8b[6];
+    buffer[offset + 2] = f8b[5];
+    buffer[offset + 3] = f8b[4];
+    buffer[offset + 4] = f8b[3];
+    buffer[offset + 5] = f8b[2];
+    buffer[offset + 6] = f8b[1];
+    buffer[offset + 7] = f8b[0];
+  }
   return 8;
 }

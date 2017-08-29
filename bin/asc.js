@@ -14,7 +14,7 @@ if (isDev) {
     assemblyscript = require("../out");
     isOut = true;
   } else {
-    require("ts-node/register");
+    require("ts-node").register({ project: __dirname + "/../src" });
     assemblyscript = require("../src");
   }
 } else

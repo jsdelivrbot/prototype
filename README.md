@@ -101,7 +101,7 @@ See [the examples repository](https://github.com/AssemblyScript/examples) for mo
 
 ### Running a module
 
-The stand-alone [loader component](./lib/loader) provides an easy way to run and work with compiled WebAssembly modules:
+The stand-alone [loader component](https://github.com/AssemblyScript/loader) provides an easy way to run and work with compiled WebAssembly modules:
 
 ```
 $> npm install assemblyscript-loader

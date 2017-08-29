@@ -1,4 +1,4 @@
-export * from "../lib/loader";
+export * from "../lib/loader/src";
 
 import * as Long from "long";
 export { Long };
