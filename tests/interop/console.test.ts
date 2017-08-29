@@ -1,7 +1,7 @@
 import * as tape from "tape";
-import { hexdump, Module, arrayHeaderSize, LogType } from "../util";
+import { hexdump, loader, arrayHeaderSize } from "../util";
 
-export function test(test: tape.Test, module: Module) {
+export function test(test: tape.Test, module: loader.Module) {
   let logCount = 0;
   let infoCount = 0;
   let warnCount = 0;
@@ -9,19 +9,19 @@ export function test(test: tape.Test, module: Module) {
   let otherCount = 0;
   module.log = function customLog(type, message) {
     switch (type) {
-      case LogType.LOG:
+      case loader.LogType.LOG:
         ++logCount;
         test.strictEqual(message, "log message", "should call .log with 'log message'");
         break;
-      case LogType.INFO:
+      case loader.LogType.INFO:
         ++infoCount;
         test.strictEqual(message, "info message", "should call .info with 'info message'");
         break;
-      case LogType.WARN:
+      case loader.LogType.WARN:
         ++warnCount;
         test.strictEqual(message, "warn message", "should call .warn with 'warn message'");
         break;
-      case LogType.ERROR:
+      case loader.LogType.ERROR:
         ++errorCount;
         test.strictEqual(message, "error message", "should call .error with 'error message'");
         break;

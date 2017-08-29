@@ -1,7 +1,7 @@
 import * as tape from "tape";
-import { hexdump, Module, arrayHeaderSize } from "../util";
+import { hexdump, loader, arrayHeaderSize } from "../util";
 
-export function test(test: tape.Test, module: Module) {
+export function test(test: tape.Test, module: loader.Module) {
 
   // This test is here to document that some operations raise a RuntimeError by design. Eventually,
   // we'll have to decide how to handle some of these, especially floating point truncation.

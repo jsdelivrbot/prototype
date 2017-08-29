@@ -6,6 +6,8 @@ import * as chalk from "chalk";
 import * as minimist from "minimist";
 import * as testUtil from "./util";
 
+const loader = testUtil.loader;
+
 const argv = minimist(process.argv.slice(2), {
   default: {
     create: false,
@@ -164,7 +166,7 @@ function runTests(kind: string, exports: typeof assemblyscript) {
 
       // async subtest
       test.test(kind + " - interop - " + name, test => {
-        testUtil.load(buffer, {
+        loader.load(buffer, {
           imports: { // dummy functions for noRuntime=true
             lib: {
               malloc: function(size: number) { return 0; },
@@ -175,7 +177,7 @@ function runTests(kind: string, exports: typeof assemblyscript) {
         .then(module => runner(test, module))
         .catch(err => {
           test.fail("should not be rejected (" + err.message + ")");
-          console.log(err.stack.replace(/^/mg, "> "));
+          console.log((err.stack || "no stack trace").replace(/^/mg, "> "));
           test.end();
         });
       });

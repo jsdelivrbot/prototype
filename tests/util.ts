@@ -1,7 +1,6 @@
-export * from "../lib/loader/src";
-
 import * as Long from "long";
-export { Long };
+import * as loader from "../lib/loader/src";
+export { Long, loader };
 
 export const arrayHeaderSize = 8;
 

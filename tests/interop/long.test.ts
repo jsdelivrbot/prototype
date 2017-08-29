@@ -1,7 +1,7 @@
 import * as tape from "tape";
-import { hexdump, Module, Long, arrayHeaderSize } from "../util";
+import { hexdump, loader, Long, arrayHeaderSize } from "../util";
 
-export function test(test: tape.Test, module: Module) {
+export function test(test: tape.Test, module: loader.Module) {
 
   const exports = module.exports;
   const memory = module.memory;
