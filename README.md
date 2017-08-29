@@ -263,7 +263,7 @@ These constants are present as immutable globals (note that optimizers might inl
 * **Infinityf**: `float`<br />
   Positive infinity as a 32-bit float.
 
-By default, [AssemblyScript's memory management runtime](./lib/runtime) will be linked statically:
+By default, [AssemblyScript's memory management runtime](https://github.com/AssemblyScript/runtime) will be linked statically:
 
 * **memcpy**(dest: `uintptr`, src: `uintptr`, size: `uintptr`): `uintptr`<br />
   Copies data from one chunk of memory to another.
