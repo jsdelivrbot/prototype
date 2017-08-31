@@ -23,10 +23,14 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
 
   let right: binaryen.Expression;
   let rightType: reflection.Type;
+
   let commonType: reflection.Type | undefined;
   let resultType: reflection.Type;
 
-  // TODO: This is most likely incorrect
+  const op = compiler.module;
+
+  util.setReflectedType(node, contextualType);
+
   switch (node.operatorToken.kind) {
 
     // **, *, /, %, +, -
@@ -52,37 +56,46 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
 
       left = compiler.maybeConvertValue(node.left, left, leftType, commonType, false);
       right = compiler.maybeConvertValue(node.right, right, rightType, commonType, false);
-      leftType = rightType = commonType;
-
-      resultType = commonType;
+      leftType = rightType = resultType = commonType;
       break;
 
-    // <<, <<=, >>, >>=, >>>, >>>=
-    // use left type, derive right type to compatible int
+    // <<, <<=, >>, >>=
+    // use left type, reject float, derive right type to compatible int
     case typescript.SyntaxKind.LessThanLessThanToken:
     case typescript.SyntaxKind.LessThanLessThanEqualsToken:
     case typescript.SyntaxKind.GreaterThanGreaterThanToken:
     case typescript.SyntaxKind.GreaterThanGreaterThanEqualsToken:
-    case typescript.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
-    case typescript.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
-      if (leftType.isAnyFloat) { // will actually generate an implicit conversion error but it's here for completeness
-        left = compiler.compileExpression(node.left, reflection.longType, reflection.longType, false);
-        leftType = reflection.longType;
+      if (leftType.isAnyFloat) {
+        compiler.report(node, typescript.DiagnosticsEx.Type_0_is_invalid_in_this_context, leftType.toString());
+        return op.unreachable();
+      }
+      if (leftType.isLong) {
         right = compiler.compileExpression(node.right, reflection.longType, reflection.longType, false);
         rightType = reflection.longType;
-        commonType = reflection.longType;
-      } else if (leftType.isLong) {
-        right = compiler.compileExpression(node.right, reflection.longType, reflection.longType, false);
-        rightType = reflection.longType;
-        // has no common type (left might be unsigned)
-      } else { // i.e. int, ushort etc.
-        left = compiler.compileExpression(node.left, reflection.intType, reflection.intType, false);
-        leftType = reflection.intType;
+      } else {
         right = compiler.compileExpression(node.right, reflection.intType, reflection.intType, false);
         rightType = reflection.intType;
-        // has no common type (left might be unsigned)
       }
       resultType = leftType;
+      break;
+
+    // >>>, >>>=
+    // special case of the above with the result always being unsigned
+    case typescript.SyntaxKind.GreaterThanGreaterThanGreaterThanToken:
+    case typescript.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken:
+      if (leftType.isAnyFloat) {
+        compiler.report(node, typescript.DiagnosticsEx.Type_0_is_invalid_in_this_context, leftType.toString());
+        return op.unreachable();
+      }
+      if (leftType.isLong) {
+        right = compiler.compileExpression(node.right, reflection.longType, reflection.longType, false);
+        rightType = reflection.longType;
+        resultType = reflection.ulongType;
+      } else {
+        right = compiler.compileExpression(node.right, reflection.intType, reflection.intType, false);
+        rightType = reflection.intType;
+        resultType = reflection.uintType;
+      }
       break;
 
     // <, <=, >, >=, ==, !=
@@ -119,17 +132,24 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
       left = compiler.maybeConvertValue(node.left, left, leftType, commonType, false);
       right = compiler.maybeConvertValue(node.right, right, rightType, commonType, false);
       leftType = rightType = commonType;
-
       resultType = reflection.boolType;
       break;
 
     // &, |, ^
-    // prefer long over int and common signage, otherwise select the larger int type with contextual signage
+    // prefer long over int, reject float, otherwise select the larger type
     case typescript.SyntaxKind.AmpersandToken:
     case typescript.SyntaxKind.BarToken:
     case typescript.SyntaxKind.CaretToken:
+      if (leftType.isAnyFloat) {
+        compiler.report(node.left, typescript.DiagnosticsEx.Type_0_is_invalid_in_this_context, leftType.toString());
+        return op.unreachable();
+      }
       right = compiler.compileExpression(node.right, leftType);
       rightType = util.getReflectedType(node.right);
+      if (rightType.isAnyFloat) {
+        compiler.report(node.right, typescript.DiagnosticsEx.Type_0_is_invalid_in_this_context, rightType.toString());
+        return op.unreachable();
+      }
       if (leftType.isLong) {
         if (rightType.isLong) {
           commonType = leftType.isSigned === rightType.isSigned
@@ -154,9 +174,7 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
 
       left = compiler.maybeConvertValue(node.left, left, leftType, commonType, false);
       right = compiler.maybeConvertValue(node.right, right, rightType, commonType, false);
-      leftType = rightType = commonType;
-
-      resultType = commonType;
+      leftType = rightType = resultType = commonType;
       break;
 
     // +=, -=, **=, *=, /=, %=, &=, |=, ^=
@@ -172,14 +190,11 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
     // case typescript.SyntaxKind.BarEqualsToken:
     // case typescript.SyntaxKind.CaretEqualsToken:
       right = compiler.compileExpression(node.right, leftType, leftType, false);
-      rightType = leftType;
-
-      resultType = leftType;
+      rightType = commonType = resultType = leftType;
       break;
   }
 
   const isCompound = node.operatorToken.kind >= typescript.SyntaxKind.FirstCompoundAssignment && node.operatorToken.kind <= typescript.SyntaxKind.LastCompoundAssignment;
-  const op = compiler.module;
 
   util.setReflectedType(node, resultType);
 
@@ -187,7 +202,6 @@ export function compileBinary(compiler: Compiler, node: typescript.BinaryExpress
 
   const operandType = commonType || leftType;
   const operandCategory = compiler.categoryOf(operandType);
-  // const resultCategory = compiler.categoryOf(resultType);
 
   if (operandType.isAnyFloat) {
 

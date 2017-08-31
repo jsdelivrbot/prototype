@@ -1,5 +1,7 @@
  (export "testInt" (func $testInt))
+ (export "testUint" (func $testUint))
  (export "testLong" (func $testLong))
+ (export "testUlong" (func $testUlong))
  (export "testFloat" (func $testFloat))
  (export "testDouble" (func $testDouble))
  (export "memory" (memory $0))
@@ -96,6 +98,56 @@
   )
   (drop
    (i32.shr_s
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i32.shr_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+ )
+ (func $testUint (type $iiv) (param $0 i32) (param $1 i32)
+  (drop
+   (i32.div_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i32.gt_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i32.ge_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i32.lt_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i32.le_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i32.rem_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i32.shr_u
     (get_local $0)
     (get_local $1)
    )
@@ -220,6 +272,80 @@
   )
   (drop
    (i64.shr_s
+    (get_local $0)
+    (i64.extend_s/i32
+     (get_local $2)
+    )
+   )
+  )
+  (drop
+   (i64.shr_u
+    (get_local $0)
+    (i64.extend_s/i32
+     (get_local $2)
+    )
+   )
+  )
+ )
+ (func $testUlong (type $IIiv) (param $0 i64) (param $1 i64) (param $2 i32)
+  (drop
+   (i64.div_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.gt_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.ge_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.lt_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.le_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.rem_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.shr_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.shr_u
+    (get_local $0)
+    (get_local $1)
+   )
+  )
+  (drop
+   (i64.shl
+    (get_local $0)
+    (i64.extend_s/i32
+     (get_local $2)
+    )
+   )
+  )
+  (drop
+   (i64.shr_u
     (get_local $0)
     (i64.extend_s/i32
      (get_local $2)

@@ -1112,7 +1112,7 @@ export class Compiler {
 
     // int to other int
 
-    if (fromType.size < toType.size || toType.isInt)
+    if (fromType.size <= toType.size || toType.isInt)
       return expr;
 
     if (!explicit) illegalImplicitConversion();
