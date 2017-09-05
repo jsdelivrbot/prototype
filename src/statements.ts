@@ -13,6 +13,7 @@ export * from "./statements/for";
 export * from "./statements/if";
 export * from "./statements/return";
 export * from "./statements/switch";
+export * from "./statements/throw";
 export * from "./statements/variable";
 export * from "./statements/while";
 
@@ -29,6 +30,7 @@ import {
   compileIf,
   compileReturn,
   compileSwitch,
+  compileThrow,
   compileVariable,
   compileWhile
 } from "./statements";
@@ -75,6 +77,9 @@ export function compile(compiler: Compiler, node: typescript.Statement): binarye
 
     case typescript.SyntaxKind.ReturnStatement:
       return compileReturn(compiler, <typescript.ReturnStatement>node);
+
+    case typescript.SyntaxKind.ThrowStatement:
+      return compileThrow(compiler/*, <typescript.ThrowStatement>node*/);
   }
 
   compiler.report(node, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.kind, "statements.compile");

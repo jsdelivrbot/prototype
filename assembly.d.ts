@@ -130,6 +130,16 @@ declare class String extends Array<ushort> {
   endsWith(value: string): bool;
 }
 
+// Errors
+
+/** An error. */
+declare class Error {
+  /** Error message. */
+  message: string;
+  /** Constructs a new error with the specified message. */
+  constructor(message: string);
+}
+
 // Console
 
 /** Imported log interface. */

@@ -80,6 +80,7 @@ export import StringLiteral = ts.StringLiteral;
 export import SwitchStatement = ts.SwitchStatement;
 export import Symbol = ts.Symbol;
 export import SyntaxKind = ts.SyntaxKind;
+export import ThrowStatement = ts.ThrowStatement;
 export import UnionTypeNode = ts.UnionTypeNode;
 export import WhileStatement = ts.WhileStatement;
 

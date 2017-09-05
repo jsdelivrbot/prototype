@@ -478,6 +478,7 @@ declare module 'assemblyscript/typescript' {
   export import SwitchStatement = ts.SwitchStatement;
   export import Symbol = ts.Symbol;
   export import SyntaxKind = ts.SyntaxKind;
+  export import ThrowStatement = ts.ThrowStatement;
   export import UnionTypeNode = ts.UnionTypeNode;
   export import WhileStatement = ts.WhileStatement;
   export import getPreEmitDiagnostics = ts.getPreEmitDiagnostics;
@@ -521,6 +522,7 @@ declare module 'assemblyscript/statements' {
   export * from "assemblyscript/statements/if";
   export * from "assemblyscript/statements/return";
   export * from "assemblyscript/statements/switch";
+  export * from "assemblyscript/statements/throw";
   export * from "assemblyscript/statements/variable";
   export * from "assemblyscript/statements/while";
   import * as binaryen from "binaryen";
@@ -1571,6 +1573,13 @@ declare module 'assemblyscript/statements/switch' {
   /** Compiles a switch statement. */
   export function compileSwitch(compiler: Compiler, node: typescript.SwitchStatement): binaryen.Statement;
   export { compileSwitch as default };
+}
+
+declare module 'assemblyscript/statements/throw' {
+  import * as binaryen from "binaryen";
+  import Compiler from "assemblyscript/compiler";
+  export function compileThrow(compiler: Compiler): binaryen.Statement;
+  export default compileThrow;
 }
 
 declare module 'assemblyscript/statements/variable' {
