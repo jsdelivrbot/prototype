@@ -16,7 +16,7 @@ import * as library from "./library";
 
 export import ArrayLiteralExpression = ts.ArrayLiteralExpression;
 export import ArrayTypeNode = ts.ArrayTypeNode;
-export import AsExpression = ts.AsExpression;
+export import AssertionExpression = ts.AssertionExpression;
 export import BinaryExpression = ts.BinaryExpression;
 export import Block = ts.Block;
 export import BreakStatement = ts.BreakStatement;
@@ -40,7 +40,6 @@ export import ExpressionStatement = ts.ExpressionStatement;
 export import Expression = ts.Expression;
        import FormatDiagnosticsHost = ts.FormatDiagnosticsHost;
 export import ForStatement = ts.ForStatement;
-export import FunctionBody = ts.FunctionBody;
 export import FunctionLikeDeclaration = ts.FunctionLikeDeclaration;
 export import FunctionDeclaration = ts.FunctionDeclaration;
 export import GetAccessorDeclaration = ts.GetAccessorDeclaration;
@@ -56,15 +55,12 @@ export import NodeFlags = ts.NodeFlags;
 export import Node = ts.Node;
 export import NumericLiteral = ts.NumericLiteral;
 export import OmittedExpression = ts.OmittedExpression;
-export import ParameterDeclaration = ts.ParameterDeclaration;
 export import ParenthesizedExpression = ts.ParenthesizedExpression;
 export import PostfixUnaryExpression = ts.PostfixUnaryExpression;
 export import PrefixUnaryExpression = ts.PrefixUnaryExpression;
 export import Program = ts.Program;
 export import PropertyAccessExpression = ts.PropertyAccessExpression;
 export import PropertyDeclaration = ts.PropertyDeclaration;
-export import Signature = ts.Signature;
-export import System = ts.System;
 export import TypeAliasDeclaration = ts.TypeAliasDeclaration;
 export import TypeChecker = ts.TypeChecker;
 export import TypeNode = ts.TypeNode;
@@ -72,7 +68,6 @@ export import TypeParameterDeclaration = ts.TypeParameterDeclaration;
 export import TypeReferenceNode = ts.TypeReferenceNode;
 export import TypeReference = ts.TypeReference;
 export import Type = ts.Type;
-export import VariableDeclaration = ts.VariableDeclaration;
 export import VariableDeclarationList = ts.VariableDeclarationList;
 export import VariableStatement = ts.VariableStatement;
 export import ReturnStatement = ts.ReturnStatement;
@@ -85,6 +80,7 @@ export import StringLiteral = ts.StringLiteral;
 export import SwitchStatement = ts.SwitchStatement;
 export import Symbol = ts.Symbol;
 export import SyntaxKind = ts.SyntaxKind;
+export import UnionTypeNode = ts.UnionTypeNode;
 export import WhileStatement = ts.WhileStatement;
 
 export import getPreEmitDiagnostics = ts.getPreEmitDiagnostics;
@@ -205,6 +201,5 @@ export function printDiagnostic(diagnostic: Diagnostic): void {
 
 /** Gets the name of a symbol.  */
 export function getNameOfSymbol(symbol: Symbol): string {
-  // FIXME: there's probably a better way than using a Symbol at all
-  return <string>symbol.escapedName;
+  return ts.unescapeLeadingUnderscores(symbol.escapedName);
 }

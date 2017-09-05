@@ -58,7 +58,8 @@ export function compile(compiler: Compiler, node: typescript.Expression, context
       return compileParenthesized(compiler, <typescript.ParenthesizedExpression>node, contextualType);
 
     case typescript.SyntaxKind.AsExpression:
-      return compileAs(compiler, <typescript.AsExpression>node, contextualType);
+    case typescript.SyntaxKind.TypeAssertionExpression:
+      return compileAs(compiler, <typescript.AssertionExpression>node, contextualType);
 
     case typescript.SyntaxKind.BinaryExpression:
       return compileBinary(compiler, <typescript.BinaryExpression>node, contextualType);

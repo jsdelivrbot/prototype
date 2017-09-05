@@ -4,7 +4,6 @@ import * as base64 from "@protobufjs/base64";
 import * as binaryen from "binaryen";
 import * as Long from "long";
 import * as nodePath from "path";
-
 import * as builtins from "./builtins";
 import * as expressions from "./expressions";
 import compileStore from "./expressions/helpers/store";
@@ -1179,6 +1178,13 @@ export class Compiler {
 
   /** Resolves a TypeScript type to a AssemblyScript type. */
   resolveType(type: typescript.TypeNode, acceptVoid: boolean = false, typeArgumentsMap?: reflection.TypeArgumentsMap): reflection.Type | null {
+
+    // only supported union type is `something | null`, representing a nullable that must reference a class
+    if (type.kind === typescript.SyntaxKind.UnionType && (<typescript.UnionTypeNode>type).types.length === 2 && typescript.getTextOfNode((<typescript.UnionTypeNode>type).types[1]) === "null") {
+      const nonNullable = this.resolveType((<typescript.UnionTypeNode>type).types[0], false, typeArgumentsMap);
+      if (nonNullable)
+        return nonNullable.asNullable();
+    }
 
     switch (type.kind) {
 

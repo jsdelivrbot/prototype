@@ -417,7 +417,7 @@ declare module 'assemblyscript/typescript' {
   import * as ts from "assemblyscript/--/lib/typescript";
   export import ArrayLiteralExpression = ts.ArrayLiteralExpression;
   export import ArrayTypeNode = ts.ArrayTypeNode;
-  export import AsExpression = ts.AsExpression;
+  export import AssertionExpression = ts.AssertionExpression;
   export import BinaryExpression = ts.BinaryExpression;
   export import Block = ts.Block;
   export import BreakStatement = ts.BreakStatement;
@@ -440,7 +440,6 @@ declare module 'assemblyscript/typescript' {
   export import Expression = ts.Expression;
   import FormatDiagnosticsHost = ts.FormatDiagnosticsHost;
   export import ForStatement = ts.ForStatement;
-  export import FunctionBody = ts.FunctionBody;
   export import FunctionLikeDeclaration = ts.FunctionLikeDeclaration;
   export import FunctionDeclaration = ts.FunctionDeclaration;
   export import GetAccessorDeclaration = ts.GetAccessorDeclaration;
@@ -455,15 +454,12 @@ declare module 'assemblyscript/typescript' {
   export import Node = ts.Node;
   export import NumericLiteral = ts.NumericLiteral;
   export import OmittedExpression = ts.OmittedExpression;
-  export import ParameterDeclaration = ts.ParameterDeclaration;
   export import ParenthesizedExpression = ts.ParenthesizedExpression;
   export import PostfixUnaryExpression = ts.PostfixUnaryExpression;
   export import PrefixUnaryExpression = ts.PrefixUnaryExpression;
   export import Program = ts.Program;
   export import PropertyAccessExpression = ts.PropertyAccessExpression;
   export import PropertyDeclaration = ts.PropertyDeclaration;
-  export import Signature = ts.Signature;
-  export import System = ts.System;
   export import TypeAliasDeclaration = ts.TypeAliasDeclaration;
   export import TypeChecker = ts.TypeChecker;
   export import TypeNode = ts.TypeNode;
@@ -471,7 +467,6 @@ declare module 'assemblyscript/typescript' {
   export import TypeReferenceNode = ts.TypeReferenceNode;
   export import TypeReference = ts.TypeReference;
   export import Type = ts.Type;
-  export import VariableDeclaration = ts.VariableDeclaration;
   export import VariableDeclarationList = ts.VariableDeclarationList;
   export import VariableStatement = ts.VariableStatement;
   export import ReturnStatement = ts.ReturnStatement;
@@ -483,6 +478,7 @@ declare module 'assemblyscript/typescript' {
   export import SwitchStatement = ts.SwitchStatement;
   export import Symbol = ts.Symbol;
   export import SyntaxKind = ts.SyntaxKind;
+  export import UnionTypeNode = ts.UnionTypeNode;
   export import WhileStatement = ts.WhileStatement;
   export import getPreEmitDiagnostics = ts.getPreEmitDiagnostics;
   export import getSourceFileOfNode = ts.getSourceFileOfNode;
@@ -672,7 +668,7 @@ declare module 'assemblyscript/expressions/as' {
   import * as reflection from "assemblyscript/reflection";
   import * as typescript from "assemblyscript/typescript";
   /** Compiles an 'as' expression explicitly converting from one type to another. */
-  export function compileAs(compiler: Compiler, node: typescript.AsExpression, contextualType: reflection.Type): binaryen.Expression;
+  export function compileAs(compiler: Compiler, node: typescript.AssertionExpression, contextualType: reflection.Type): binaryen.Expression;
   export { compileAs as default };
 }
 
@@ -1227,6 +1223,10 @@ declare module 'assemblyscript/reflection/type' {
       size: number;
       /** The underlying class, if a pointer. */
       underlyingClass?: Class;
+      /** The respective nullable type of this type, if applicable. */
+      nullableType?: Type;
+      /** The respective non-nullable type of this type, if applicable. */
+      nonNullableType?: Type;
       /** Constructs a new reflected type. Not meant to introduce any types other than the core types. */
       constructor(kind: TypeKind, size: number, underlyingClass?: Class);
       /** Tests if this is an integer type of any size. */
@@ -1251,10 +1251,14 @@ declare module 'assemblyscript/reflection/type' {
       readonly isArray: boolean;
       /** Tests if this is a pointer with an underlying string-like class. */
       readonly isString: boolean;
+      /** Tests if this is a nullable type. */
+      readonly isNullable: boolean;
       /** Gets the common name of a temporary variable of this type. */
       readonly tempName: string;
       /** Amends a pointer to reference the specified underlying class. */
       withUnderlyingClass(underlyingClass: Class): Type;
+      /** Derives the respective nullable type of this type. */
+      asNullable(): Type;
       toString(): string;
   }
   export { Type as default };

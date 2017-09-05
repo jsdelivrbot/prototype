@@ -56,7 +56,7 @@ Instead of reimplementing TypeScript *as closely as possible* at the expense of 
 
 * All types must be annotated to avoid possibly unwanted implicit type conversions
 * Optional function parameters require an initializer expression
-* Union types, `any` and `undefined` are not supported by design
+* Union types (except `classType | null` representing a nullable), `any` and `undefined` are not supported by design
 * The result of logical `&&` / `||` expressions is always `bool`
 
 Also note that AssemblyScript is a rather new and ambitious project developed by one guy and a hand full of occasional contributors. Expect bugs and breaking changes. Prepare to fix stuff yourself and to send a PR for it, unless you like the idea enough to consider sponsoring development.

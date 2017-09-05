@@ -58,6 +58,10 @@ export class Type {
   size: number;
   /** The underlying class, if a pointer. */
   underlyingClass?: Class;
+  /** The respective nullable type of this type, if applicable. */
+  nullableType?: Type;
+  /** The respective non-nullable type of this type, if applicable. */
+  nonNullableType?: Type;
 
   /** Constructs a new reflected type. Not meant to introduce any types other than the core types. */
   constructor(kind: TypeKind, size: number, underlyingClass?: Class) {
@@ -88,6 +92,8 @@ export class Type {
   get isArray(): boolean { return this.isClass && (<Class>this.underlyingClass).isArray; }
   /** Tests if this is a pointer with an underlying string-like class. */
   get isString(): boolean { return this.isClass && (<Class>this.underlyingClass).isString; }
+  /** Tests if this is a nullable type. */
+  get isNullable(): boolean { return this.nonNullableType !== null; }
   /** Gets the common name of a temporary variable of this type. */
   get tempName(): string { return "." + TypeKind[this.kind]; }
 
@@ -98,8 +104,24 @@ export class Type {
     return type;
   }
 
+  /** Derives the respective nullable type of this type. */
+  asNullable(): Type {
+    if (!this.nullableType) {
+      if (!this.underlyingClass)
+        throw Error("not a class type");
+      this.nullableType = new Type(this.kind, this.size, this.underlyingClass);
+      this.nullableType.nonNullableType = this;
+    }
+    return this.nullableType;
+  }
+
   toString(): string {
-    return this.underlyingClass ? this.underlyingClass.name : TypeKind[this.kind];
+    if (this.underlyingClass) {
+      return this.isNullable
+        ? this.underlyingClass.name + " | null"
+        : this.underlyingClass.name;
+    }
+    return TypeKind[this.kind];
   }
 }
 

@@ -7,7 +7,7 @@ import * as typescript from "../typescript";
 import * as util from "../util";
 
 /** Compiles an 'as' expression explicitly converting from one type to another. */
-export function compileAs(compiler: Compiler, node: typescript.AsExpression, contextualType: reflection.Type): binaryen.Expression {
+export function compileAs(compiler: Compiler, node: typescript.AssertionExpression, contextualType: reflection.Type): binaryen.Expression {
   const op = compiler.module;
   const toType = compiler.resolveType(node.type, false, compiler.currentFunction.typeArgumentsMap); // reports
 

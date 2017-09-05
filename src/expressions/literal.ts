@@ -24,7 +24,16 @@ export function compileLiteral(compiler: Compiler, node: typescript.LiteralExpre
         : contextualType.isLong ? op.i64.const(0, 0) : op.i32.const(0);
 
     case typescript.SyntaxKind.NullKeyword:
-      util.setReflectedType(node, compiler.uintptrType);
+      if (contextualType.isClass) {
+        if (contextualType.isNullable)
+          util.setReflectedType(node, contextualType);
+        else {
+          const nullableType = contextualType.asNullable();
+          util.setReflectedType(node, nullableType);
+          compiler.report(node, typescript.DiagnosticsEx.Types_0_and_1_are_incompatible, contextualType.toString(), nullableType.toString());
+        }
+      } else
+        util.setReflectedType(node, compiler.uintptrType);
       return compiler.uintptrSize === 4 ? op.i32.const(0) : op.i64.const(0, 0);
 
     case typescript.SyntaxKind.NumericLiteral:
