@@ -61,10 +61,7 @@
    (loop $continue$1.1
     (if
      (i32.const 0)
-     (block
-      (nop)
-      (br $continue$1.1)
-     )
+     (br $continue$1.1)
     )
    )
   )
@@ -72,10 +69,7 @@
    (loop $continue$2.1
     (if
      (i32.const 1)
-     (block
-      (nop)
-      (br $continue$2.1)
-     )
+     (br $continue$2.1)
     )
    )
   )
@@ -94,7 +88,6 @@
       (get_local $0)
      )
      (block
-      (nop)
       (set_local $1
        (i32.add
         (get_local $1)
@@ -117,7 +110,6 @@
       (get_local $0)
      )
      (block
-      (nop)
       (set_local $2
        (i32.add
         (get_local $2)
@@ -140,7 +132,6 @@
       (get_local $0)
      )
      (block
-      (nop)
       (set_local $2
        (i32.add
         (get_local $2)

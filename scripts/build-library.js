@@ -18,7 +18,6 @@ out.push(
 var files = {};
 [
   "assembly.d.ts", // must be first
-  "std/disposable.ts",
   "std/array.ts",
   "std/string.ts",
   "std/console.ts",

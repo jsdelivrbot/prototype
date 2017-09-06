@@ -66,14 +66,10 @@ declare const Infinity: double;
 /** Positive infinity as a 32-bit float. */
 declare const Infinityf: float;
 
-declare abstract class Disposable implements IDisposable {
-  dispose(): void;
-}
-
 // Arrays
 
 /** A fixed-size array. */
-declare class Array<T> extends Disposable {
+declare class Array<T> implements IDisposable {
   /** Maximum number of elements this array can hold without resizing. */
   readonly capacity: int;
   /** Number of elements this array currently holds. */
@@ -90,8 +86,7 @@ declare class Array<T> extends Disposable {
   slice(begin?: int, end?: int): this;
   /** Reverses the array's elements in place. The first array element becomes the last, and the last array element becomes the first. */
   reverse(): this;
-  /** Grows the array to the specified new capacity, frees the current reference (unsafe) and returns the new reference. Traps if `newCapacity` is less than or equal the current capacity. */
-  // unsafeGrow(newCapacity: int): this;
+  dispose(): void;
 }
 
 /** A fixed-size 8-bit signed integer array. */

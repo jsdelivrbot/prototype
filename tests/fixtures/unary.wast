@@ -6,8 +6,6 @@
  (func $testInt (type $iv) (param $0 i32)
   (local $1 i32)
   (local $2 i32)
-  (nop)
-  (nop)
   (drop
    (i32.eqz
     (get_local $0)
@@ -114,8 +112,6 @@
  (func $testLong (type $Iv) (param $0 i64)
   (local $1 i64)
   (local $2 i32)
-  (nop)
-  (nop)
   (drop
    (i64.eqz
     (get_local $0)
@@ -222,8 +218,6 @@
  (func $testFloat (type $fv) (param $0 f32)
   (local $1 f32)
   (local $2 i32)
-  (nop)
-  (nop)
   (drop
    (f32.eq
     (get_local $0)
@@ -318,8 +312,6 @@
  (func $testDouble (type $Fv) (param $0 f64)
   (local $1 f64)
   (local $2 i32)
-  (nop)
-  (nop)
   (drop
    (f64.eq
     (get_local $0)

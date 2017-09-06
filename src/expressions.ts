@@ -24,6 +24,7 @@ export * from "./expressions/propertyaccess";
 
 import * as binaryen from "binaryen";
 import Compiler from "./compiler";
+import { tryParseLiteral, tryParseArrayLiteral } from "./parser";
 import * as reflection from "./reflection";
 import * as typescript from "./typescript";
 import * as util from "./util";
@@ -41,9 +42,7 @@ import {
   compilePostfixUnary,
   compilePrefixUnary,
   compilePropertyAccess,
-  compileOmitted,
-  tryParseLiteral,
-  tryParseArrayLiteral
+  compileOmitted
 } from "./expressions";
 
 /** Compiles any supported expression. */

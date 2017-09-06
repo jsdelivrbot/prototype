@@ -174,29 +174,29 @@ export function createCompilerHost(moduleSearchLocations: string[], entryFileSou
 }
 
 /** Formats a diagnostic message in plain text. */
-export function formatDiagnostics(diagnostics: Diagnostic[], host?: FormatDiagnosticsHost) {
-  return /* override */ ts.formatDiagnostics(diagnostics, host || defaultFormatDiagnosticsHost);
+export function formatDiagnosticsEx(diagnostics: Diagnostic[], host?: FormatDiagnosticsHost) {
+  return ts.formatDiagnostics(diagnostics, host || defaultFormatDiagnosticsHost);
 }
 
 /** Formats a diagnostic message with terminal colors and source context. */
-export function formatDiagnosticsWithColorAndContext(diagnostics: Diagnostic[], host?: FormatDiagnosticsHost) {
-  return /* override */ ts.formatDiagnosticsWithColorAndContext(diagnostics, host || defaultFormatDiagnosticsHost);
+export function formatDiagnosticsWithColorAndContextEx(diagnostics: Diagnostic[], host?: FormatDiagnosticsHost) {
+  return ts.formatDiagnosticsWithColorAndContext(diagnostics, host || defaultFormatDiagnosticsHost);
 }
 
 /** Prints a diagnostic message to console. */
 export function printDiagnostic(diagnostic: Diagnostic): void {
   if (typeof process !== "undefined" && process && process.stderr) {
     if (diagnostic.category === DiagnosticCategory.Message)
-      process.stderr.write(formatDiagnostics([ diagnostic ], defaultFormatDiagnosticsHost));
+      process.stderr.write(formatDiagnosticsEx([ diagnostic ], defaultFormatDiagnosticsHost));
     else
-      process.stderr.write(formatDiagnosticsWithColorAndContext([ diagnostic ], defaultFormatDiagnosticsHost) + "\n");
+      process.stderr.write(formatDiagnosticsWithColorAndContextEx([ diagnostic ], defaultFormatDiagnosticsHost) + "\n");
   } else {
     if (diagnostic.category === DiagnosticCategory.Message)
-      (console.info || console.log)(formatDiagnostics([ diagnostic ], defaultFormatDiagnosticsHost));
+      (console.info || console.log)(formatDiagnosticsEx([ diagnostic ], defaultFormatDiagnosticsHost));
     else if (diagnostic.category === DiagnosticCategory.Warning)
-      (console.warn || console.log)(formatDiagnostics([ diagnostic ], defaultFormatDiagnosticsHost));
+      (console.warn || console.log)(formatDiagnosticsEx([ diagnostic ], defaultFormatDiagnosticsHost));
     else
-      (console.error || console.log)(formatDiagnostics([ diagnostic ], defaultFormatDiagnosticsHost));
+      (console.error || console.log)(formatDiagnosticsEx([ diagnostic ], defaultFormatDiagnosticsHost));
   }
 }
 

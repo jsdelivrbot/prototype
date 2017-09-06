@@ -14,13 +14,11 @@
   )
  )
  (func $testLocal (type $i) (result i32)
-  (nop)
   (return
    (i32.const 123)
   )
  )
  (func $testLocalNeg (type $i) (result i32)
-  (nop)
   (return
    (i32.const -123)
   )

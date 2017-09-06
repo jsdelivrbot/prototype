@@ -279,7 +279,7 @@ declare module 'assemblyscript/compiler' {
       /** Textual break label according to the current break context state. */
       readonly currentBreakLabel: string;
       /** Compiles a statement. */
-      compileStatement(node: typescript.Statement): binaryen.Statement;
+      compileStatement(node: typescript.Statement): binaryen.Statement | null;
       /** Compiles an expression. */
       compileExpression(node: typescript.Expression, contextualType: reflection.Type, convertToType?: reflection.Type, convertExplicit?: boolean): binaryen.Expression;
       /** Wraps an expression with a conversion where necessary. */
@@ -498,9 +498,9 @@ declare module 'assemblyscript/typescript' {
   /** Creates an AssemblyScript-compatible compiler host. */
   export function createCompilerHost(moduleSearchLocations: string[], entryFileSource?: string, entryFileName?: string): CompilerHost;
   /** Formats a diagnostic message in plain text. */
-  export function formatDiagnostics(diagnostics: Diagnostic[], host?: FormatDiagnosticsHost): string;
+  export function formatDiagnosticsEx(diagnostics: Diagnostic[], host?: FormatDiagnosticsHost): string;
   /** Formats a diagnostic message with terminal colors and source context. */
-  export function formatDiagnosticsWithColorAndContext(diagnostics: Diagnostic[], host?: FormatDiagnosticsHost): string;
+  export function formatDiagnosticsWithColorAndContextEx(diagnostics: Diagnostic[], host?: FormatDiagnosticsHost): string;
   /** Prints a diagnostic message to console. */
   export function printDiagnostic(diagnostic: Diagnostic): void;
   /** Gets the name of a symbol.  */
@@ -511,25 +511,34 @@ declare module 'assemblyscript/statements' {
   /**
     * Compiler components dealing with TypeScript statements.
     * @module assemblyscript/statements
-    * @preferred
     */ /** */
-  export * from "assemblyscript/statements/block";
-  export * from "assemblyscript/statements/break";
-  export * from "assemblyscript/statements/do";
-  export * from "assemblyscript/statements/empty";
-  export * from "assemblyscript/statements/expression";
-  export * from "assemblyscript/statements/for";
-  export * from "assemblyscript/statements/if";
-  export * from "assemblyscript/statements/return";
-  export * from "assemblyscript/statements/switch";
-  export * from "assemblyscript/statements/throw";
-  export * from "assemblyscript/statements/variable";
-  export * from "assemblyscript/statements/while";
-  import * as binaryen from "binaryen";
+  import { Statement } from "binaryen";
   import Compiler from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
+  import * as ts from "assemblyscript/typescript";
   /** Compiles any supported statement. */
-  export function compile(compiler: Compiler, node: typescript.Statement): binaryen.Statement;
+  export function compile(compiler: Compiler, node: ts.Statement): Statement | null;
+  /** Compiles a block statement. */
+  export function compileBlock(compiler: Compiler, node: ts.Block): Statement | null;
+  /** Compiles a break statement. */
+  export function compileBreak(compiler: Compiler, node: ts.BreakStatement | ts.ContinueStatement): Statement;
+  /** Compiles a do loop statement. */
+  export function compileDo(compiler: Compiler, node: ts.DoStatement): Statement;
+  /** Compiles an expression statement. */
+  export function compileExpression(compiler: Compiler, node: ts.ExpressionStatement): Statement;
+  /** Compiles a for loop statement. */
+  export function compileFor(compiler: Compiler, node: ts.ForStatement): Statement;
+  /** Compiles an if statement. */
+  export function compileIf(compiler: Compiler, node: ts.IfStatement): Statement;
+  /** Compiles a return statement. */
+  export function compileReturn(compiler: Compiler, node: ts.ReturnStatement): Statement;
+  /** Compiles a switch statement. */
+  export function compileSwitch(compiler: Compiler, node: ts.SwitchStatement): Statement;
+  /** Compiles a throw statement. */
+  export function compileThrow(compiler: Compiler): Statement;
+  /** Compiles a variable declaration statement. */
+  export function compileVariable(compiler: Compiler, node: ts.VariableStatement): Statement | null;
+  /** Compiles a while loop statement. */
+  export function compileWhile(compiler: Compiler, node: ts.WhileStatement): Statement;
 }
 
 declare module 'assemblyscript/util' {
@@ -654,13 +663,10 @@ declare module 'assemblyscript/expressions/arrayliteral' {
   /** @module assemblyscript/expressions */ /** */
   import * as binaryen from "binaryen";
   import Compiler from "assemblyscript/compiler";
-  import * as Long from "long";
   import * as reflection from "assemblyscript/reflection";
   import * as typescript from "assemblyscript/typescript";
   /** Compiles an array literal expression. */
   export function compileArrayLiteral(compiler: Compiler, node: typescript.ArrayLiteralExpression, contextualType: reflection.Type): binaryen.Expression;
-  /** Tries to parse an array literal expression. Returns `null` if that's not possible. */
-  export function tryParseArrayLiteral(node: typescript.ArrayLiteralExpression, contextualType: reflection.Type): Array<number | Long | string | null> | null;
 }
 
 declare module 'assemblyscript/expressions/as' {
@@ -773,22 +779,11 @@ declare module 'assemblyscript/expressions/literal' {
   /** @module assemblyscript/expressions */ /** */
   import * as binaryen from "binaryen";
   import Compiler from "assemblyscript/compiler";
-  import * as Long from "long";
   import * as reflection from "assemblyscript/reflection";
   import * as typescript from "assemblyscript/typescript";
   /** Compiles a literal expression. */
   export function compileLiteral(compiler: Compiler, node: typescript.LiteralExpression, contextualType: reflection.Type, negate?: boolean): binaryen.Expression;
   export { compileLiteral as default };
-  /** Tries to parse a boolean value. Returns `null` if that's not possible. */
-  export function tryParseBool(text: string): 0 | 1 | null;
-  /** Tries to parse an integer value. Returns `null` if that's not possible. */
-  export function tryParseInt(text: string): number | null;
-  /** Tries to parse a long value. Returns `null` if that's not possible. */
-  export function tryParseLong(text: string, unsigned?: boolean): Long | null;
-  /** Tries to parse a float value. Returns `null` if that's not possible. */
-  export function tryParseFloat(text: string): number | null;
-  /** Tries to parse a literal expression. Returns `null` if that's not possible. */
-  export function tryParseLiteral(node: typescript.LiteralExpression, contextualType: reflection.Type, negate?: boolean): number | Long | string | null;
 }
 
 declare module 'assemblyscript/expressions/new' {
@@ -1484,123 +1479,5 @@ declare module 'assemblyscript/typescript/diagnosticMessages.generated' {
       };
   };
   export { DiagnosticsEx as default };
-}
-
-declare module 'assemblyscript/statements/block' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
-  /** Compiles a block statement. */
-  export function compileBlock(compiler: Compiler, node: typescript.Block): binaryen.Statement;
-  export { compileBlock as default };
-}
-
-declare module 'assemblyscript/statements/break' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
-  /** Compiles a break statement. */
-  export function compileBreak(compiler: Compiler, node: typescript.BreakStatement | typescript.ContinueStatement): binaryen.Statement;
-  export { compileBreak as default };
-}
-
-declare module 'assemblyscript/statements/do' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
-  /** Compiles a do loop statement. */
-  export function compileDo(compiler: Compiler, node: typescript.DoStatement): binaryen.Statement;
-  export { compileDo as default };
-}
-
-declare module 'assemblyscript/statements/empty' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  /** Compiles an empty statement. */
-  export function compileEmpty(compiler: Compiler): binaryen.Statement;
-  export { compileEmpty as default };
-}
-
-declare module 'assemblyscript/statements/expression' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
-  /** Compiles an expression statement. */
-  export function compileExpression(compiler: Compiler, node: typescript.ExpressionStatement): binaryen.Statement;
-  export { compileExpression as default };
-}
-
-declare module 'assemblyscript/statements/for' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
-  /** Compiles a for loop statement. */
-  export function compileFor(compiler: Compiler, node: typescript.ForStatement): binaryen.Statement;
-  export { compileFor as default };
-}
-
-declare module 'assemblyscript/statements/if' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
-  /** Compiles an if statement. */
-  export function compileIf(compiler: Compiler, node: typescript.IfStatement): binaryen.Statement;
-  export { compileIf as default };
-}
-
-declare module 'assemblyscript/statements/return' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
-  /** Compiles a return statement. */
-  export function compileReturn(compiler: Compiler, node: typescript.ReturnStatement): binaryen.Statement;
-  export { compileReturn as default };
-}
-
-declare module 'assemblyscript/statements/switch' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
-  /** Compiles a switch statement. */
-  export function compileSwitch(compiler: Compiler, node: typescript.SwitchStatement): binaryen.Statement;
-  export { compileSwitch as default };
-}
-
-declare module 'assemblyscript/statements/throw' {
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  export function compileThrow(compiler: Compiler): binaryen.Statement;
-  export default compileThrow;
-}
-
-declare module 'assemblyscript/statements/variable' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import { Compiler } from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
-  /** Compiles a variable declaration statement. */
-  export function compileVariable(compiler: Compiler, node: typescript.VariableStatement): binaryen.Statement;
-  export { compileVariable as default };
-  /** Compiles a variable declaration list statement. */
-  export function compileVariableDeclarationList(compiler: Compiler, node: typescript.VariableDeclarationList): binaryen.Statement;
-}
-
-declare module 'assemblyscript/statements/while' {
-  /** @module assemblyscript/statements */ /** */
-  import * as binaryen from "binaryen";
-  import Compiler from "assemblyscript/compiler";
-  import * as typescript from "assemblyscript/typescript";
-  /** Compiles a while loop statement. */
-  export function compileWhile(compiler: Compiler, node: typescript.WhileStatement): binaryen.Statement;
-  export { compileWhile as default };
 }
 

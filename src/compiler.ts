@@ -10,6 +10,7 @@ import compileStore from "./expressions/helpers/store";
 import * as arrayHelper from "./expressions/helpers/array";
 import * as library from "./library";
 import Memory from "./memory";
+import { tryParseLiteral, tryParseArrayLiteral } from "./parser";
 import Profiler from "./profiler";
 import * as reflection from "./reflection";
 import * as statements from "./statements";
@@ -379,7 +380,7 @@ export class Compiler {
             negate = true;
             initializer = (<typescript.PrefixUnaryExpression>initializer).operand;
           }
-          const parsed = expressions.tryParseLiteral(<typescript.LiteralExpression>initializer, type, negate);
+          const parsed = tryParseLiteral(<typescript.LiteralExpression>initializer, type, negate);
           if (parsed !== null) { // inline
             global.value = <number | Long>parsed;
             return;
@@ -393,7 +394,7 @@ export class Compiler {
         type.isArray &&
         (
           initializerNode.kind === typescript.SyntaxKind.ArrayLiteralExpression &&
-          (arrayValues = expressions.tryParseArrayLiteral(<typescript.ArrayLiteralExpression>initializerNode, type)) !== null
+          (arrayValues = tryParseArrayLiteral(<typescript.ArrayLiteralExpression>initializerNode, type)) !== null
         ) || (
           initializerNode.kind === typescript.SyntaxKind.NewExpression &&
           (arrayValues = arrayHelper.evaluateNumericArrayInitializer(<typescript.NewExpression>initializerNode, (<reflection.Class>type.underlyingClass).typeArgumentsMap.T.type)) !== null
@@ -724,7 +725,11 @@ export class Compiler {
       body.push(this.globalInitializers[i]); // usually a setGlobal
 
     // compile top-level statements
-    this.startFunctionBody.forEach(stmt => body.push(statements.compile(this, stmt)));
+    for (i = 0; i < this.startFunctionBody.length; ++i) {
+      const compiled = statements.compile(this, this.startFunctionBody[i]);
+      if (compiled)
+        body.push(compiled);
+    }
 
     // make sure to check for additional locals
     const additionalLocals: binaryen.Type[] = [];
@@ -828,8 +833,9 @@ export class Compiler {
     if (instance.body.kind === typescript.SyntaxKind.Block) {
       const blockNode = <typescript.Block>instance.body;
       for (let i = 0, k = blockNode.statements.length; i < k; ++i) {
-        const statementNode = blockNode.statements[i];
-        body.push(this.compileStatement(statementNode)); // TODO: filter out nops?
+        const compiled = statements.compile(this, blockNode.statements[i]);
+        if (compiled)
+          body.push(compiled);
       }
     } else {
       const expressionNode = <typescript.Expression>instance.body;
@@ -923,7 +929,7 @@ export class Compiler {
   get currentBreakLabel(): string { return this.currentFunction.breakLabel; }
 
   /** Compiles a statement. */
-  compileStatement(node: typescript.Statement): binaryen.Statement {
+  compileStatement(node: typescript.Statement): binaryen.Statement | null {
     return statements.compile(this, node);
   }
 

@@ -1,10 +1,9 @@
 @no_implicit_malloc()
-export class Array<T> extends Disposable {
+export class Array<T> implements IDisposable {
   readonly capacity: int;
   length: int; // can be any user-provided value
 
   constructor(capacity: int) {
-    super();
 
     // if the argument is any other number, a RangeError exception is thrown
     if (capacity < 0)
@@ -135,6 +134,10 @@ export class Array<T> extends Disposable {
 
     return unsafe_cast<uintptr,this>(ptr);
   } */
+
+  dispose(): void {
+    free(unsafe_cast<this,uintptr>(this));
+  }
 }
 
 // transient helper struct used to set the otherwise readonly length property

@@ -4,7 +4,6 @@
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
-  (nop)
   (if
    (i32.lt_s
     (get_local $1)
@@ -55,7 +54,6 @@
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
-  (nop)
   (if
    (i32.lt_s
     (get_local $1)
@@ -106,7 +104,6 @@
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
-  (nop)
   (if
    (i32.lt_s
     (get_local $1)
@@ -157,7 +154,6 @@
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
-  (nop)
   (if
    (i32.lt_s
     (get_local $1)
@@ -208,7 +204,6 @@
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
-  (nop)
   (if
    (i32.lt_s
     (get_local $1)
@@ -259,7 +254,6 @@
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
-  (nop)
   (if
    (i32.lt_s
     (get_local $1)
@@ -310,7 +304,6 @@
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
-  (nop)
   (if
    (i32.lt_s
     (get_local $1)
@@ -361,7 +354,6 @@
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
-  (nop)
   (if
    (i32.lt_s
     (get_local $1)
@@ -412,7 +404,6 @@
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
-  (nop)
   (if
    (i32.lt_s
     (get_local $1)
@@ -463,7 +454,6 @@
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
-  (nop)
   (if
    (i32.lt_s
     (get_local $1)

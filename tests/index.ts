@@ -80,7 +80,7 @@ function runTests(kind: string, exports: typeof assemblyscript) {
           return;
         }
 
-        const messages = typescript.formatDiagnosticsWithColorAndContext(Compiler.lastDiagnostics);
+        const messages = typescript.formatDiagnosticsWithColorAndContextEx(Compiler.lastDiagnostics);
         if (messages.length)
           process.stderr.write(messages.replace(/^/mg, "> ") + "\n");
 
@@ -155,7 +155,7 @@ function runTests(kind: string, exports: typeof assemblyscript) {
         return;
       }
 
-      const messages = typescript.formatDiagnosticsWithColorAndContext(Compiler.lastDiagnostics);
+      const messages = typescript.formatDiagnosticsWithColorAndContextEx(Compiler.lastDiagnostics);
       if (messages.length)
         process.stderr.write(messages.replace(/^/mg, "> ") + "\n");
 
