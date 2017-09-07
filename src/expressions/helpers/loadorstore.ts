@@ -1,22 +1,21 @@
 /** @module assemblyscript/expressions */ /** */
 
-import * as binaryen from "binaryen";
-import Compiler from "../../compiler";
-import * as reflection from "../../reflection";
-import * as typescript from "../../typescript";
-
-import compileLoad from "./load";
-import compileStore from "./store";
+import * as ts from "../../typescript";
+import { Expression } from "binaryen";
+import { Compiler } from "../../compiler";
+import { Type } from "../../reflection";
+import { compileLoad } from "./load";
+import { compileStore } from "./store";
 
 /** Helper compiling a load operation if `valueToSet` has been omitted, otherwise a store operation. */
-export function compileLoadOrStore(compiler: Compiler, node: typescript.Expression, type: reflection.Type, ptr: binaryen.Expression, offset: number, valueToSet?: binaryen.Expression, valueToSetContextualType?: reflection.Type): binaryen.Expression {
+export function compileLoadOrStore(compiler: Compiler, node: ts.Expression, type: Type, ptr: Expression, offset: number, valueToSet?: Expression, valueToSetContextualType?: Type): Expression {
 
   // load expression
   if (valueToSet === undefined)
     return compileLoad(compiler, node, type, ptr, offset);
 
   // store statement
-  if (valueToSetContextualType === reflection.voidType)
+  if (valueToSetContextualType === Type.void)
     return compileStore(compiler, node, type, ptr, offset, valueToSet);
 
   // store expression
@@ -30,10 +29,10 @@ export function compileLoadOrStore(compiler: Compiler, node: typescript.Expressi
   const tempVar = compiler.currentFunction.localsByName[type.tempName] || compiler.currentFunction.addLocal(type.tempName, type);
 
   return op.block("", [
-    op.setLocal(tempVar.index, ptr),
-    compileStore(compiler, node, type, op.getLocal(tempVar.index, binaryenType), offset, valueToSet),
-    compileLoad(compiler, node, type, op.getLocal(tempVar.index, binaryenType), offset)
+    op.setLocal(tempVar.localIndex, ptr),
+    compileStore(compiler, node, type, op.getLocal(tempVar.localIndex, binaryenType), offset, valueToSet),
+    compileLoad(compiler, node, type, op.getLocal(tempVar.localIndex, binaryenType), offset)
   ], binaryenType);
 }
 
-export { compileLoadOrStore as default };
+export default compileLoadOrStore;

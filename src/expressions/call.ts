@@ -1,37 +1,37 @@
 /** @module assemblyscript/expressions */ /** */
 
-import * as binaryen from "binaryen";
+import * as ts from "../typescript";
 import * as builtins from "../builtins";
-import Compiler from "../compiler";
-import * as reflection from "../reflection";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import { Expression } from "binaryen";
+import { Compiler } from "../compiler";
+import { TypeArgumentsMap, Function, FunctionTemplate, Class, ClassTemplate, ObjectFlags } from "../reflection";
+import { getReflectedType, setReflectedType } from "../util";
 
 /** Compiles a function call expression. */
-export function compileCall(compiler: Compiler, node: typescript.CallExpression/*, contextualType: reflection.Type*/): binaryen.Expression {
+export function compileCall(compiler: Compiler, node: ts.CallExpression/*, contextualType: reflection.Type*/): Expression {
   const op = compiler.module;
 
   // we'll need a reference to the reflected function and, if it is an instance call, evaluate the value of 'this'
-  let instance: reflection.Function | undefined;
-  let template: reflection.FunctionTemplate | undefined;
-  let thisExpression: binaryen.Expression | undefined;
+  let instance: Function | undefined;
+  let template: FunctionTemplate | undefined;
+  let thisExpression: Expression | undefined;
 
   // either static (Classname.methodName) or instance (expression.methodName)
-  if (node.expression.kind === typescript.SyntaxKind.PropertyAccessExpression) {
-    const accessNode = <typescript.PropertyAccessExpression>node.expression;
-    const methodName = typescript.getTextOfNode(accessNode.name);
+  if (node.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
+    const accessNode = <ts.PropertyAccessExpression>node.expression;
+    const methodName = ts.getTextOfNode(accessNode.name);
 
     // check for Classname.methodName
-    if (accessNode.expression.kind === typescript.SyntaxKind.Identifier) {
-      const reference = compiler.resolveReference(<typescript.Identifier>accessNode.expression, reflection.ObjectFlags.ClassTemplate);
-      if (reference instanceof reflection.ClassTemplate) {
+    if (accessNode.expression.kind === ts.SyntaxKind.Identifier) {
+      const reference = compiler.resolveReference(<ts.Identifier>accessNode.expression, ObjectFlags.ClassTemplate);
+      if (reference instanceof ClassTemplate) {
         const methodDeclaration = reference.methodDeclarations[methodName];
         if (methodDeclaration) {
           const method = compiler.initializeStaticMethod(methodDeclaration);
           instance = method.instance;
           template = method.template;
         } else {
-          compiler.report(accessNode.name, typescript.DiagnosticsEx.Unresolvable_identifier_0, methodName);
+          compiler.report(accessNode.name, ts.DiagnosticsEx.Unresolvable_identifier_0, methodName);
           return op.unreachable();
         }
       } // otherwise try next
@@ -40,7 +40,7 @@ export function compileCall(compiler: Compiler, node: typescript.CallExpression/
     // otherwise expression.methodName
     if (!template) {
       thisExpression = compiler.compileExpression(accessNode.expression, compiler.uintptrType);
-      const thisType = util.getReflectedType(accessNode.expression);
+      const thisType = getReflectedType(accessNode.expression);
       const underlyingClass = thisType.underlyingClass;
 
       if (!underlyingClass)
@@ -51,14 +51,14 @@ export function compileCall(compiler: Compiler, node: typescript.CallExpression/
     }
 
   // super call
-  } else if (node.expression.kind === typescript.SyntaxKind.SuperKeyword) {
+  } else if (node.expression.kind === ts.SyntaxKind.SuperKeyword) {
     const thisClass = compiler.currentFunction.parent;
 
     if (!(thisClass && thisClass.base))
       throw Error("missing base class"); // handled by typescript
 
-    let baseClass: reflection.Class | undefined = thisClass.base;
-    let ctor: reflection.Function | undefined;
+    let baseClass: Class | undefined = thisClass.base;
+    let ctor: Function | undefined;
     while (baseClass) {
       ctor = baseClass.ctor;
       if (ctor && ctor.body)
@@ -71,54 +71,54 @@ export function compileCall(compiler: Compiler, node: typescript.CallExpression/
 
     instance = ctor;
     template = ctor.template;
-    thisExpression = op.getLocal(compiler.currentFunction.localsByName.this.index, compiler.typeOf(compiler.uintptrType));
+    thisExpression = op.getLocal(compiler.currentFunction.localsByName.this.localIndex, compiler.typeOf(compiler.uintptrType));
 
   // top-level function call
-  } else if (node.expression.kind === typescript.SyntaxKind.Identifier) {
-    const reference = <reflection.Function | reflection.FunctionTemplate>compiler.resolveReference(<typescript.Identifier>node.expression, reflection.ObjectFlags.FunctionInclTemplate);
+  } else if (node.expression.kind === ts.SyntaxKind.Identifier) {
+    const reference = <Function | FunctionTemplate>compiler.resolveReference(<ts.Identifier>node.expression, ObjectFlags.FunctionInclTemplate);
 
-    if (reference instanceof reflection.Function) {
+    if (reference instanceof Function) {
       instance = reference;
       template = reference.template;
 
-    } else if (reference instanceof reflection.FunctionTemplate) {
+    } else if (reference instanceof FunctionTemplate) {
       template = reference;
 
     } else {
-      compiler.report(node.expression, typescript.DiagnosticsEx.Unresolvable_identifier_0, typescript.getTextOfNode(node.expression));
+      compiler.report(node.expression, ts.DiagnosticsEx.Unresolvable_identifier_0, ts.getTextOfNode(node.expression));
       return op.unreachable();
     }
 
   } else {
-    compiler.report(node.expression, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.expression.kind, "expressions.compileCall");
+    compiler.report(node.expression, ts.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.expression.kind, "expressions.compileCall");
     return op.unreachable();
   }
 
   // at this point, template is known but instance might not
   if (!instance) {
-    const typeArgumentsMap: reflection.TypeArgumentsMap = {};
+    const typeArgumentsMap: TypeArgumentsMap = {};
 
     // inherit type arguments from current class and function
     const currentFunction = compiler.currentFunction;
     if (currentFunction) {
       if (currentFunction.parent)
-        Object.keys(currentFunction.parent.typeArgumentsMap).forEach(key => typeArgumentsMap[key] = (<reflection.Class>currentFunction.parent).typeArgumentsMap[key]);
+        Object.keys(currentFunction.parent.typeArgumentsMap).forEach(key => typeArgumentsMap[key] = (<Class>currentFunction.parent).typeArgumentsMap[key]);
       Object.keys(currentFunction.typeArgumentsMap).forEach(key => typeArgumentsMap[key] = currentFunction.typeArgumentsMap[key]);
     }
 
     // but always prefer bound parent arguments, if applicable
     if (template.parent)
-      Object.keys(template.parent.typeArgumentsMap).forEach(key => typeArgumentsMap[key] = (<reflection.Class>(<reflection.FunctionTemplate>template).parent).typeArgumentsMap[key]);
+      Object.keys(template.parent.typeArgumentsMap).forEach(key => typeArgumentsMap[key] = (<Class>(<FunctionTemplate>template).parent).typeArgumentsMap[key]);
 
     instance = template.resolve(node.typeArguments || [], typeArgumentsMap); // reports
   }
 
-  util.setReflectedType(node, instance.returnType);
+  setReflectedType(node, instance.returnType);
 
   // compile built-in call to inline assembly
   if (builtins.isBuiltinFunction(instance.name, true)) {
 
-    const argumentExpressions: binaryen.Expression[] = new Array(instance.parameters.length);
+    const argumentExpressions: Expression[] = new Array(instance.parameters.length);
     for (let i = 0, k = instance.parameters.length; i < k; ++i) {
       const argumentType = instance.parameters[i].type;
       argumentExpressions[i] = compiler.compileExpression(node.arguments[i], argumentType, argumentType, false);
@@ -223,4 +223,4 @@ export function compileCall(compiler: Compiler, node: typescript.CallExpression/
   return instance.compileCall(node.arguments, thisExpression);
 }
 
-export { compileCall as default };
+export default compileCall;

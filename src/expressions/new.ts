@@ -1,52 +1,52 @@
 /** @module assemblyscript/expressions */ /** */
 
-import * as binaryen from "binaryen";
-import Compiler from "../compiler";
-import * as reflection from "../reflection";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import * as ts from "../typescript";
+import { Expression } from "binaryen";
+import { Compiler } from "../compiler";
+import { Type, Function, Class, ClassTemplate, ObjectFlags } from "../reflection";
+import { setReflectedType } from "../util";
 
 /** Compiles a 'new' expression. */
-export function compileNew(compiler: Compiler, node: typescript.NewExpression, contextualType: reflection.Type): binaryen.Expression {
+export function compileNew(compiler: Compiler, node: ts.NewExpression, contextualType: Type): Expression {
   const op = compiler.module;
 
-  util.setReflectedType(node, contextualType);
+  setReflectedType(node, contextualType);
 
-  if (node.expression.kind !== typescript.SyntaxKind.Identifier) {
-    compiler.report(node.expression, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.expression.kind, "expressions.compileNew");
+  if (node.expression.kind !== ts.SyntaxKind.Identifier) {
+    compiler.report(node.expression, ts.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.expression.kind, "expressions.compileNew");
     return op.unreachable();
   }
 
-  const identifierNode = <typescript.Identifier>node.expression;
-  if (contextualType !== reflection.voidType && !contextualType.underlyingClass)
+  const identifierNode = <ts.Identifier>node.expression;
+  if (contextualType !== Type.void && !contextualType.underlyingClass)
     throw Error("new used in non-class context"); // handled by typescript
 
-  const reference = compiler.resolveReference(identifierNode, reflection.ObjectFlags.ClassInclTemplate);
-  let instance: reflection.Class;
+  const reference = compiler.resolveReference(identifierNode, ObjectFlags.ClassInclTemplate);
+  let instance: Class;
 
-  if (reference instanceof reflection.ClassTemplate) {
-    const template = <reflection.ClassTemplate>reference;
-    let typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[] | undefined = node.typeArguments;
+  if (reference instanceof ClassTemplate) {
+    const template = <ClassTemplate>reference;
+    let typeArguments: ts.NodeArray<ts.TypeNode> | ts.TypeNode[] | undefined = node.typeArguments;
     if (!typeArguments && contextualType.underlyingClass) { // inherit from contextual class
       const clazz = contextualType.underlyingClass;
       typeArguments = Object.keys(clazz.typeArgumentsMap).map(key => clazz.typeArgumentsMap[key].node);
     }
     instance = template.resolve(typeArguments || []);
 
-  } else if (reference instanceof reflection.Class) {
-    instance = <reflection.Class>reference;
+  } else if (reference instanceof Class) {
+    instance = <Class>reference;
 
   } else {
-    compiler.report(identifierNode, typescript.DiagnosticsEx.Unresolvable_identifier_0, typescript.getTextOfNode(identifierNode));
+    compiler.report(identifierNode, ts.DiagnosticsEx.Unresolvable_identifier_0, ts.getTextOfNode(identifierNode));
     return op.unreachable();
   }
 
   if (contextualType.underlyingClass && !instance.isAssignableTo(contextualType.underlyingClass))
-    compiler.report(node.expression, typescript.DiagnosticsEx.Types_0_and_1_are_incompatible, instance.type.toString(), contextualType.underlyingClass.toString());
+    compiler.report(node.expression, ts.DiagnosticsEx.Types_0_and_1_are_incompatible, instance.type.toString(), contextualType.underlyingClass.toString());
 
   // Find the first implemented constructor
-  let current: reflection.Class = instance;
-  let ctor: reflection.Function | undefined = instance.ctor;
+  let current: Class = instance;
+  let ctor: Function | undefined = instance.ctor;
   while (!(ctor && ctor.body) && current.base) {
     current = current.base;
     ctor = current.ctor;
@@ -64,4 +64,4 @@ export function compileNew(compiler: Compiler, node: typescript.NewExpression, c
   return ctor.compileCall(node.arguments || [], allocate);
 }
 
-export { compileNew as default };
+export default compileNew;

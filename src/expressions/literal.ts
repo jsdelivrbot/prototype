@@ -1,67 +1,67 @@
 /** @module assemblyscript/expressions */ /** */
 
-import * as binaryen from "binaryen";
-import Compiler from "../compiler";
+import * as ts from "../typescript";
 import * as Long from "long";
+import { Expression } from "binaryen";
+import { Compiler } from "../compiler";
 import { tryParseLiteral } from "../parser";
-import * as reflection from "../reflection";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import { Type } from "../reflection";
+import { setReflectedType } from "../util";
 
 /** Compiles a literal expression. */
-export function compileLiteral(compiler: Compiler, node: typescript.LiteralExpression, contextualType: reflection.Type, negate: boolean = false): binaryen.Expression {
+export function compileLiteral(compiler: Compiler, node: ts.LiteralExpression, contextualType: Type, negate: boolean = false): Expression {
   const op = compiler.module;
 
-  util.setReflectedType(node, contextualType);
+  setReflectedType(node, contextualType);
 
   switch (node.kind) {
-    case typescript.SyntaxKind.TrueKeyword:
+    case ts.SyntaxKind.TrueKeyword:
       negate = !negate;
 
-    case typescript.SyntaxKind.FalseKeyword:
-      util.setReflectedType(node, reflection.boolType);
+    case ts.SyntaxKind.FalseKeyword:
+      setReflectedType(node, Type.bool);
       return negate
         ? contextualType.isLong ? op.i64.const(1, 0) : op.i32.const(1)
         : contextualType.isLong ? op.i64.const(0, 0) : op.i32.const(0);
 
-    case typescript.SyntaxKind.NullKeyword:
+    case ts.SyntaxKind.NullKeyword:
       if (contextualType.isClass) {
         if (contextualType.isNullable)
-          util.setReflectedType(node, contextualType);
+          setReflectedType(node, contextualType);
         else {
           const nullableType = contextualType.asNullable();
-          util.setReflectedType(node, nullableType);
-          compiler.report(node, typescript.DiagnosticsEx.Types_0_and_1_are_incompatible, contextualType.toString(), nullableType.toString());
+          setReflectedType(node, nullableType);
+          compiler.report(node, ts.DiagnosticsEx.Types_0_and_1_are_incompatible, contextualType.toString(), nullableType.toString());
         }
       } else
-        util.setReflectedType(node, compiler.uintptrType);
+        setReflectedType(node, compiler.uintptrType);
       return compiler.uintptrSize === 4 ? op.i32.const(0) : op.i64.const(0, 0);
 
-    case typescript.SyntaxKind.NumericLiteral:
+    case ts.SyntaxKind.NumericLiteral:
     {
       const parsed = tryParseLiteral(node, contextualType, negate);
       if (parsed === null) {
-        compiler.report(node, typescript.DiagnosticsEx.Unsupported_literal_0, typescript.getTextOfNode(node));
+        compiler.report(node, ts.DiagnosticsEx.Unsupported_literal_0, ts.getTextOfNode(node));
         return op.unreachable();
       }
       switch (contextualType) {
 
-        case reflection.floatType:
+        case Type.float:
           return op.f32.const(<number>parsed);
 
-        case reflection.doubleType:
+        case Type.double:
           return op.f64.const(<number>parsed);
 
-        case reflection.longType:
-        case reflection.ulongType:
-        case reflection.uintptrType64:
+        case Type.long:
+        case Type.ulong:
+        case Type.uintptr64:
           return op.i64.const((<Long>parsed).low, (<Long>parsed).high);
 
       }
       return op.i32.const(<number>parsed);
     }
 
-    case typescript.SyntaxKind.StringLiteral:
+    case ts.SyntaxKind.StringLiteral:
     {
       const text = node.text;
       const offset = compiler.memory.createString(text, true).offset;
@@ -69,8 +69,8 @@ export function compileLiteral(compiler: Compiler, node: typescript.LiteralExpre
     }
   }
 
-  compiler.report(node, typescript.DiagnosticsEx.Unsupported_literal_0, typescript.getTextOfNode(node));
+  compiler.report(node, ts.DiagnosticsEx.Unsupported_literal_0, ts.getTextOfNode(node));
   return op.unreachable();
 }
 
-export { compileLiteral as default };
+export default compileLiteral;

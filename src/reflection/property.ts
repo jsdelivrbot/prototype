@@ -1,9 +1,9 @@
 /** @module assemblyscript/reflection */ /** */
 
-import Compiler from "../compiler";
-import Type from "./type";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import * as ts from "../typescript";
+import { Compiler } from "../compiler";
+import { Type } from "./type";
+import { isStatic } from "../util";
 
 /** A reflected property. Also used to describe enum values. */
 export class Property {
@@ -15,29 +15,29 @@ export class Property {
   /** Simple name. */
   simpleName: string;
   /** Declaration reference. */
-  declaration: typescript.PropertyDeclaration | typescript.EnumMember;
+  declaration: ts.PropertyDeclaration | ts.EnumMember;
   /** Resolved type. */
   type: Type;
   /** Offset in memory, if applicable. */
   offset: number;
   /** Initializer expression, if applicable. */
-  initializer: typescript.Expression | undefined;
+  initializer: ts.Expression | undefined;
 
   /** Constructs a new reflected property. */
-  constructor(compiler: Compiler, name: string, declaration: typescript.PropertyDeclaration | typescript.EnumMember, type: Type, offset: number, initializer?: typescript.Expression) {
+  constructor(compiler: Compiler, name: string, declaration: ts.PropertyDeclaration | ts.EnumMember, type: Type, offset: number, initializer?: ts.Expression) {
     this.compiler = compiler;
     this.name = name;
     this.declaration = declaration;
-    this.simpleName = typescript.getTextOfNode(this.declaration.name);
+    this.simpleName = ts.getTextOfNode(this.declaration.name);
     this.type = type;
     this.offset = offset;
     this.initializer = initializer;
   }
 
   /** Tests if this property is an instance member. */
-  get isInstance(): boolean { return this.declaration.kind !== typescript.SyntaxKind.EnumMember && !util.isStatic(this.declaration); }
+  get isInstance(): boolean { return this.declaration.kind !== ts.SyntaxKind.EnumMember && !isStatic(this.declaration); }
 
   toString(): string { return this.name; }
 }
 
-export { Property as default };
+export default Property;

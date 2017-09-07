@@ -3,25 +3,9 @@
  * @module assemblyscript/parser
  */ /** */
 
-import * as Long from "long";
-import {
-  Type,
-  Class,
-  boolType,
-  sbyteType,
-  byteType,
-  shortType,
-  ushortType,
-  intType,
-  uintType,
-  longType,
-  ulongType,
-  uintptrType32,
-  uintptrType64,
-  floatType,
-  doubleType
-} from "./reflection";
 import * as ts from "./typescript";
+import * as Long from "long";
+import { Type, Class } from "./reflection";
 
 const INT_10_RE = /^(?:0|[1-9][0-9]*)$/;
 const INT_16_RE = /^0[xX][0-9A-Fa-f]+$/;
@@ -67,12 +51,12 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
   switch (node.kind) {
 
     case ts.SyntaxKind.TrueKeyword:
-      if (contextualType !== boolType)
+      if (contextualType !== Type.bool)
         return null;
       return negate ? 0 : 1;
 
     case ts.SyntaxKind.FalseKeyword:
-      if (contextualType !== boolType)
+      if (contextualType !== Type.bool)
         return null;
       return negate ? 1 : 0;
 
@@ -90,14 +74,14 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
 
       switch (contextualType) {
 
-        case boolType: {
+        case Type.bool: {
           const value = tryParseBool(node.text);
           return value === null
             ? null
             : negate ? 1 - <number>value : value;
         }
 
-        case sbyteType: {
+        case Type.sbyte: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -106,7 +90,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value << 24 >> 24;
         }
 
-        case byteType: {
+        case Type.byte: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -115,7 +99,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value & 0xff;
         }
 
-        case shortType: {
+        case Type.short: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -124,7 +108,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value << 16 >> 16;
         }
 
-        case ushortType: {
+        case Type.ushort: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -133,7 +117,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value & 0xffff;
         }
 
-        case intType: {
+        case Type.int: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -142,8 +126,8 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value | 0;
         }
 
-        case uintType:
-        case uintptrType32: {
+        case Type.uint:
+        case Type.uintptr32: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -152,7 +136,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value >>> 0;
         }
 
-        case longType: {
+        case Type.long: {
           const value = tryParseLong(ts.getTextOfNode(node), false); // can't use preprocessed 'node.text' here
           return value === null
             ? null
@@ -161,8 +145,8 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value;
         }
 
-        case ulongType:
-        case uintptrType64: {
+        case Type.ulong:
+        case Type.uintptr64: {
           const value = tryParseLong(ts.getTextOfNode(node), true); // can't use preprocessed 'node.text' here
           return value === null
             ? null
@@ -171,8 +155,8 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value;
         }
 
-        case floatType:
-        case doubleType: {
+        case Type.float:
+        case Type.double: {
           const value = tryParseFloat(node.text);
           return value === null
             ? null

@@ -1,13 +1,13 @@
 /**
  * Static memory utilizies.
  *
- * @module assemblyscript/builtins
+ * @module assemblyscript/memory
  */ /** */
 
-import Compiler from "./compiler";
 import * as Long from "long";
-import * as util from "./util";
-import * as reflection from "./reflection";
+import { Compiler } from "./compiler";
+import { writeBool, writeByte, writeShort, writeInt, writeLong, writeFloat, writeDouble } from "./util";
+import { Type, TypeKind } from "./reflection";
 
 /** A static memory segment. */
 export interface MemorySegment {
@@ -64,7 +64,7 @@ export class Memory {
     for (let i = 0; i < value.length; ++i)
       values[i] = value.charCodeAt(i);
 
-    const array = this.createArray(values, reflection.ushortType);
+    const array = this.createArray(values, Type.ushort);
     if (reuse)
       this.stringPool[value] = array;
 
@@ -72,7 +72,7 @@ export class Memory {
   }
 
   /** Creates a static array. */
-  createArray(values: Array<number | Long | string | null>, type: reflection.Type): MemorySegment {
+  createArray(values: Array<number | Long | string | null>, type: Type): MemorySegment {
     const startOffset = this.align();
     const length = values.length;
     const buffer = new Uint8Array(this.compiler.arrayHeaderSize + type.size * length);
@@ -80,8 +80,8 @@ export class Memory {
     if (length < 0 || length > 0x7fffffff)
       throw Error("length exceeds 31-bits");
 
-    util.writeInt(buffer, 0, length);
-    util.writeInt(buffer, 4, length);
+    writeInt(buffer, 0, length);
+    writeInt(buffer, 4, length);
 
     // create segment and advance (elements might result in more segments)
     this.currentOffset = this.currentOffset.add(buffer.length);
@@ -91,52 +91,52 @@ export class Memory {
     let innerOffset = 8;
     switch (type.kind) {
 
-      case reflection.TypeKind.bool:
+      case TypeKind.bool:
         for (const value of values)
-          innerOffset += util.writeBool(buffer, innerOffset, value);
+          innerOffset += writeBool(buffer, innerOffset, value);
         break;
 
-      case reflection.TypeKind.sbyte:
-      case reflection.TypeKind.byte:
+      case TypeKind.sbyte:
+      case TypeKind.byte:
         for (const value of values)
-          innerOffset += util.writeByte(buffer, innerOffset, <number>value);
+          innerOffset += writeByte(buffer, innerOffset, <number>value);
         break;
 
-      case reflection.TypeKind.short:
-      case reflection.TypeKind.ushort:
+      case TypeKind.short:
+      case TypeKind.ushort:
         for (const value of values)
-          innerOffset += util.writeShort(buffer, innerOffset, <number>value);
+          innerOffset += writeShort(buffer, innerOffset, <number>value);
         break;
 
-      case reflection.TypeKind.int:
-      case reflection.TypeKind.uint:
+      case TypeKind.int:
+      case TypeKind.uint:
         for (const value of values)
-          innerOffset += util.writeInt(buffer, innerOffset, Long.isLong(value) ? (<Long>value).toInt() : <number>value);
+          innerOffset += writeInt(buffer, innerOffset, Long.isLong(value) ? (<Long>value).toInt() : <number>value);
         break;
 
-      case reflection.TypeKind.long:
-      case reflection.TypeKind.ulong:
+      case TypeKind.long:
+      case TypeKind.ulong:
         for (const value of values)
-          innerOffset += util.writeLong(buffer, innerOffset, Long.fromValue(<Long>value));
+          innerOffset += writeLong(buffer, innerOffset, Long.fromValue(<Long>value));
         break;
 
-      case reflection.TypeKind.uintptr: {
-        if (this.compiler.uintptrType === reflection.uintptrType32)
+      case TypeKind.uintptr: {
+        if (this.compiler.uintptrType === Type.uintptr32)
           for (const value of values)
-            innerOffset += util.writeInt(buffer, innerOffset, Long.isLong(value) ? (<Long>value).toInt() : <number>value);
+            innerOffset += writeInt(buffer, innerOffset, Long.isLong(value) ? (<Long>value).toInt() : <number>value);
         else
           for (const value of values)
-            innerOffset += util.writeLong(buffer, innerOffset, Long.fromValue(<Long>value));
+            innerOffset += writeLong(buffer, innerOffset, Long.fromValue(<Long>value));
         break;
       }
-      case reflection.TypeKind.float:
+      case TypeKind.float:
         for (const value of values)
-          innerOffset += util.writeFloat(buffer, innerOffset, <number>value);
+          innerOffset += writeFloat(buffer, innerOffset, <number>value);
         break;
 
-      case reflection.TypeKind.double:
+      case TypeKind.double:
         for (const value of values)
-          innerOffset += util.writeDouble(buffer, innerOffset, <number>value);
+          innerOffset += writeDouble(buffer, innerOffset, <number>value);
         break;
 
       default:
@@ -149,4 +149,4 @@ export class Memory {
   // createInstance ?
 }
 
-export { Memory as default };
+export default Memory;

@@ -1,11 +1,11 @@
 /** @module assemblyscript/reflection */ /** */
 
+import * as ts from "../typescript";
 import { Compiler, LIB_PREFIX, STD_PREFIX } from "../compiler";
 import { FunctionTemplate, Function } from "./function";
-import Property from "./property";
-import { Type, TypeArgumentsMap, voidType } from "./type";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import { Property } from "./property";
+import { Type, TypeArgumentsMap } from "./type";
+import { getReflectedFunction, setReflectedFunction, setReflectedFunctionTemplate, setReflectedClass, setReflectedClassTemplate, isExport, isStatic, startsWith } from "../util";
 
 /** Common base class of {@link Class} and {@link ClassTemplate}. */
 export abstract class ClassBase {
@@ -17,9 +17,9 @@ export abstract class ClassBase {
   /** Simple name. */
   simpleName: string;
   /** Declaration reference. */
-  declaration: typescript.ClassDeclaration;
+  declaration: ts.ClassDeclaration;
 
-  protected constructor(compiler: Compiler, name: string, declaration: typescript.ClassDeclaration) {
+  protected constructor(compiler: Compiler, name: string, declaration: ts.ClassDeclaration) {
     this.compiler = compiler;
     this.name = name;
     this.declaration = declaration;
@@ -32,7 +32,7 @@ export abstract class ClassBase {
   get isGeneric(): boolean { return !!(this.declaration.typeParameters && this.declaration.typeParameters.length); }
 
   /** Tests if this class is exported. */
-  get isExport(): boolean { return util.isExport(this.declaration) && typescript.getSourceFileOfNode(this.declaration) === this.compiler.entryFile; }
+  get isExport(): boolean { return isExport(this.declaration) && ts.getSourceFileOfNode(this.declaration) === this.compiler.entryFile; }
 
   /** Tests if this class has been annotated with a decorator of the specified name. */
   hasDecorator(name: string): boolean {
@@ -41,9 +41,9 @@ export abstract class ClassBase {
       for (let i = 0, k = decorators.length; i < k; ++i) {
         const decorator = decorators[i];
         if (
-          decorator.expression.kind === typescript.SyntaxKind.CallExpression &&
-          (<typescript.CallExpression>decorator.expression).expression.kind === typescript.SyntaxKind.Identifier &&
-          typescript.getTextOfNode(<typescript.Identifier>(<typescript.CallExpression>decorator.expression).expression) === name
+          decorator.expression.kind === ts.SyntaxKind.CallExpression &&
+          (<ts.CallExpression>decorator.expression).expression.kind === ts.SyntaxKind.Identifier &&
+          ts.getTextOfNode(<ts.Identifier>(<ts.CallExpression>decorator.expression).expression) === name
         )
           return true;
       }
@@ -64,7 +64,7 @@ export interface ClassMethod {
 
 /** Tests if the specified global name references a built-in array. */
 export function isBuiltinArray(globalName: string) {
-  return util.startsWith(globalName, LIB_PREFIX + "Array<") || util.startsWith(globalName, STD_PREFIX + "Array<");
+  return startsWith(globalName, LIB_PREFIX + "Array<") || startsWith(globalName, STD_PREFIX + "Array<");
 }
 
 /** Tests if the specified global name references a built-in string. */
@@ -86,7 +86,7 @@ export class Class extends ClassBase {
   /** Reflected class type. */
   type: Type;
   /** Concrete type arguments. */
-  typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[];
+  typeArguments: ts.NodeArray<ts.TypeNode> | ts.TypeNode[];
   /** Type arguments map. */
   typeArgumentsMap: TypeArgumentsMap;
   /** Base class, if any. */
@@ -111,14 +111,14 @@ export class Class extends ClassBase {
   implicitMalloc: boolean = false;
 
   /** Constructs a new reflected class and binds it to its TypeScript declaration. */
-  constructor(compiler: Compiler, name: string, template: ClassTemplate, typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[] , base?: Class) {
+  constructor(compiler: Compiler, name: string, template: ClassTemplate, typeArguments: ts.NodeArray<ts.TypeNode> | ts.TypeNode[] , base?: Class) {
     super(compiler, name, template.declaration);
 
     // register
     if (compiler.classes[this.name])
       throw Error("duplicate class instance: " + this.name);
     compiler.classes[this.name] = template.instances[this.name] = this;
-    if (!this.isGeneric) util.setReflectedClass(template.declaration, this);
+    if (!this.isGeneric) setReflectedClass(template.declaration, this);
 
     // initialize
     this.template = template;
@@ -153,13 +153,13 @@ export class Class extends ClassBase {
         const propertyType = this.compiler.resolveType(propertyDeclaration.type);
         if (propertyType) {
           this.properties[propertyName] = new Property(this.compiler, propertyName, propertyDeclaration, propertyType, this.size, propertyDeclaration.initializer);
-          if (util.isStatic(propertyDeclaration))
+          if (isStatic(propertyDeclaration))
             this.compiler.addGlobal(this.name + "." + propertyName, propertyType, true, propertyDeclaration.initializer);
           else
             this.size += propertyType.size;
         } // otherwise reported by resolveType
       } else
-        this.compiler.report(propertyDeclaration.name, typescript.DiagnosticsEx.Type_expected);
+        this.compiler.report(propertyDeclaration.name, ts.DiagnosticsEx.Type_expected);
     });
 
     // set up methods
@@ -169,7 +169,7 @@ export class Class extends ClassBase {
       if (!hasBody && this.base && this.base.methods[methodName])
         this.methods[methodName] = this.base.methods[methodName];
       else
-        this.methods[methodName] = util.isStatic(methodDeclaration)
+        this.methods[methodName] = isStatic(methodDeclaration)
           ? this.compiler.initializeStaticMethod(methodDeclaration)
           : this.methods[methodName] = this.compiler.initializeInstanceMethod(methodDeclaration, this);
     });
@@ -177,7 +177,7 @@ export class Class extends ClassBase {
     // set up getters
     Object.keys(this.template.getterDeclarations).forEach(getterName => {
       const getterDeclaration = this.template.getterDeclarations[getterName];
-      this.getters[getterName] = util.isStatic(getterDeclaration)
+      this.getters[getterName] = isStatic(getterDeclaration)
         ? this.compiler.initializeStaticMethod(getterDeclaration)
         : this.compiler.initializeInstanceMethod(getterDeclaration, this);
     });
@@ -185,7 +185,7 @@ export class Class extends ClassBase {
     // set up setters
     Object.keys(this.template.setterDeclarations).forEach(setterName => {
       const setterDeclaration = this.template.setterDeclarations[setterName];
-      this.setters[setterName] = util.isStatic(setterDeclaration)
+      this.setters[setterName] = isStatic(setterDeclaration)
         ? this.compiler.initializeStaticMethod(setterDeclaration)
         : this.compiler.initializeInstanceMethod(setterDeclaration, this);
     });
@@ -196,14 +196,14 @@ export class Class extends ClassBase {
       const ctor = this.compiler.initializeInstanceMethod(ctorDeclaration, this);
       this.ctor = ctor.instance;
       if (!this.ctor)
-        this.ctor = util.getReflectedFunction(ctorDeclaration);
+        this.ctor = getReflectedFunction(ctorDeclaration);
       if (!this.ctor)
         this.ctor = ctor.template.resolve([], this.typeArgumentsMap);
 
       for (let j = 0, l = ctorDeclaration.parameters.length; j < l; ++j) {
         const parameterNode = ctorDeclaration.parameters[j];
         if (parameterNode.modifiers && parameterNode.modifiers.length) {
-          const propertyName = typescript.getTextOfNode(parameterNode.name);
+          const propertyName = ts.getTextOfNode(parameterNode.name);
           const parameter = this.ctor.parameters[/* this */ 1 + j];
           if (parameter.name !== propertyName) // ^ make sure this is correct
             throw Error("parameter name mismatch");
@@ -211,11 +211,11 @@ export class Class extends ClassBase {
           if (parameterNode.type) {
             const propertyType = this.compiler.resolveType(parameterNode.type);
             if (propertyType) {
-              this.properties[propertyName] = new Property(this.compiler, propertyName, /* FIXME */<typescript.PropertyDeclaration><any>parameterNode, propertyType, this.size);
+              this.properties[propertyName] = new Property(this.compiler, propertyName, /* FIXME */<ts.PropertyDeclaration><any>parameterNode, propertyType, this.size);
               this.size += propertyType.size;
             } // otherwise reported by resolveType
           } else
-            this.compiler.report(parameterNode, typescript.DiagnosticsEx.Type_expected);
+            this.compiler.report(parameterNode, ts.DiagnosticsEx.Type_expected);
         }
       }
     }
@@ -238,7 +238,7 @@ export class Class extends ClassBase {
   }
 }
 
-export { Class as default };
+export default Class;
 
 /** A class template with possibly unresolved generic parameters. */
 export class ClassTemplate extends ClassBase {
@@ -248,20 +248,20 @@ export class ClassTemplate extends ClassBase {
   /** Base class template, if any. */
   base?: ClassTemplate;
   /** Base type arguments. */
-  baseTypeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[];
+  baseTypeArguments: ts.NodeArray<ts.TypeNode> | ts.TypeNode[];
   /** Static and instance class property declarations by simple name. */
-  propertyDeclarations: { [key: string]: typescript.PropertyDeclaration } = {};
+  propertyDeclarations: { [key: string]: ts.PropertyDeclaration } = {};
   /** Static and instance method declarations by simple name. */
-  methodDeclarations: { [key: string]: typescript.MethodDeclaration; } = {};
+  methodDeclarations: { [key: string]: ts.MethodDeclaration; } = {};
   /** Getter declarations by simple name. */
-  getterDeclarations: { [key: string]: typescript.MethodDeclaration; } = {};
+  getterDeclarations: { [key: string]: ts.MethodDeclaration; } = {};
   /** Setter declarations by simple name. */
-  setterDeclarations: { [key: string]: typescript.MethodDeclaration; } = {};
+  setterDeclarations: { [key: string]: ts.MethodDeclaration; } = {};
   /** Constructor declaration, if any. */
-  ctorDeclaration?: typescript.ConstructorDeclaration;
+  ctorDeclaration?: ts.ConstructorDeclaration;
 
   /** Constructs a new reflected class template and binds it to its declaration. */
-  constructor(compiler: Compiler, name: string, declaration: typescript.ClassDeclaration, base?: ClassTemplate, baseTypeArguments?: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[]) {
+  constructor(compiler: Compiler, name: string, declaration: ts.ClassDeclaration, base?: ClassTemplate, baseTypeArguments?: ts.NodeArray<ts.TypeNode> | ts.TypeNode[]) {
     super(compiler, name, declaration);
 
     if (base && !baseTypeArguments)
@@ -271,7 +271,7 @@ export class ClassTemplate extends ClassBase {
     if (compiler.classes[this.name])
       throw Error("duplicate class template: " + this.name);
     compiler.classTemplates[this.name] = this;
-    util.setReflectedClassTemplate(this.declaration, this);
+    setReflectedClassTemplate(this.declaration, this);
 
     // initialize
     this.base = base;
@@ -281,7 +281,7 @@ export class ClassTemplate extends ClassBase {
     if (declaration.typeParameters && declaration.typeParameters.length) {
       const typeNames: string[] = new Array(declaration.typeParameters.length);
       for (let i = 0; i < declaration.typeParameters.length; ++i)
-        typeNames[i] = typescript.getTextOfNode(declaration.typeParameters[i].name);
+        typeNames[i] = ts.getTextOfNode(declaration.typeParameters[i].name);
       this.name += "<" + typeNames.join(",") + ">";
     }
 
@@ -290,55 +290,55 @@ export class ClassTemplate extends ClassBase {
       const member = this.declaration.members[i];
       switch (member.kind) {
 
-        case typescript.SyntaxKind.PropertyDeclaration: {
-          const propertyDeclaration = <typescript.PropertyDeclaration>member;
-          const propertyName = typescript.getTextOfNode(propertyDeclaration.name);
+        case ts.SyntaxKind.PropertyDeclaration: {
+          const propertyDeclaration = <ts.PropertyDeclaration>member;
+          const propertyName = ts.getTextOfNode(propertyDeclaration.name);
           if (this.propertyDeclarations[propertyName])
             throw Error("duplicate property declaration '" + propertyName + "' in " + this);
           this.propertyDeclarations[propertyName] = propertyDeclaration;
           break;
         }
-        case typescript.SyntaxKind.MethodDeclaration: {
-          const methodDeclaration = <typescript.MethodDeclaration>member;
-          const methodName = typescript.getTextOfNode(methodDeclaration.name);
+        case ts.SyntaxKind.MethodDeclaration: {
+          const methodDeclaration = <ts.MethodDeclaration>member;
+          const methodName = ts.getTextOfNode(methodDeclaration.name);
           if (this.methodDeclarations[methodName])
             throw Error("duplicate method declaration '" + methodName + "' in " + this);
           this.methodDeclarations[methodName] = methodDeclaration;
           break;
         }
-        case typescript.SyntaxKind.GetAccessor: {
-          const getterDeclaration = <typescript.MethodDeclaration>member;
-          const getterName = typescript.getTextOfNode(getterDeclaration.name);
+        case ts.SyntaxKind.GetAccessor: {
+          const getterDeclaration = <ts.MethodDeclaration>member;
+          const getterName = ts.getTextOfNode(getterDeclaration.name);
           if (this.getterDeclarations[getterName])
             throw Error("duplicate getter declaration '" + getterName + "' in " + this);
           this.getterDeclarations[getterName] = getterDeclaration;
           break;
         }
-        case typescript.SyntaxKind.SetAccessor: {
-          const setterDeclaration = <typescript.MethodDeclaration>member;
-          const setterName = typescript.getTextOfNode(setterDeclaration.name);
+        case ts.SyntaxKind.SetAccessor: {
+          const setterDeclaration = <ts.MethodDeclaration>member;
+          const setterName = ts.getTextOfNode(setterDeclaration.name);
           if (this.setterDeclarations[setterName])
             throw Error("duplicate setter declaration '" + setterName + "' in " + this);
           this.setterDeclarations[setterName] = setterDeclaration;
           break;
         }
-        case typescript.SyntaxKind.Constructor: {
-          const ctorDeclaration = <typescript.ConstructorDeclaration>member;
+        case ts.SyntaxKind.Constructor: {
+          const ctorDeclaration = <ts.ConstructorDeclaration>member;
           if (this.ctorDeclaration)
             throw Error("duplicate constructor declaration in " + this);
           this.ctorDeclaration = ctorDeclaration;
           break;
         }
-        case typescript.SyntaxKind.SemicolonClassElement: // ignore
+        case ts.SyntaxKind.SemicolonClassElement: // ignore
           break;
         default:
-          this.compiler.report(member, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, member.kind, "reflection.ClassTemplate#constructor");
+          this.compiler.report(member, ts.DiagnosticsEx.Unsupported_node_kind_0_in_1, member.kind, "reflection.ClassTemplate#constructor");
       }
     }
   }
 
   /** Resolves this possibly generic class against the provided type arguments. */
-  resolve(typeArgumentNodes: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Class {
+  resolve(typeArgumentNodes: ts.NodeArray<ts.TypeNode> | ts.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Class {
 
     // validate number of type parameters
     const typeParametersCount = this.declaration.typeParameters && this.declaration.typeParameters.length || 0;
@@ -351,9 +351,9 @@ export class ClassTemplate extends ClassBase {
     if (typeParametersCount) {
       const resolvedTypeNames: string[] = new Array(typeParametersCount);
       for (let i = 0; i < typeParametersCount; ++i) {
-        const parameter = (<typescript.NodeArray<typescript.TypeParameterDeclaration>>this.declaration.typeParameters)[i];
-        const parameterType = this.compiler.resolveType(typeArgumentNodes[i], false, typeArgumentsMap) || voidType; // reports
-        const parameterName = typescript.getTextOfNode(<typescript.Identifier>parameter.name);
+        const parameter = (<ts.NodeArray<ts.TypeParameterDeclaration>>this.declaration.typeParameters)[i];
+        const parameterType = this.compiler.resolveType(typeArgumentNodes[i], false, typeArgumentsMap) || Type.void; // reports
+        const parameterName = ts.getTextOfNode(<ts.Identifier>parameter.name);
         typeArguments[parameterName] = {
           type: parameterType,
           node: typeArgumentNodes[i]
@@ -368,10 +368,10 @@ export class ClassTemplate extends ClassBase {
       // resolve base type arguments against current type arguments
       let base: Class | undefined;
       if (this.base) {
-        const baseTypeArgumentNodes: typescript.TypeNode[] = [];
+        const baseTypeArgumentNodes: ts.TypeNode[] = [];
         for (let i = 0; i < this.baseTypeArguments.length; ++i) {
           const argument = this.baseTypeArguments[i];
-          const argumentName = typescript.getTextOfNode(argument);
+          const argumentName = ts.getTextOfNode(argument);
           baseTypeArgumentNodes[i] = typeArguments[argumentName] ? typeArguments[argumentName].node : argument;
         }
         base = this.base.resolve(baseTypeArgumentNodes);
@@ -396,11 +396,11 @@ export function patchClassImplementation(declTemplate: ClassTemplate, implTempla
   if (implTemplate.declaration.typeParameters) {
     for (let i = 0, k = implTemplate.declaration.typeParameters.length; i < k; ++i) {
       const parameter = implTemplate.declaration.typeParameters[i];
-      declBaseTypeArguments.push(<typescript.TypeNode><any>parameter); // solely used to obtain a name
+      declBaseTypeArguments.push(<ts.TypeNode><any>parameter); // solely used to obtain a name
     }
   }
   if (declTemplate.baseTypeArguments.length < declBaseTypeArguments.length)
-    declTemplate.baseTypeArguments = typescript.createNodeArray(declBaseTypeArguments);
+    declTemplate.baseTypeArguments = ts.createNodeArray(declBaseTypeArguments);
 
   // patch existing instances
   for (let keys = Object.keys(declTemplate.instances), i = 0, k = keys.length; i < k; ++i) {
@@ -422,9 +422,9 @@ export function patchClassImplementation(declTemplate: ClassTemplate, implTempla
       declTemplate.methodDeclarations[mkeys[j]] = implTemplate.methodDeclarations[mkeys[j]];
       declInstance.methods[mkeys[j]] = implMethod;
 
-      util.setReflectedFunctionTemplate(declMethod.template.declaration, implMethod.template);
+      setReflectedFunctionTemplate(declMethod.template.declaration, implMethod.template);
       if (implMethod.instance && !implMethod.instance.isGeneric)
-        util.setReflectedFunction(declMethod.template.declaration, implMethod.instance);
+        setReflectedFunction(declMethod.template.declaration, implMethod.instance);
     }
   }
 }

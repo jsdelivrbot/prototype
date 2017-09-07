@@ -29,4 +29,4 @@ export class Profiler {
   }
 }
 
-export { Profiler as default };
+export default Profiler;

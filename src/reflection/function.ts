@@ -1,13 +1,13 @@
 /** @module assemblyscript/reflection */ /** */
 
-import * as binaryen from "binaryen";
+import * as ts from "../typescript";
+import { Expression, Type as BinaryenType, Function as BinaryenFunction, Signature } from "binaryen";
 import { isRuntimeFunction } from "../builtins";
 import { Class } from "./class";
-import Compiler from "../compiler";
-import { Type, TypeArgumentsMap, voidType } from "./type";
-import { Variable, VariableFlags } from "./variable";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import { Compiler } from "../compiler";
+import { Type, TypeArgumentsMap } from "./type";
+import { Variable } from "./variable";
+import { isDeclare, isExport, isStatic, getReflectedClass, getReflectedClassTemplate, setReflectedFunction, setReflectedFunctionTemplate } from "../util";
 
 /** A function handle consisting of its instance, if any, and its template. */
 export interface FunctionHandle {
@@ -25,36 +25,36 @@ export abstract class FunctionBase {
   /** Simple name. */
   simpleName: string;
   /** Declaration reference. */
-  declaration: typescript.FunctionLikeDeclaration;
+  declaration: ts.FunctionLikeDeclaration;
   /** Class declaration reference, if any. */
-  classDeclaration?: typescript.ClassDeclaration;
+  classDeclaration?: ts.ClassDeclaration;
 
-  protected constructor(compiler: Compiler, name: string, declaration: typescript.FunctionLikeDeclaration) {
+  protected constructor(compiler: Compiler, name: string, declaration: ts.FunctionLikeDeclaration) {
     this.compiler = compiler;
     this.name = name;
-    this.simpleName = typescript.getTextOfNode(<typescript.Identifier>declaration.name);
+    this.simpleName = ts.getTextOfNode(<ts.Identifier>declaration.name);
     this.declaration = declaration;
-    if (declaration.parent && declaration.parent.kind === typescript.SyntaxKind.ClassDeclaration)
-      this.classDeclaration = <typescript.ClassDeclaration>declaration.parent;
+    if (declaration.parent && declaration.parent.kind === ts.SyntaxKind.ClassDeclaration)
+      this.classDeclaration = <ts.ClassDeclaration>declaration.parent;
   }
 
   /** Tests if this function is an import. */
-  get isImport(): boolean { return util.isDeclare(this.declaration) && (this.compiler.options.noRuntime || typescript.getSourceFileOfNode(this.declaration) !== this.compiler.libraryFile || !isRuntimeFunction(this.name)); }
+  get isImport(): boolean { return isDeclare(this.declaration) && (this.compiler.options.noRuntime || ts.getSourceFileOfNode(this.declaration) !== this.compiler.libraryFile || !isRuntimeFunction(this.name)); }
 
   /** Tests if this function is exported. */
-  get isExport(): boolean { return util.isExport(this.declaration, true) && typescript.getSourceFileOfNode(this.declaration) === this.compiler.entryFile; }
+  get isExport(): boolean { return isExport(this.declaration, true) && ts.getSourceFileOfNode(this.declaration) === this.compiler.entryFile; }
 
   /** Tests if this function is an instance member / not static. */
-  get isInstance(): boolean { return this.isConstructor || !util.isStatic(this.declaration) && this.declaration.kind === typescript.SyntaxKind.MethodDeclaration; }
+  get isInstance(): boolean { return this.isConstructor || !isStatic(this.declaration) && this.declaration.kind === ts.SyntaxKind.MethodDeclaration; }
 
   /** Tests if this function is the constructor of a class. */
-  get isConstructor(): boolean { return this.declaration.kind === typescript.SyntaxKind.Constructor; }
+  get isConstructor(): boolean { return this.declaration.kind === ts.SyntaxKind.Constructor; }
 
   /** Tests if this function is a getter. */
-  get isGetter(): boolean { return this.declaration.kind === typescript.SyntaxKind.GetAccessor; }
+  get isGetter(): boolean { return this.declaration.kind === ts.SyntaxKind.GetAccessor; }
 
   /** Tests if this function is a setter. */
-  get isSetter(): boolean { return this.declaration.kind === typescript.SyntaxKind.SetAccessor; }
+  get isSetter(): boolean { return this.declaration.kind === ts.SyntaxKind.SetAccessor; }
 
   /** Tests if this function is generic. */
   get isGeneric(): boolean {
@@ -74,11 +74,11 @@ export interface FunctionParameter {
   /** Resolved type. */
   type: Type;
   /** Parameter node reference. */
-  node: typescript.Node;
+  node: ts.Node;
   /** Whether this parameter also introduces a property (like when used with the `public` keyword). */
   isAlsoProperty?: boolean;
   /** Optional value initializer. */
-  initializer?: typescript.Expression;
+  initializer?: ts.Expression;
 }
 
 /** A function instance with generic parameters resolved. */
@@ -89,7 +89,7 @@ export class Function extends FunctionBase {
   /** Corresponding function template. */
   template: FunctionTemplate;
   /** Concrete type arguments. */
-  typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[];
+  typeArguments: ts.NodeArray<ts.TypeNode> | ts.TypeNode[];
   /** Resolved type arguments. */
   typeArgumentsMap: TypeArgumentsMap;
   /** Function parameters including `this`. */
@@ -99,7 +99,7 @@ export class Function extends FunctionBase {
   /** Parent class, if any. */
   parent?: Class;
   /** Body reference, if not just a declaration. */
-  body?: typescript.Block | typescript.Expression;
+  body?: ts.Block | ts.Expression;
   /** Current unique local id. */
   uniqueLocalId: 1;
 
@@ -110,16 +110,16 @@ export class Function extends FunctionBase {
   /** Local variables by name for lookups. */
   localsByName: { [key: string]: Variable };
   /** Resolved binaryen parameter types. */
-  binaryenParameterTypes: binaryen.Type[];
+  binaryenParameterTypes: BinaryenType[];
   /** Resolved binaryen return type. */
-  binaryenReturnType: binaryen.Type;
+  binaryenReturnType: BinaryenType;
   /** Binaryen signature id, for example "iiv". */
   binaryenSignatureId: string;
 
   // Set on compilation
 
   /** Binaryen signature reference. */
-  binaryenSignature: binaryen.Signature;
+  binaryenSignature: Signature;
   /** Whether this function has already been compiled. */
   compiled: boolean = false;
   /** Whether this function has been imported. */
@@ -129,10 +129,10 @@ export class Function extends FunctionBase {
   /** Depth within the current break context. */
   breakDepth: number = 0;
   /** Binaryen function reference. */
-  binaryenFunction: binaryen.Function;
+  binaryenFunction: BinaryenFunction;
 
   /** Constructs a new reflected function instance and binds it to its TypeScript declaration. */
-  constructor(compiler: Compiler, name: string, template: FunctionTemplate, typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], typeArgumentsMap: TypeArgumentsMap, parameters: FunctionParameter[], returnType: Type, parent?: Class, body?: typescript.Block | typescript.Expression) {
+  constructor(compiler: Compiler, name: string, template: FunctionTemplate, typeArguments: ts.NodeArray<ts.TypeNode> | ts.TypeNode[], typeArgumentsMap: TypeArgumentsMap, parameters: FunctionParameter[], returnType: Type, parent?: Class, body?: ts.Block | ts.Expression) {
     super(compiler, name, template.declaration);
 
     if (!this.compiler.options.noRuntime && isRuntimeFunction(this.name, true))
@@ -144,7 +144,7 @@ export class Function extends FunctionBase {
     if (compiler.functions[this.name])
       throw Error("duplicate function: " + this.name);
     compiler.functions[this.name] = this;
-    if (!this.isGeneric) util.setReflectedFunction(template.declaration, this);
+    if (!this.isGeneric) setReflectedFunction(template.declaration, this);
 
     // initialize
     this.template = template;
@@ -161,7 +161,7 @@ export class Function extends FunctionBase {
     const ids: string[] = [];
 
     for (let i = 0, k = this.parameters.length; i < k; ++i) {
-      const variable = new Variable(this.compiler, this.parameters[i].name, this.parameters[i].type, VariableFlags.none, this.locals.length);
+      const variable = new Variable(this.compiler, this.parameters[i].name, this.parameters[i].type, true, this.locals.length);
       this.binaryenParameterTypes.push(this.compiler.typeOf(this.parameters[i].type));
       this.locals.push(variable);
       this.localsByName[variable.name] = variable;
@@ -178,21 +178,21 @@ export class Function extends FunctionBase {
   get breakLabel(): string { return this.breakNumber + "." + this.breakDepth; }
 
   /** Introduces an additional local variable of the specified name and type. */
-  addLocal(name: string, type: Type, mutable: boolean = true, value?: number | Long): Variable {
-    const variable = new Variable(this.compiler, name, type, mutable ? VariableFlags.none : VariableFlags.constant, this.locals.length, value);
+  addLocal(name: string, type: Type, mutable: boolean = true, value: number | Long | null = null): Variable {
+    const variable = new Variable(this.compiler, name, type, mutable, this.locals.length, value);
     this.locals.push(variable);
     this.localsByName[variable.name] = variable;
     return variable;
   }
 
   /** Introduces an additional unique local variable of the specified type. */
-  addUniqueLocal(type: Type, prefix?: string): Variable {
+  addUniqueLocal(type: Type, prefix: string = ""): Variable {
     return this.addLocal("." + (prefix || this.compiler.identifierOf(type)) + this.uniqueLocalId++, type);
   }
 
   /** Compiles a call to this function using the specified arguments. Arguments to instance functions include `this` as the first argument or can specifiy it in `thisArg`. */
-  compileCall(argumentNodes: typescript.NodeArray<typescript.Expression> | typescript.Expression[], thisArg?: binaryen.Expression): binaryen.Expression {
-    const operands: binaryen.Expression[] = new Array(this.parameters.length);
+  compileCall(argumentNodes: ts.NodeArray<ts.Expression> | ts.Expression[], thisArg?: Expression): Expression {
+    const operands: Expression[] = new Array(this.parameters.length);
     let operandIndex = 0;
 
     if (thisArg !== undefined)
@@ -208,7 +208,7 @@ export class Function extends FunctionBase {
     // omitted arguments
     while (operandIndex < this.parameters.length) {
       const initializer = this.parameters[operandIndex].initializer;
-      let expr: binaryen.Expression;
+      let expr: Expression;
       if (initializer) {
         // FIXME: initializers are currently compiled in the context of the calling function,
         // preventing proper usage of 'this'
@@ -225,7 +225,7 @@ export class Function extends FunctionBase {
   }
 
   /** Makes a call to this function using the specified operands. */
-  call(operands: binaryen.Expression[]): binaryen.Expression {
+  call(operands: Expression[]): Expression {
 
     // Compile if not yet compiled
     if (!this.compiled)
@@ -236,20 +236,20 @@ export class Function extends FunctionBase {
   }
 }
 
-export { Function as default };
+export default Function;
 
 /** A function template with possibly unresolved generic parameters. */
 export class FunctionTemplate extends FunctionBase {
 
   /** Declaration reference. */
-  declaration: typescript.FunctionLikeDeclaration;
+  declaration: ts.FunctionLikeDeclaration;
   /** So far resolved instances by global name. */
   instances: { [key: string]: Function };
   /** Parent class, if any. */
   parent: Class | undefined;
 
   /** Constructs a new reflected function template and binds it to its TypeScript declaration. */
-  constructor(compiler: Compiler, name: string, declaration: typescript.FunctionLikeDeclaration, parent?: Class) {
+  constructor(compiler: Compiler, name: string, declaration: ts.FunctionLikeDeclaration, parent?: Class) {
     super(compiler, name, declaration);
 
     if (this.isInstance && !parent)
@@ -261,7 +261,7 @@ export class FunctionTemplate extends FunctionBase {
     if (compiler.functionTemplates[this.name])
       throw Error("duplicate function template: " + this.name);
     compiler.functionTemplates[this.name] = this;
-    util.setReflectedFunctionTemplate(declaration, this);
+    setReflectedFunctionTemplate(declaration, this);
 
     // initialize
     this.declaration = declaration;
@@ -269,30 +269,30 @@ export class FunctionTemplate extends FunctionBase {
   }
 
   /** Resolves this possibly generic function against the provided type arguments. */
-  resolve(typeArguments: typescript.NodeArray<typescript.TypeNode> | typescript.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Function {
+  resolve(typeArguments: ts.NodeArray<ts.TypeNode> | ts.TypeNode[], typeArgumentsMap?: TypeArgumentsMap): Function {
 
     // determine the parent class if this is an instance method
     let parent: Class | undefined;
     if (this.isInstance) {
-      if (!(this.declaration.parent && this.declaration.parent.kind === typescript.SyntaxKind.ClassDeclaration))
+      if (!(this.declaration.parent && this.declaration.parent.kind === ts.SyntaxKind.ClassDeclaration))
         throw Error("missing parent of " + this);
 
       // fast route: look for the non-generic class instance
-      parent = util.getReflectedClass(<typescript.ClassDeclaration>this.declaration.parent);
+      parent = getReflectedClass(<ts.ClassDeclaration>this.declaration.parent);
 
       // slow route: resolve the generic class template to the matching instance
       if (!parent) {
-        const parentTemplate = util.getReflectedClassTemplate(<typescript.ClassDeclaration>this.declaration.parent);
+        const parentTemplate = getReflectedClassTemplate(<ts.ClassDeclaration>this.declaration.parent);
         if (!parentTemplate)
           throw Error("missing parent template of " + this);
 
-        const classTypeArguments: typescript.TypeNode[] = [];
+        const classTypeArguments: ts.TypeNode[] = [];
         const classTypeParameters = parentTemplate.declaration.typeParameters;
         if (classTypeParameters) {
           if (!typeArgumentsMap)
             throw Error("missing type arguments map for " + this);
           for (let i = 0, k = classTypeParameters.length; i < k; ++i) {
-            const typeName = typescript.getTextOfNode(classTypeParameters[i].name);
+            const typeName = ts.getTextOfNode(classTypeParameters[i].name);
             if (typeArgumentsMap[typeName])
               classTypeArguments.push(typeArgumentsMap[typeName].node);
             else
@@ -321,12 +321,12 @@ export class FunctionTemplate extends FunctionBase {
     if (typeParametersCount) {
       const typeNames: string[] = new Array(typeParametersCount);
       for (let i = 0; i < typeParametersCount; ++i) {
-        const parameterDeclaration = (<typescript.NodeArray<typescript.TypeParameterDeclaration>>this.declaration.typeParameters)[i];
-        const type = this.compiler.resolveType(typeArguments[i], false, typeArgumentsMap) || voidType; // reports
-        const typeName = typescript.getTextOfNode(<typescript.Identifier>parameterDeclaration.name);
+        const parameterDeclaration = (<ts.NodeArray<ts.TypeParameterDeclaration>>this.declaration.typeParameters)[i];
+        const type = this.compiler.resolveType(typeArguments[i], false, typeArgumentsMap) || Type.void; // reports
+        const typeName = ts.getTextOfNode(<ts.Identifier>parameterDeclaration.name);
         typeArgumentsMap[typeName] = {
           type: type,
-          node: <typescript.TypeNode><any>parameterDeclaration
+          node: <ts.TypeNode><any>parameterDeclaration
         };
         typeNames[i] = type.toString();
       }
@@ -342,21 +342,21 @@ export class FunctionTemplate extends FunctionBase {
       const parameter = this.declaration.parameters[i];
 
       if (!parameter.type)
-        this.compiler.report(parameter.name, typescript.DiagnosticsEx.Type_expected);
+        this.compiler.report(parameter.name, ts.DiagnosticsEx.Type_expected);
 
-      if (parameter.questionToken && !util.isDeclare(this.declaration, true) && !parameter.initializer)
-        this.compiler.report(parameter.questionToken, typescript.DiagnosticsEx.Optional_parameters_must_specify_an_initializer);
+      if (parameter.questionToken && !isDeclare(this.declaration, true) && !parameter.initializer)
+        this.compiler.report(parameter.questionToken, ts.DiagnosticsEx.Optional_parameters_must_specify_an_initializer);
 
       parameters[i] = {
         node: parameter,
-        name: typescript.getTextOfNode(parameter.name),
+        name: ts.getTextOfNode(parameter.name),
         type: parameter.type
-          ? this.compiler.resolveType(parameter.type, false, typeArgumentsMap) || voidType // reports
-          : voidType,
+          ? this.compiler.resolveType(parameter.type, false, typeArgumentsMap) || Type.void // reports
+          : Type.void,
         initializer: parameter.initializer
       };
-      if (!parameter.type && typescript.getSourceFileOfNode(this.declaration) !== this.compiler.libraryFile) // library may use 'any'
-        this.compiler.report(parameter.name, typescript.DiagnosticsEx.Type_expected);
+      if (!parameter.type && ts.getSourceFileOfNode(this.declaration) !== this.compiler.libraryFile) // library may use 'any'
+        this.compiler.report(parameter.name, ts.DiagnosticsEx.Type_expected);
     }
     if (this.isInstance) {
       parameters.unshift({
@@ -371,14 +371,14 @@ export class FunctionTemplate extends FunctionBase {
       returnType = parent.type;
     else if (this.declaration.type) {
       const returnTypeNode = this.declaration.type;
-      if (returnTypeNode.kind === typescript.SyntaxKind.ThisType && parent)
+      if (returnTypeNode.kind === ts.SyntaxKind.ThisType && parent)
         returnType = parent.type;
       else
-        returnType = this.compiler.resolveType(returnTypeNode, true, typeArgumentsMap) || voidType; // reports
+        returnType = this.compiler.resolveType(returnTypeNode, true, typeArgumentsMap) || Type.void; // reports
     } else {
-      returnType = voidType;
-      if (typescript.getSourceFileOfNode(this.declaration) !== this.compiler.libraryFile && this.declaration.kind !== typescript.SyntaxKind.SetAccessor) // library may use 'any'
-        this.compiler.report(<typescript.Identifier>this.declaration.name, typescript.DiagnosticsEx.Assuming_return_type_0, "void");
+      returnType = Type.void;
+      if (ts.getSourceFileOfNode(this.declaration) !== this.compiler.libraryFile && this.declaration.kind !== ts.SyntaxKind.SetAccessor) // library may use 'any'
+        this.compiler.report(<ts.Identifier>this.declaration.name, ts.DiagnosticsEx.Assuming_return_type_0, "void");
     }
 
     return this.instances[name] = new Function(this.compiler, name, this, typeArguments, typeArgumentsMap, parameters, returnType, parent, this.declaration.body);

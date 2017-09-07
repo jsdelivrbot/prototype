@@ -1,24 +1,24 @@
 /** @module assemblyscript/expressions */ /** */
 
-import * as binaryen from "binaryen";
-import Compiler from "../compiler";
-import * as reflection from "../reflection";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import * as ts from "../typescript";
+import { Expression } from "binaryen";
+import { Compiler } from "../compiler";
+import { Type } from "../reflection";
+import { setReflectedType } from "../util";
 
 /** Compiles an omitted expression. */
-export function compileOmitted(compiler: Compiler, node: typescript.OmittedExpression, contextualType: reflection.Type): binaryen.Expression {
+export function compileOmitted(compiler: Compiler, node: ts.OmittedExpression, contextualType: Type): Expression {
   const op = compiler.module;
-  const parent = <typescript.Node>node.parent;
+  const parent = <ts.Node>node.parent;
 
-  util.setReflectedType(node, contextualType);
+  setReflectedType(node, contextualType);
 
   // omitted expression in array literal
-  if (parent.kind === typescript.SyntaxKind.ArrayLiteralExpression)
+  if (parent.kind === ts.SyntaxKind.ArrayLiteralExpression)
     return compiler.valueOf(contextualType, 0);
 
-  compiler.report(node, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, parent.kind, "expressions/compileOmitted");
+  compiler.report(node, ts.DiagnosticsEx.Unsupported_node_kind_0_in_1, parent.kind, "expressions/compileOmitted");
   return op.unreachable();
 }
 
-export { compileOmitted as default };
+export default compileOmitted;

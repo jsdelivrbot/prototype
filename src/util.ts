@@ -3,65 +3,65 @@
  * @module assemblyscript/util
  */ /** */
 
-import * as typescript from "./typescript";
-import * as reflection from "./reflection";
+import * as ts from "./typescript";
 import * as wabt from "wabt";
+import { Type, Function, FunctionTemplate, Class, ClassTemplate } from "./reflection";
 
 /** Tests if the specified node, or optionally either its parent, has an 'export' modifier. */
-export function isExport(node: typescript.Node, checkParent: boolean = false): boolean {
+export function isExport(node: ts.Node, checkParent: boolean = false): boolean {
   if (node && node.modifiers)
     for (let i = 0, k = node.modifiers.length; i < k; ++i)
-      if (node.modifiers[i].kind === typescript.SyntaxKind.ExportKeyword)
+      if (node.modifiers[i].kind === ts.SyntaxKind.ExportKeyword)
         return true;
-  if (checkParent && node.parent && node.parent.kind === typescript.SyntaxKind.ClassDeclaration)
+  if (checkParent && node.parent && node.parent.kind === ts.SyntaxKind.ClassDeclaration)
     return isExport(node.parent);
   return false;
 }
 
 /** Tests if the specified node, or optionally either its parent, has a 'declare' modifier. */
-export function isDeclare(node: typescript.Node, checkParent: boolean = false): boolean {
+export function isDeclare(node: ts.Node, checkParent: boolean = false): boolean {
   if (node && node.modifiers)
     for (let i = 0, k = node.modifiers.length; i < k; ++i)
-      if (node.modifiers[i].kind === typescript.SyntaxKind.DeclareKeyword)
+      if (node.modifiers[i].kind === ts.SyntaxKind.DeclareKeyword)
         return true;
-  if (checkParent && node.parent && node.parent.kind === typescript.SyntaxKind.ClassDeclaration)
+  if (checkParent && node.parent && node.parent.kind === ts.SyntaxKind.ClassDeclaration)
     return isDeclare(node.parent);
   return false;
 }
 
 /** Tests if the specified node has a 'static' modifier or is otherwise part of a static context. */
-export function isStatic(node: typescript.Node): boolean {
-  return (<typescript.ModifierFlags>node.modifierFlagsCache & typescript.ModifierFlags.Static) !== 0;
+export function isStatic(node: ts.Node): boolean {
+  return (<ts.ModifierFlags>node.modifierFlagsCache & ts.ModifierFlags.Static) !== 0;
 }
 
 /** Tests if the specified node has an 'abstract' modifier. */
-export function isAbstract(node: typescript.Node): boolean {
-  return (<typescript.ModifierFlags>node.modifierFlagsCache & typescript.ModifierFlags.Abstract) !== 0;
+export function isAbstract(node: ts.Node): boolean {
+  return (<ts.ModifierFlags>node.modifierFlagsCache & ts.ModifierFlags.Abstract) !== 0;
 }
 
 /** Tests if the specified node is flagged 'const'. */
-export function isConst(node: typescript.Node): boolean {
-  return (node.flags & typescript.NodeFlags.Const) !== 0;
+export function isConst(node: ts.Node): boolean {
+  return (node.flags & ts.NodeFlags.Const) !== 0;
 }
 
 /** Gets the reflected type of an expression. */
-export function getReflectedType(node: typescript.Expression): reflection.Type {
-  return <reflection.Type>(<any>node).reflectedType || null;
+export function getReflectedType(node: ts.Expression): Type {
+  return <Type>(<any>node).reflectedType || null;
 }
 
 /** Sets the reflected type of an expression. */
-export function setReflectedType(node: typescript.Expression, type: reflection.Type): void {
+export function setReflectedType(node: ts.Expression, type: Type): void {
   if (!type) throw Error("type cannot be null");
   (<any>node).reflectedType = type;
 }
 
 /** Gets the reflected function instance (describing a function with generic types resolved) of a function declaration. */
-export function getReflectedFunction(node: typescript.FunctionLikeDeclaration): reflection.Function {
-  return <reflection.Function>(<any>node).reflectedFunction || null;
+export function getReflectedFunction(node: ts.FunctionLikeDeclaration): Function {
+  return <Function>(<any>node).reflectedFunction || null;
 }
 
 /** Sets the reflected function instance (describing a function with generic types resolved) of a function declaration. */
-export function setReflectedFunction(node: typescript.FunctionLikeDeclaration, instance: reflection.Function): void {
+export function setReflectedFunction(node: ts.FunctionLikeDeclaration, instance: Function): void {
   if (!instance)
     throw Error("instance cannot be null");
   if (instance.isGeneric)
@@ -70,24 +70,24 @@ export function setReflectedFunction(node: typescript.FunctionLikeDeclaration, i
 }
 
 /** Gets the reflected function template (describing a function with unresolved generic types) of a function declaration. */
-export function getReflectedFunctionTemplate(node: typescript.FunctionLikeDeclaration): reflection.FunctionTemplate {
-  return <reflection.FunctionTemplate>(<any>node).reflectedFunctionTemplate || null;
+export function getReflectedFunctionTemplate(node: ts.FunctionLikeDeclaration): FunctionTemplate {
+  return <FunctionTemplate>(<any>node).reflectedFunctionTemplate || null;
 }
 
 /** Sets the reflected function template (describing a function with unresolved generic types) of a function declaration. */
-export function setReflectedFunctionTemplate(node: typescript.FunctionLikeDeclaration, template: reflection.FunctionTemplate): void {
+export function setReflectedFunctionTemplate(node: ts.FunctionLikeDeclaration, template: FunctionTemplate): void {
   if (!template)
     throw Error("template cannot be null");
   (<any>node).reflectedFunctionTemplate = template;
 }
 
 /** Gets the reflected class instance (describing a class with generic types resolved) of a class declaration. */
-export function getReflectedClass(node: typescript.ClassDeclaration): reflection.Class {
-  return <reflection.Class>(<any>node).reflectedClass || null;
+export function getReflectedClass(node: ts.ClassDeclaration): Class {
+  return <Class>(<any>node).reflectedClass || null;
 }
 
 /** Sets the reflected class instance (describing a class with generic types resolved) of a class declaration. */
-export function setReflectedClass(node: typescript.ClassDeclaration, instance: reflection.Class): void {
+export function setReflectedClass(node: ts.ClassDeclaration, instance: Class): void {
   if (!instance)
     throw Error("instance cannot be null");
   if (instance.isGeneric)
@@ -96,12 +96,12 @@ export function setReflectedClass(node: typescript.ClassDeclaration, instance: r
 }
 
 /** Gets the reflected class template (describing a class with unresolved generic types) of a class declaration. */
-export function getReflectedClassTemplate(node: typescript.ClassDeclaration): reflection.ClassTemplate {
-  return <reflection.ClassTemplate>(<any>node).reflectedClassTemplate || null;
+export function getReflectedClassTemplate(node: ts.ClassDeclaration): ClassTemplate {
+  return <ClassTemplate>(<any>node).reflectedClassTemplate || null;
 }
 
 /** Sets the reflected class template (describing a class with unresolved generic types) of a class declaration. */
-export function setReflectedClassTemplate(node: typescript.ClassDeclaration, template: reflection.ClassTemplate): void {
+export function setReflectedClassTemplate(node: ts.ClassDeclaration, template: ClassTemplate): void {
   if (!template)
     throw Error("template cannot be null");
   (<any>node).reflectedClassTemplate = template;

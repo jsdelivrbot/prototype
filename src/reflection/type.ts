@@ -1,7 +1,7 @@
 /** @module assemblyscript/reflection */ /** */
 
+import * as ts from "../typescript";
 import Class from "./class";
-import * as typescript from "../typescript";
 
 /** Core type kinds including range aliases. */
 export enum TypeKind {
@@ -99,6 +99,8 @@ export class Type {
 
   /** Amends a pointer to reference the specified underlying class. */
   withUnderlyingClass(underlyingClass: Class): Type {
+    if (this.kind !== TypeKind.uintptr)
+      throw Error("uintptr expected");
     const type = new Type(this.kind, this.size);
     type.underlyingClass = underlyingClass;
     return type;
@@ -123,45 +125,45 @@ export class Type {
     }
     return TypeKind[this.kind];
   }
+
+  /** Reflected bool type. */
+  static bool = new Type(TypeKind.bool, 1);
+  /** Reflected signed 8-bit integer type. */
+  static sbyte = new Type(TypeKind.sbyte, 1);
+  /** Reflected unsigned 8-bit integer type. */
+  static byte = new Type(TypeKind.byte, 1);
+  /** Reflected signed 16-bit integer type. */
+  static short = new Type(TypeKind.short, 2);
+  /** Reflected unsigned 16-bit integer type. */
+  static ushort = new Type(TypeKind.ushort, 2);
+  /** Reflected signed 32-bit integer type. */
+  static int = new Type(TypeKind.int, 4);
+  /** Reflected unsigned 32-bit integer type. */
+  static uint = new Type(TypeKind.uint, 4);
+  /** Reflected signed 64-bit integer type. */
+  static long = new Type(TypeKind.long, 8);
+  /** Reflected unsigned 64-bit integer type. */
+  static ulong = new Type(TypeKind.ulong, 8);
+  /** Reflected 32-bit float type. */
+  static float = new Type(TypeKind.float, 4);
+  /** Reflected 64-bit float type. */
+  static double = new Type(TypeKind.double, 8);
+  /** Reflected 32-bit pointer type. Relevant only when compiling for 32-bit WebAssembly. */
+  static uintptr32 = new Type(TypeKind.uintptr, 4);
+  /** Reflected 64-bit pointer type. Relevant only when compiling for 64-bit WebAssembly. */
+  static uintptr64 = new Type(TypeKind.uintptr, 8);
+  /** Reflected void type. */
+  static void = new Type(TypeKind.void, 0);
 }
 
-export { Type as default };
-
-/** Reflected signed 8-bit integer type. */
-export const sbyteType = new Type(TypeKind.sbyte, 1);
-/** Reflected unsigned 8-bit integer type. */
-export const byteType = new Type(TypeKind.byte, 1);
-/** Reflected signed 16-bit integer type. */
-export const shortType = new Type(TypeKind.short, 2);
-/** Reflected unsigned 16-bit integer type. */
-export const ushortType = new Type(TypeKind.ushort, 2);
-/** Reflected signed 32-bit integer type. */
-export const intType = new Type(TypeKind.int, 4);
-/** Reflected unsigned 32-bit integer type. */
-export const uintType = new Type(TypeKind.uint, 4);
-/** Reflected signed 64-bit integer type. */
-export const longType = new Type(TypeKind.long, 8);
-/** Reflected unsigned 64-bit integer type. */
-export const ulongType = new Type(TypeKind.ulong, 8);
-/** Reflected 32-bit float type. */
-export const floatType = new Type(TypeKind.float, 4);
-/** Reflected 64-bit float type. */
-export const doubleType = new Type(TypeKind.double, 8);
-/** Reflected 32-bit pointer type. Relevant only when compiling for 32-bit WebAssembly. */
-export const uintptrType32 = new Type(TypeKind.uintptr, 4);
-/** Reflected 64-bit pointer type. Relevant only when compiling for 64-bit WebAssembly. */
-export const uintptrType64 = new Type(TypeKind.uintptr, 8);
-/** Reflected bool type. */
-export const boolType = new Type(TypeKind.bool, 1);
-/** Reflected void type. */
-export const voidType = new Type(TypeKind.void, 0);
+export default Type;
 
 /** Interface describing a reflected type argument. */
 export interface TypeArgument {
   /** Reflected type. */
   type: Type;
   /** TypeScript type node. */
-  node: typescript.TypeNode;
+  node: ts.TypeNode;
 }
 
 /** Interface describing a reflected type arguments map. */

@@ -1,9 +1,9 @@
 /** @module assemblyscript/reflection */ /** */
 
+import * as ts from "../typescript";
 import Compiler from "../compiler";
 import Property from "./property";
-import { intType } from "./type";
-import * as typescript from "../typescript";
+import Type from "./type";
 
 /** A reflected enum instance. */
 export class Enum {
@@ -15,16 +15,16 @@ export class Enum {
   /** Simple name. */
   simpleName: string;
   /** Declaration reference. */
-  declaration: typescript.EnumDeclaration;
+  declaration: ts.EnumDeclaration;
   /** Enum values by simple name. */
   values: { [key: string]: Property };
 
   /** Constructs a new reflected enum and binds it to its TypeScript declaration. */
-  constructor(compiler: Compiler, name: string, declaration: typescript.EnumDeclaration) {
+  constructor(compiler: Compiler, name: string, declaration: ts.EnumDeclaration) {
     this.compiler = compiler;
     this.name = name;
     this.declaration = declaration;
-    this.simpleName = typescript.getTextOfNode(this.declaration.name);
+    this.simpleName = ts.getTextOfNode(this.declaration.name);
 
     // register
     if (compiler.enums[this.name])
@@ -35,12 +35,12 @@ export class Enum {
     this.values = {};
 
     for (const member of this.declaration.members) {
-      const memberName = typescript.getTextOfNode(member.name);
-      this.values[memberName] = new Property(this.compiler, memberName, member, intType, 0, /* for completeness: */ member.initializer);
+      const memberName = ts.getTextOfNode(member.name);
+      this.values[memberName] = new Property(this.compiler, memberName, member, Type.int, 0, /* for completeness: */ member.initializer);
     }
   }
 
   toString(): string { return this.name; }
 }
 
-export { Enum as default };
+export default Enum;

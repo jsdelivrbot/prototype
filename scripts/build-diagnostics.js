@@ -38,7 +38,7 @@ Object.keys(messages).forEach(message => {
 out.push(
   "};",
   "",
-  "export { DiagnosticsEx as default };",
+  "export default DiagnosticsEx;",
   ""
 )
 

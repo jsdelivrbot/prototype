@@ -4,6 +4,8 @@
  * @preferred
  */ /** */
 
+// TODO: refactor this
+
 export * from "./expressions/arrayliteral";
 export * from "./expressions/as";
 export * from "./expressions/binary";
@@ -26,7 +28,7 @@ import * as binaryen from "binaryen";
 import Compiler from "./compiler";
 import { tryParseLiteral, tryParseArrayLiteral } from "./parser";
 import * as reflection from "./reflection";
-import * as typescript from "./typescript";
+import * as ts from "./typescript";
 import * as util from "./util";
 import {
   compileArrayLiteral,
@@ -46,78 +48,78 @@ import {
 } from "./expressions";
 
 /** Compiles any supported expression. */
-export function compile(compiler: Compiler, node: typescript.Expression, contextualType: reflection.Type): binaryen.Expression {
+export function compile(compiler: Compiler, node: ts.Expression, contextualType: reflection.Type): binaryen.Expression {
   const op = compiler.module;
 
   util.setReflectedType(node, contextualType);
 
   switch (node.kind) {
 
-    case typescript.SyntaxKind.ParenthesizedExpression:
-      return compileParenthesized(compiler, <typescript.ParenthesizedExpression>node, contextualType);
+    case ts.SyntaxKind.ParenthesizedExpression:
+      return compileParenthesized(compiler, <ts.ParenthesizedExpression>node, contextualType);
 
-    case typescript.SyntaxKind.AsExpression:
-    case typescript.SyntaxKind.TypeAssertionExpression:
-      return compileAs(compiler, <typescript.AssertionExpression>node, contextualType);
+    case ts.SyntaxKind.AsExpression:
+    case ts.SyntaxKind.TypeAssertionExpression:
+      return compileAs(compiler, <ts.AssertionExpression>node, contextualType);
 
-    case typescript.SyntaxKind.BinaryExpression:
-      return compileBinary(compiler, <typescript.BinaryExpression>node, contextualType);
+    case ts.SyntaxKind.BinaryExpression:
+      return compileBinary(compiler, <ts.BinaryExpression>node, contextualType);
 
-    case typescript.SyntaxKind.PrefixUnaryExpression:
-      return compilePrefixUnary(compiler, <typescript.PrefixUnaryExpression>node, contextualType);
+    case ts.SyntaxKind.PrefixUnaryExpression:
+      return compilePrefixUnary(compiler, <ts.PrefixUnaryExpression>node, contextualType);
 
-    case typescript.SyntaxKind.PostfixUnaryExpression:
-      return compilePostfixUnary(compiler, <typescript.PostfixUnaryExpression>node, contextualType);
+    case ts.SyntaxKind.PostfixUnaryExpression:
+      return compilePostfixUnary(compiler, <ts.PostfixUnaryExpression>node, contextualType);
 
-    case typescript.SyntaxKind.Identifier:
-      return compileIdentifier(compiler, <typescript.Identifier>node, contextualType);
+    case ts.SyntaxKind.Identifier:
+      return compileIdentifier(compiler, <ts.Identifier>node, contextualType);
 
-    case typescript.SyntaxKind.PropertyAccessExpression:
-      return compilePropertyAccess(compiler, <typescript.PropertyAccessExpression>node, contextualType);
+    case ts.SyntaxKind.PropertyAccessExpression:
+      return compilePropertyAccess(compiler, <ts.PropertyAccessExpression>node, contextualType);
 
-    case typescript.SyntaxKind.ElementAccessExpression:
-      return compileElementAccess(compiler, <typescript.ElementAccessExpression>node, contextualType);
+    case ts.SyntaxKind.ElementAccessExpression:
+      return compileElementAccess(compiler, <ts.ElementAccessExpression>node, contextualType);
 
-    case typescript.SyntaxKind.ConditionalExpression:
-      return compileConditional(compiler, <typescript.ConditionalExpression>node, contextualType);
+    case ts.SyntaxKind.ConditionalExpression:
+      return compileConditional(compiler, <ts.ConditionalExpression>node, contextualType);
 
-    case typescript.SyntaxKind.CallExpression:
-      return compileCall(compiler, <typescript.CallExpression>node/*, contextualType*/);
+    case ts.SyntaxKind.CallExpression:
+      return compileCall(compiler, <ts.CallExpression>node/*, contextualType*/);
 
-    case typescript.SyntaxKind.NewExpression:
-      return compileNew(compiler, <typescript.NewExpression>node, contextualType);
+    case ts.SyntaxKind.NewExpression:
+      return compileNew(compiler, <ts.NewExpression>node, contextualType);
 
-    case typescript.SyntaxKind.ThisKeyword:
+    case ts.SyntaxKind.ThisKeyword:
       if (compiler.currentFunction.isInstance && compiler.currentFunction.parent)
         util.setReflectedType(node, compiler.currentFunction.parent.type);
       else
-        compiler.report(node, typescript.DiagnosticsEx.Identifier_0_is_invalid_in_this_context, "this");
+        compiler.report(node, ts.DiagnosticsEx.Identifier_0_is_invalid_in_this_context, "this");
       return op.getLocal(0, compiler.typeOf(compiler.uintptrType));
 
-    case typescript.SyntaxKind.TrueKeyword:
-    case typescript.SyntaxKind.FalseKeyword:
-    case typescript.SyntaxKind.NullKeyword:
-    case typescript.SyntaxKind.StringLiteral:
-      return compileLiteral(compiler, <typescript.LiteralExpression>node, contextualType);
+    case ts.SyntaxKind.TrueKeyword:
+    case ts.SyntaxKind.FalseKeyword:
+    case ts.SyntaxKind.NullKeyword:
+    case ts.SyntaxKind.StringLiteral:
+      return compileLiteral(compiler, <ts.LiteralExpression>node, contextualType);
 
-    case typescript.SyntaxKind.NumericLiteral:
-      const parent = <typescript.Node>node.parent;
-      return compileLiteral(compiler, <typescript.LiteralExpression>node, contextualType, parent.kind === typescript.SyntaxKind.PrefixUnaryExpression && (<typescript.PrefixUnaryExpression>parent).operator === typescript.SyntaxKind.MinusToken);
+    case ts.SyntaxKind.NumericLiteral:
+      const parent = <ts.Node>node.parent;
+      return compileLiteral(compiler, <ts.LiteralExpression>node, contextualType, parent.kind === ts.SyntaxKind.PrefixUnaryExpression && (<ts.PrefixUnaryExpression>parent).operator === ts.SyntaxKind.MinusToken);
 
-    case typescript.SyntaxKind.ArrayLiteralExpression:
-      return compileArrayLiteral(compiler, <typescript.ArrayLiteralExpression>node, contextualType);
+    case ts.SyntaxKind.ArrayLiteralExpression:
+      return compileArrayLiteral(compiler, <ts.ArrayLiteralExpression>node, contextualType);
 
-    case typescript.SyntaxKind.OmittedExpression:
-      return compileOmitted(compiler, <typescript.OmittedExpression>node, contextualType);
+    case ts.SyntaxKind.OmittedExpression:
+      return compileOmitted(compiler, <ts.OmittedExpression>node, contextualType);
   }
 
-  compiler.report(node, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.kind, "expressions.compile");
+  compiler.report(node, ts.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.kind, "expressions.compile");
   util.setReflectedType(node, contextualType);
   return op.unreachable();
 }
 
 /** Evaluates any supported expression. Returns `null` if that's not possible. */
-export function evaluate(node: typescript.Expression, contextualType: reflection.Type): number | Long | string | Array<number | Long | string | null> | null {
+export function evaluate(node: ts.Expression, contextualType: reflection.Type): number | Long | string | Array<number | Long | string | null> | null {
 
   // TODO: See https://github.com/AssemblyScript/assemblyscript/issues/100
 
@@ -126,27 +128,27 @@ export function evaluate(node: typescript.Expression, contextualType: reflection
 
   switch (node.kind) {
 
-    case typescript.SyntaxKind.ParenthesizedExpression:
-      return evaluate((<typescript.ParenthesizedExpression>node).expression, contextualType);
+    case ts.SyntaxKind.ParenthesizedExpression:
+      return evaluate((<ts.ParenthesizedExpression>node).expression, contextualType);
 
-    case typescript.SyntaxKind.PrefixUnaryExpression: {
-      const expr = <typescript.PrefixUnaryExpression>node;
-      if (expr.operator === typescript.SyntaxKind.MinusToken && expr.operand.kind === typescript.SyntaxKind.NumericLiteral)
-        return tryParseLiteral(<typescript.NumericLiteral>expr.operand, contextualType, true);
+    case ts.SyntaxKind.PrefixUnaryExpression: {
+      const expr = <ts.PrefixUnaryExpression>node;
+      if (expr.operator === ts.SyntaxKind.MinusToken && expr.operand.kind === ts.SyntaxKind.NumericLiteral)
+        return tryParseLiteral(<ts.NumericLiteral>expr.operand, contextualType, true);
       return null;
     }
 
-    case typescript.SyntaxKind.TrueKeyword:
-    case typescript.SyntaxKind.FalseKeyword:
-    case typescript.SyntaxKind.NullKeyword:
-    case typescript.SyntaxKind.NumericLiteral:
-    case typescript.SyntaxKind.StringLiteral:
-      return tryParseLiteral(<typescript.LiteralExpression>node, contextualType);
+    case ts.SyntaxKind.TrueKeyword:
+    case ts.SyntaxKind.FalseKeyword:
+    case ts.SyntaxKind.NullKeyword:
+    case ts.SyntaxKind.NumericLiteral:
+    case ts.SyntaxKind.StringLiteral:
+      return tryParseLiteral(<ts.LiteralExpression>node, contextualType);
 
-    case typescript.SyntaxKind.ArrayLiteralExpression:
+    case ts.SyntaxKind.ArrayLiteralExpression:
       if (!contextualType.isArray)
         return null;
-      return tryParseArrayLiteral(<typescript.ArrayLiteralExpression>node, contextualType);
+      return tryParseArrayLiteral(<ts.ArrayLiteralExpression>node, contextualType);
 
   }
   return null;

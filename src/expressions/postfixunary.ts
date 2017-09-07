@@ -1,60 +1,60 @@
 /** @module assemblyscript/expressions */ /** */
 
-import * as binaryen from "binaryen";
-import Compiler from "../compiler";
-import * as reflection from "../reflection";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import * as ts from "../typescript";
+import { Expression } from "binaryen";
+import { Compiler } from "../compiler";
+import { Type } from "../reflection";
+import { setReflectedType } from "../util";
 
 /** Compiles a unary postfix expression. */
-export function compilePostfixUnary(compiler: Compiler, node: typescript.PostfixUnaryExpression, contextualType: reflection.Type): binaryen.Expression {
+export function compilePostfixUnary(compiler: Compiler, node: ts.PostfixUnaryExpression, contextualType: Type): Expression {
   const op = compiler.module;
 
-  util.setReflectedType(node, contextualType);
+  setReflectedType(node, contextualType);
 
-  if (node.operand.kind === typescript.SyntaxKind.Identifier) {
+  if (node.operand.kind === ts.SyntaxKind.Identifier) {
 
-    const localName = typescript.getTextOfNode(node.operand);
+    const localName = ts.getTextOfNode(node.operand);
     const local = compiler.currentFunction.localsByName[localName];
     if (local) {
 
       switch (node.operator) {
 
-        case typescript.SyntaxKind.PlusPlusToken:
-        case typescript.SyntaxKind.MinusMinusToken:
+        case ts.SyntaxKind.PlusPlusToken:
+        case ts.SyntaxKind.MinusMinusToken:
         {
           const cat = compiler.categoryOf(local.type);
           const one = compiler.valueOf(local.type, 1);
-          const isIncrement = node.operator === typescript.SyntaxKind.PlusPlusToken;
+          const isIncrement = node.operator === ts.SyntaxKind.PlusPlusToken;
 
           let calculate = (isIncrement ? cat.add : cat.sub).call(cat,
             op.getLocal(
-              local.index,
+              local.localIndex,
               compiler.typeOf(local.type)
             ),
             one
           );
 
           if (local.type.isByte || local.type.isShort)
-            calculate = compiler.maybeConvertValue(node, calculate, reflection.intType, local.type, true); // mask or sign-extend
+            calculate = compiler.maybeConvertValue(node, calculate, Type.int, local.type, true); // mask or sign-extend
 
-          if (contextualType === reflection.voidType) {
-            util.setReflectedType(node, reflection.voidType);
-            return op.setLocal(local.index, calculate);
+          if (contextualType === Type.void) {
+            setReflectedType(node, Type.void);
+            return op.setLocal(local.localIndex, calculate);
           } else {
-            util.setReflectedType(node, local.type);
-            return (isIncrement ? cat.sub : cat.add).call(cat, op.teeLocal(local.index, calculate), one);
+            setReflectedType(node, local.type);
+            return (isIncrement ? cat.sub : cat.add).call(cat, op.teeLocal(local.localIndex, calculate), one);
           }
         }
         default:
-          compiler.report(node, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.operator, "expressions.compilePostfixUnary/1");
+          compiler.report(node, ts.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.operator, "expressions.compilePostfixUnary/1");
           return op.unreachable();
       }
     }
   }
 
-  compiler.report(node, typescript.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.operand.kind, "expressions.compilePostfixUnary/2");
+  compiler.report(node, ts.DiagnosticsEx.Unsupported_node_kind_0_in_1, node.operand.kind, "expressions.compilePostfixUnary/2");
   return op.unreachable();
 }
 
-export { compilePostfixUnary as default };
+export default compilePostfixUnary;

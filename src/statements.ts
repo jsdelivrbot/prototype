@@ -6,7 +6,7 @@
 import { Statement, Expression, I32Expression } from "binaryen";
 import { tryParseLiteral } from "./parser";
 import Compiler from "./compiler";
-import { Type, intType, voidType } from "./reflection";
+import { Type } from "./reflection";
 import * as ts from "./typescript";
 import { getReflectedType, isConst } from "./util";
 
@@ -109,7 +109,7 @@ export function compileDo(compiler: Compiler, node: ts.DoStatement): Statement {
   }
 
   loop[loopLength++] = op.break("continue$" + label,
-    compiler.compileExpression(node.expression, intType, intType, false)
+    compiler.compileExpression(node.expression, Type.int, Type.int, false)
   );
 
   loop.length = loopLength;
@@ -126,9 +126,9 @@ export function compileExpression(compiler: Compiler, node: ts.ExpressionStateme
   const op = compiler.module;
 
   const expressionNode = node.expression;
-  const expression = compiler.compileExpression(expressionNode, voidType);
+  const expression = compiler.compileExpression(expressionNode, Type.void);
 
-  return getReflectedType(expressionNode) === voidType
+  return getReflectedType(expressionNode) === Type.void
     ? expression
     : op.drop(expression);
 }
@@ -149,8 +149,8 @@ export function compileFor(compiler: Compiler, node: ts.ForStatement): Statement
 
     } else /* typescript.Expression */ {
 
-      const expr = compiler.compileExpression(<ts.Expression>node.initializer, voidType);
-      if (getReflectedType(node.initializer) === voidType)
+      const expr = compiler.compileExpression(<ts.Expression>node.initializer, Type.void);
+      if (getReflectedType(node.initializer) === Type.void)
         context.push(expr);
       else
         context.push(op.drop(expr));
@@ -164,8 +164,8 @@ export function compileFor(compiler: Compiler, node: ts.ForStatement): Statement
   }
 
   if (node.incrementor) {
-    const expr = compiler.compileExpression(node.incrementor, voidType);
-    if (getReflectedType(node.incrementor) === voidType)
+    const expr = compiler.compileExpression(node.incrementor, Type.void);
+    if (getReflectedType(node.incrementor) === Type.void)
       ifTrue.push(expr);
     else
       ifTrue.push(op.drop(expr));
@@ -178,7 +178,7 @@ export function compileFor(compiler: Compiler, node: ts.ForStatement): Statement
     context.push(
       op.loop("continue$" + label,
         op.if(
-          compiler.compileExpression(node.condition, intType, intType, false),
+          compiler.compileExpression(node.condition, Type.int, Type.int, false),
           ifTrue.length === 1 ? ifTrue[0] : op.block("", ifTrue)
         )
       )
@@ -205,7 +205,7 @@ export function compileFor(compiler: Compiler, node: ts.ForStatement): Statement
 export function compileIf(compiler: Compiler, node: ts.IfStatement): Statement {
   const op = compiler.module;
   return op.if(
-    compiler.compileExpression(node.expression, intType, intType, true),
+    compiler.compileExpression(node.expression, Type.int, Type.int, true),
     compile(compiler, node.thenStatement) || op.nop(),
     node.elseStatement && compile(compiler, node.elseStatement) || undefined
   );
@@ -216,7 +216,7 @@ export function compileReturn(compiler: Compiler, node: ts.ReturnStatement): Sta
   const op = compiler.module;
   const returnType = compiler.currentFunction.returnType;
 
-  if (returnType === voidType) {
+  if (returnType === Type.void) {
     if (node.expression)
       compiler.report(node, ts.DiagnosticsEx.Function_without_a_return_type_cannot_return_a_value);
     return op.return();
@@ -236,11 +236,11 @@ export function compileSwitch(compiler: Compiler, node: ts.SwitchStatement): Sta
   const op = compiler.module;
 
   if (node.caseBlock.clauses && node.caseBlock.clauses.length) {
-    const switchExpression = compiler.compileExpression(node.expression, intType, intType, true);
+    const switchExpression = compiler.compileExpression(node.expression, Type.int, Type.int, true);
     const label = compiler.enterBreakContext();
 
     // create a temporary variable holding the switch expression's result
-    const conditionLocal = compiler.currentFunction.addLocal("condition$" + label, intType);
+    const conditionLocal = compiler.currentFunction.addLocal("condition$" + label, Type.int);
 
     interface SwitchCase {
       label: string;
@@ -275,7 +275,7 @@ export function compileSwitch(compiler: Compiler, node: ts.SwitchStatement): Sta
           label:  "case" + i + "$" + label,
           index: i,
           statements: statements,
-          expression: compiler.maybeConvertValue(clause.expression, compiler.compileExpression(clause.expression, intType), getReflectedType(clause.expression), intType, true)
+          expression: compiler.maybeConvertValue(clause.expression, compiler.compileExpression(clause.expression, Type.int), getReflectedType(clause.expression), Type.int, true)
         };
         labels.push(cases[i].label);
       }
@@ -286,11 +286,11 @@ export function compileSwitch(compiler: Compiler, node: ts.SwitchStatement): Sta
     let condition = op.i32.const(-1);
     for (let i = cases.length - 1; i >= 0; --i)
       if (cases[i] !== defaultCase)
-        condition = op.select(op.i32.eq(op.getLocal(conditionLocal.index, compiler.typeOf(intType)), <I32Expression>cases[i].expression), op.i32.const(i), condition);
+        condition = op.select(op.i32.eq(op.getLocal(conditionLocal.localIndex, compiler.typeOf(Type.int)), <I32Expression>cases[i].expression), op.i32.const(i), condition);
 
     // create the innermost br_table block using the first case's label
     let currentBlock = op.block(cases[0].label, [
-      op.setLocal(conditionLocal.index, switchExpression),
+      op.setLocal(conditionLocal.localIndex, switchExpression),
       op.switch(labels, defaultCase ? defaultCase.label : "break$" + label, condition)
     ]);
 
@@ -307,8 +307,8 @@ export function compileSwitch(compiler: Compiler, node: ts.SwitchStatement): Sta
 
   } else { // just emit the condition for the case that it includes compound assignments (-O eliminates this otherwise)
 
-    const voidCondition = compiler.compileExpression(node.expression, voidType);
-    if (getReflectedType(node.expression) === voidType)
+    const voidCondition = compiler.compileExpression(node.expression, Type.void);
+    if (getReflectedType(node.expression) === Type.void)
       return voidCondition;
     else
       return op.drop(voidCondition);
@@ -340,7 +340,7 @@ function compileVariableDeclarationList(compiler: Compiler, node: ts.VariableDec
       const declarationTypeName = ts.getTextOfNode(declaration.type);
       lastType = declarationType = compiler.currentFunction && compiler.currentFunction.typeArgumentsMap[declarationTypeName] && compiler.currentFunction.typeArgumentsMap[declarationTypeName].type || compiler.resolveType(declaration.type);
       if (!declarationType)
-        declarationType = voidType;
+        declarationType = Type.void;
     } else if (lastType) {
       compiler.report(declaration.name, ts.DiagnosticsEx.Assuming_variable_type_0, lastType.toString());
       declarationType = lastType;
@@ -370,7 +370,7 @@ function compileVariableDeclarationList(compiler: Compiler, node: ts.VariableDec
     }
     const local = compiler.currentFunction.addLocal(declarationName, declarationType, mutable);
     if (declaration.initializer)
-      initializers.push(op.setLocal(local.index, compiler.compileExpression(declaration.initializer, declarationType, declarationType, false)));
+      initializers.push(op.setLocal(local.localIndex, compiler.compileExpression(declaration.initializer, declarationType, declarationType, false)));
   }
 
   return initializers.length === 0 ? null
@@ -399,7 +399,7 @@ export function compileWhile(compiler: Compiler, node: ts.WhileStatement): State
   return op.block("break$" + label, [
     op.loop("continue$" + label,
       op.if(
-        compiler.compileExpression(node.expression, intType, intType, true),
+        compiler.compileExpression(node.expression, Type.int, Type.int, true),
         ifTrue.length === 1 ? ifTrue[0] : op.block("", ifTrue)
       )
     )

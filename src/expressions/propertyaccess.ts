@@ -1,51 +1,51 @@
 /** @module assemblyscript/expressions */ /** */
 
-import * as binaryen from "binaryen";
-import Compiler from "../compiler";
-import compileLoadOrStore from "./helpers/loadorstore";
-import * as reflection from "../reflection";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import * as ts from "../typescript";
+import { Expression } from "binaryen";
+import { Compiler } from "../compiler";
+import { compileLoadOrStore } from "./helpers/loadorstore";
+import { Type, Class, Enum, ObjectFlags } from "../reflection";
+import { getReflectedType, setReflectedType } from "../util";
 
 /** Compiles a property access expression. Sets the property's value to `valueNode` if specified, otherwise gets it. */
-export function compilePropertyAccess(compiler: Compiler, node: typescript.PropertyAccessExpression, contextualType: reflection.Type, valueNode?: typescript.Expression): binaryen.Expression {
+export function compilePropertyAccess(compiler: Compiler, node: ts.PropertyAccessExpression, contextualType: Type, valueNode?: ts.Expression): Expression {
   const op = compiler.module;
 
   // fall back to contextual type on error
-  util.setReflectedType(node, contextualType);
+  setReflectedType(node, contextualType);
 
   // obtain the property's name
-  const propertyName = typescript.getTextOfNode(node.name);
+  const propertyName = ts.getTextOfNode(node.name);
 
   // handle globals
-  if (node.expression.kind === typescript.SyntaxKind.Identifier) {
-    const reference = compiler.resolveReference(<typescript.Identifier>node.expression, reflection.ObjectFlags.AnyPropertyParent);
+  if (node.expression.kind === ts.SyntaxKind.Identifier) {
+    const reference = compiler.resolveReference(<ts.Identifier>node.expression, ObjectFlags.AnyPropertyParent);
 
     // enum values are constants
-    if (reference instanceof reflection.Enum) {
+    if (reference instanceof Enum) {
       if (valueNode)
         throw Error("trying to assign to enum value"); // handled by typescript
 
-      util.setReflectedType(node, reflection.intType);
+      setReflectedType(node, Type.int);
 
-      const enm = <reflection.Enum>reference;
+      const enm = <Enum>reference;
       const enmProperty = enm.values[propertyName];
 
       if (!enmProperty)
         throw Error("no such enum property"); // handled by typescript
 
-      const value = compiler.checker.getConstantValue(<typescript.EnumMember>enmProperty.declaration);
+      const value = compiler.checker.getConstantValue(<ts.EnumMember>enmProperty.declaration);
       if (typeof value === "number") {
-        util.setReflectedType(node, enmProperty.type);
+        setReflectedType(node, enmProperty.type);
         return compiler.valueOf(enmProperty.type, value);
       }
 
-      compiler.report(node.expression, typescript.DiagnosticsEx.Unsupported_literal_0, value);
+      compiler.report(node.expression, ts.DiagnosticsEx.Unsupported_literal_0, value);
       return op.unreachable();
 
     // static class properties are globals
-    } else if (reference instanceof reflection.Class) {
-      const staticClass = <reflection.Class>reference;
+    } else if (reference instanceof Class) {
+      const staticClass = <Class>reference;
       const staticClassProperty = staticClass.properties[propertyName];
 
       if (staticClassProperty && !staticClassProperty.isInstance) {
@@ -56,10 +56,10 @@ export function compilePropertyAccess(compiler: Compiler, node: typescript.Prope
           if (valueNode) {
             const valueExpression = compiler.compileExpression(valueNode, global.type, global.type, false);
 
-            if (contextualType === reflection.voidType)
+            if (contextualType === Type.void)
               return op.setGlobal(global.name, valueExpression);
 
-            util.setReflectedType(node, global.type);
+            setReflectedType(node, global.type);
             const binaryenType = compiler.typeOf(global.type);
             return op.block("", [ // emulate tee_global
               op.setGlobal(global.name, valueExpression),
@@ -67,7 +67,7 @@ export function compilePropertyAccess(compiler: Compiler, node: typescript.Prope
             ], binaryenType);
 
           } else {
-            util.setReflectedType(node, global.type);
+            setReflectedType(node, global.type);
             return op.getGlobal(global.name, compiler.typeOf(global.type));
           }
         } else
@@ -79,7 +79,7 @@ export function compilePropertyAccess(compiler: Compiler, node: typescript.Prope
   }
 
   const expression = compiler.compileExpression(node.expression, compiler.uintptrType);
-  const expressionType = util.getReflectedType(node.expression);
+  const expressionType = getReflectedType(node.expression);
 
   if (!(expressionType && expressionType.underlyingClass))
     throw Error("property access used on non-object"); // handled by typescript
@@ -87,11 +87,11 @@ export function compilePropertyAccess(compiler: Compiler, node: typescript.Prope
   const clazz = expressionType.underlyingClass;
   const property = clazz.properties[propertyName];
   if (property) {
-    util.setReflectedType(node, property.type);
+    setReflectedType(node, property.type);
 
-    let valueExpression: binaryen.Expression | undefined;
+    let valueExpression: Expression | undefined;
     if (valueNode)
-      valueExpression = compiler.maybeConvertValue(valueNode, compiler.compileExpression(valueNode, property.type), util.getReflectedType(valueNode), property.type, false);
+      valueExpression = compiler.maybeConvertValue(valueNode, compiler.compileExpression(valueNode, property.type), getReflectedType(valueNode), property.type, false);
 
     return compileLoadOrStore(compiler, node, property.type, expression, property.offset, valueExpression, contextualType);
   } else {
@@ -99,9 +99,9 @@ export function compilePropertyAccess(compiler: Compiler, node: typescript.Prope
     if (method) {
       // TODO
       if (method.template.isGetter) {
-        compiler.report(node, typescript.DiagnosticsEx.Unsupported_modifier_0, "get");
+        compiler.report(node, ts.DiagnosticsEx.Unsupported_modifier_0, "get");
       } else if (method.template.isSetter) {
-        compiler.report(node, typescript.DiagnosticsEx.Unsupported_modifier_0, "set");
+        compiler.report(node, ts.DiagnosticsEx.Unsupported_modifier_0, "set");
       } else
         throw Error("trying to use a method as a property"); // handled by typescript
       return op.unreachable();
@@ -110,4 +110,4 @@ export function compilePropertyAccess(compiler: Compiler, node: typescript.Prope
   }
 }
 
-export { compilePropertyAccess as default };
+export default compilePropertyAccess;

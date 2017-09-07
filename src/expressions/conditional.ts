@@ -1,21 +1,21 @@
 /** @module assemblyscript/expressions */ /** */
 
-import * as binaryen from "binaryen";
-import Compiler from "../compiler";
-import * as reflection from "../reflection";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import * as ts from "../typescript";
+import { Expression } from "binaryen";
+import { Compiler } from "../compiler";
+import { Type } from "../reflection";
+import { setReflectedType } from "../util";
 
 /** Compiles a conditional (ternary) expression. */
-export function compileConditional(compiler: Compiler, node: typescript.ConditionalExpression, contextualType: reflection.Type): binaryen.Expression {
+export function compileConditional(compiler: Compiler, node: ts.ConditionalExpression, contextualType: Type): Expression {
   const op = compiler.module;
 
-  const condition = compiler.compileExpression(node.condition, reflection.intType, reflection.intType, true);
+  const condition = compiler.compileExpression(node.condition, Type.int, Type.int, true);
   const ifTrue    = compiler.compileExpression(node.whenTrue, contextualType, contextualType, false);
   const ifFalse   = compiler.compileExpression(node.whenFalse, contextualType, contextualType, false);
 
-  util.setReflectedType(node, contextualType);
+  setReflectedType(node, contextualType);
   return op.select(condition, ifTrue, ifFalse);
 }
 
-export { compileConditional as default };
+export default compileConditional;

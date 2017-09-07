@@ -17,14 +17,15 @@
  */ /** */
 
 import * as builtins from "./builtins";
-import { Compiler, CompilerTarget } from "./compiler";
 import * as expressions from "./expressions";
 import * as library from "./library";
-import Profiler from "./profiler";
 import * as reflection from "./reflection";
 import * as typescript from "./typescript";
 import * as statements from "./statements";
 import * as util from "./util";
+import { Compiler, CompilerTarget } from "./compiler";
+import { Memory } from "./memory";
+import { Profiler } from "./profiler";
 
 /** AssemblyScript version. */
 export const version = library.version;
@@ -35,6 +36,7 @@ export {
   CompilerTarget,
   expressions,
   library,
+  Memory,
   Profiler,
   reflection,
   statements,

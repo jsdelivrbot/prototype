@@ -1,31 +1,31 @@
 /** @module assemblyscript/expressions */ /** */
 
-import * as binaryen from "binaryen";
-import Compiler from "../compiler";
-import * as reflection from "../reflection";
-import * as typescript from "../typescript";
-import * as util from "../util";
+import * as ts from "../typescript";
+import { Expression } from "binaryen";
+import { Compiler } from "../compiler";
+import { Type, Variable, ObjectFlags } from "../reflection";
+import { setReflectedType } from "../util";
 
 /** Compiles an identifier expression. */
-export function compileIdentifier(compiler: Compiler, node: typescript.Identifier, contextualType: reflection.Type): binaryen.Expression {
+export function compileIdentifier(compiler: Compiler, node: ts.Identifier, contextualType: Type): Expression {
   const op = compiler.module;
 
-  util.setReflectedType(node, contextualType);
+  setReflectedType(node, contextualType);
 
-  const reference = compiler.resolveReference(node, reflection.ObjectFlags.Variable);
-  if (reference instanceof reflection.Variable) {
-    const variable = <reflection.Variable>reference;
-    util.setReflectedType(node, variable.type);
+  const reference = compiler.resolveReference(node, ObjectFlags.Variable);
+  if (reference instanceof Variable) {
+    const variable = <Variable>reference;
+    setReflectedType(node, variable.type);
 
     if (variable.isInlined)
-      return compiler.valueOf(variable.type, <number | Long>variable.value);
+      return compiler.valueOf(variable.type, <number | Long>variable.constantValue);
 
     return variable.isGlobal
       ? op.getGlobal(variable.name, compiler.typeOf(variable.type))
-      : op.getLocal(variable.index, compiler.typeOf(variable.type));
+      : op.getLocal(variable.localIndex, compiler.typeOf(variable.type));
   }
-  compiler.report(node, typescript.DiagnosticsEx.Unresolvable_identifier_0, typescript.getTextOfNode(node));
+  compiler.report(node, ts.DiagnosticsEx.Unresolvable_identifier_0, ts.getTextOfNode(node));
   return op.unreachable();
 }
 
-export { compileIdentifier as default };
+export default compileIdentifier;
