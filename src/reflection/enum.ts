@@ -36,7 +36,7 @@ export class Enum {
 
     for (const member of this.declaration.members) {
       const memberName = ts.getTextOfNode(member.name);
-      this.values[memberName] = new Property(this.compiler, memberName, member, Type.int, 0, /* for completeness: */ member.initializer);
+      this.values[memberName] = new Property(this.compiler, memberName, member, Type.i32, 0, /* for completeness: */ member.initializer);
     }
   }
 

@@ -70,11 +70,11 @@ export function compileBinary(compiler: Compiler, node: ts.BinaryExpression, con
         return op.unreachable();
       }
       if (leftType.isLong) {
-        right = compiler.compileExpression(node.right, Type.long, Type.long, false);
-        rightType = Type.long;
+        right = compiler.compileExpression(node.right, Type.i64, Type.i64, false);
+        rightType = Type.i64;
       } else {
-        right = compiler.compileExpression(node.right, Type.int, Type.int, false);
-        rightType = Type.int;
+        right = compiler.compileExpression(node.right, Type.i32, Type.i32, false);
+        rightType = Type.i32;
       }
       resultType = leftType;
       break;
@@ -88,13 +88,13 @@ export function compileBinary(compiler: Compiler, node: ts.BinaryExpression, con
         return op.unreachable();
       }
       if (leftType.isLong) {
-        right = compiler.compileExpression(node.right, Type.long, Type.long, false);
-        rightType = Type.long;
-        resultType = Type.ulong;
+        right = compiler.compileExpression(node.right, Type.i64, Type.i64, false);
+        rightType = Type.i64;
+        resultType = Type.u64;
       } else {
-        right = compiler.compileExpression(node.right, Type.int, Type.int, false);
-        rightType = Type.int;
-        resultType = Type.uint;
+        right = compiler.compileExpression(node.right, Type.i32, Type.i32, false);
+        rightType = Type.i32;
+        resultType = Type.u32;
       }
       break;
 
@@ -155,8 +155,8 @@ export function compileBinary(compiler: Compiler, node: ts.BinaryExpression, con
           commonType = leftType.isSigned === rightType.isSigned
             ? leftType
             : contextualType.isSigned
-              ? Type.long
-              : Type.ulong;
+              ? Type.i64
+              : Type.u64;
         } else
           commonType = leftType;
       } else if (rightType.isLong)
@@ -374,7 +374,7 @@ export function compileBinary(compiler: Compiler, node: ts.BinaryExpression, con
 
     // sign-extend respectively mask small integer results
     if (result && (resultType.isByte || resultType.isShort))
-      result = compiler.maybeConvertValue(node, result, Type.int, resultType, true);
+      result = compiler.maybeConvertValue(node, result, Type.i32, resultType, true);
   }
 
   if (result)
@@ -452,14 +452,14 @@ export function compileLogicalAndOr(compiler: Compiler, node: ts.BinaryExpressio
     return op.select(
       left,
       /* ? */ right,
-      /* : */ compiler.valueOf(Type.int, 0)
+      /* : */ compiler.valueOf(Type.i32, 0)
     );
 
   // ||
   else if (node.operatorToken.kind === ts.SyntaxKind.BarBarToken)
     return op.select(
       left,
-      /* ? */ compiler.valueOf(Type.int, 1),
+      /* ? */ compiler.valueOf(Type.i32, 1),
       /* : */ right
     );
 
@@ -471,32 +471,32 @@ export function compileLogicalAndOr(compiler: Compiler, node: ts.BinaryExpressio
 export function compileIsTrueish(compiler: Compiler, node: ts.Expression): Expression {
   const op = compiler.module;
 
-  const expr = compiler.compileExpression(node, Type.int);
+  const expr = compiler.compileExpression(node, Type.i32);
   const type = getReflectedType(node);
 
   setReflectedType(node, Type.bool);
 
   switch (type.kind) {
-    case TypeKind.byte:
-    case TypeKind.sbyte:
-    case TypeKind.short:
-    case TypeKind.ushort:
-    case TypeKind.int:
-    case TypeKind.uint:
+    case TypeKind.u8:
+    case TypeKind.i8:
+    case TypeKind.i16:
+    case TypeKind.u16:
+    case TypeKind.i32:
+    case TypeKind.u32:
     case TypeKind.bool:
       return op.i32.ne(expr, op.i32.const(0));
 
-    case TypeKind.long:
-    case TypeKind.ulong:
+    case TypeKind.i64:
+    case TypeKind.u64:
       return op.i64.ne(expr, op.i64.const(0, 0));
 
-    case TypeKind.float:
+    case TypeKind.f32:
       return op.f32.ne(expr, op.f32.const(0));
 
-    case TypeKind.double:
+    case TypeKind.f64:
       return op.f64.ne(expr, op.f64.const(0));
 
-    case TypeKind.uintptr: // TODO: special handling of strings?
+    case TypeKind.usize: // TODO: special handling of strings?
       if (compiler.uintptrSize === 4)
         return op.i32.ne(expr, op.i32.const(0));
       else

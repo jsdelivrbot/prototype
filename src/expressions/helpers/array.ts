@@ -12,7 +12,7 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
   const elementCount = typeof elementsOrSize === "number" ? elementsOrSize : elementsOrSize.length;
 
   const binaryenUintptrType = compiler.typeOf(compiler.uintptrType);
-  const binaryenElementSize = compiler.valueOf(Type.int, elementCount);
+  const binaryenElementSize = compiler.valueOf(Type.i32, elementCount);
 
   // create a unique local holding a pointer to allocated memory
   const arrptr = compiler.currentFunction.addUniqueLocal(compiler.uintptrType, "arrptr");
@@ -20,11 +20,11 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
   // initialize header
   const block = [
     // capacity: *(arrptr = malloc(...)) = elementSize
-    op.i32.store(0, Type.int.size, op.teeLocal(arrptr.localIndex,
+    op.i32.store(0, Type.i32.size, op.teeLocal(arrptr.localIndex,
       compiler.compileMallocInvocation(compiler.arrayHeaderSize + elementCount * elementType.size) // capacity + length + N * element
     ), binaryenElementSize),
     // length: *(arrptr + 4) = elementSize
-    op.i32.store(Type.int.size, Type.int.size, op.getLocal(arrptr.localIndex, binaryenUintptrType), binaryenElementSize)
+    op.i32.store(Type.i32.size, Type.i32.size, op.getLocal(arrptr.localIndex, binaryenUintptrType), binaryenElementSize)
   ];
 
   // initialize concrete values if specified

@@ -56,7 +56,7 @@ export function compileElementAccess(compiler: Compiler, node: ts.ElementAccessE
     uintptrCategory.add(
       expression,
       uintptrCategory.mul(
-        compiler.compileExpression(argumentNode, Type.int, Type.int, false),
+        compiler.compileExpression(argumentNode, Type.i32, Type.i32, false),
         compiler.valueOf(compiler.uintptrType, elementType.size)
       )
     ), compiler.arrayHeaderSize, valueExpression, contextualType

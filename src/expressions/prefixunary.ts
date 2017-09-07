@@ -19,10 +19,10 @@ export function compilePrefixUnary(compiler: Compiler, node: ts.PrefixUnaryExpre
     {
       setReflectedType(node, Type.bool);
 
-      if (operandType === Type.float)
+      if (operandType === Type.f32)
         return op.f32.eq(operand, op.f32.const(0));
 
-      else if (operandType === Type.double)
+      else if (operandType === Type.f64)
         return op.f64.eq(operand, op.f64.const(0));
 
       else if (operandType.isLong)
@@ -45,17 +45,17 @@ export function compilePrefixUnary(compiler: Compiler, node: ts.PrefixUnaryExpre
       if (node.operand.kind === ts.SyntaxKind.NumericLiteral)
         return operand; // implicitly compiled the negated form previously, see expressions.ts case typescript.SyntaxKind.NumericLiteral
 
-      if (operandType === Type.float)
+      if (operandType === Type.f32)
         return op.f32.neg(operand);
 
-      else if (operandType === Type.double)
+      else if (operandType === Type.f64)
         return op.f64.neg(operand);
 
       else if (operandType.isLong)
         return op.i64.sub(op.i64.const(0, 0), operand);
 
       else
-        return compiler.maybeConvertValue(node, op.i32.sub(op.i32.const(0), operand), Type.int, operandType, true);
+        return compiler.maybeConvertValue(node, op.i32.sub(op.i32.const(0), operand), Type.i32, operandType, true);
     }
 
     case ts.SyntaxKind.TildeToken:
@@ -77,8 +77,8 @@ export function compilePrefixUnary(compiler: Compiler, node: ts.PrefixUnaryExpre
 
       } else {
 
-        setReflectedType(node, Type.int);
-        return op.i32.xor(compiler.maybeConvertValue(node.operand, operand, operandType, Type.int, true), op.i32.const(-1));
+        setReflectedType(node, Type.i32);
+        return op.i32.xor(compiler.maybeConvertValue(node.operand, operand, operandType, Type.i32, true), op.i32.const(-1));
 
       }
     }

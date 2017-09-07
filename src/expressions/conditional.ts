@@ -10,7 +10,7 @@ import { setReflectedType } from "../util";
 export function compileConditional(compiler: Compiler, node: ts.ConditionalExpression, contextualType: Type): Expression {
   const op = compiler.module;
 
-  const condition = compiler.compileExpression(node.condition, Type.int, Type.int, true);
+  const condition = compiler.compileExpression(node.condition, Type.i32, Type.i32, true);
   const ifTrue    = compiler.compileExpression(node.whenTrue, contextualType, contextualType, false);
   const ifFalse   = compiler.compileExpression(node.whenFalse, contextualType, contextualType, false);
 

@@ -26,7 +26,7 @@ export function compilePropertyAccess(compiler: Compiler, node: ts.PropertyAcces
       if (valueNode)
         throw Error("trying to assign to enum value"); // handled by typescript
 
-      setReflectedType(node, Type.int);
+      setReflectedType(node, Type.i32);
 
       const enm = <Enum>reference;
       const enmProperty = enm.values[propertyName];

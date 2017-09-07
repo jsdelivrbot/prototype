@@ -1,6 +1,6 @@
  (export "test" (func $test))
  (export "memory" (memory $0))
- (func $std:Array<sbyte> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<i8> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -50,7 +50,7 @@
    (get_local $3)
   )
  )
- (func $std:Array<byte> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<u8> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -100,7 +100,7 @@
    (get_local $3)
   )
  )
- (func $std:Array<short> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<i16> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -150,7 +150,7 @@
    (get_local $3)
   )
  )
- (func $std:Array<ushort> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<u16> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -200,7 +200,7 @@
    (get_local $3)
   )
  )
- (func $std:Array<int> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<i32> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -250,7 +250,7 @@
    (get_local $3)
   )
  )
- (func $std:Array<uint> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<u32> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -300,7 +300,7 @@
    (get_local $3)
   )
  )
- (func $std:Array<long> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<i64> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -350,7 +350,7 @@
    (get_local $3)
   )
  )
- (func $std:Array<ulong> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<u64> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -400,7 +400,7 @@
    (get_local $3)
   )
  )
- (func $std:Array<float> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<f32> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -450,7 +450,7 @@
    (get_local $3)
   )
  )
- (func $std:Array<double> (type $iii) (param $0 i32) (param $1 i32) (result i32)
+ (func $std:Array<f64> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
   (local $4 i32)
@@ -513,7 +513,7 @@
   (local $9 i32)
   (local $10 i32)
   (set_local $0
-   (call $std:Array<sbyte>
+   (call $std:Array<i8>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)
@@ -525,7 +525,7 @@
    )
   )
   (set_local $1
-   (call $std:Array<byte>
+   (call $std:Array<u8>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)
@@ -537,7 +537,7 @@
    )
   )
   (set_local $2
-   (call $std:Array<short>
+   (call $std:Array<i16>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)
@@ -549,7 +549,7 @@
    )
   )
   (set_local $3
-   (call $std:Array<ushort>
+   (call $std:Array<u16>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)
@@ -561,7 +561,7 @@
    )
   )
   (set_local $4
-   (call $std:Array<int>
+   (call $std:Array<i32>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)
@@ -573,7 +573,7 @@
    )
   )
   (set_local $5
-   (call $std:Array<uint>
+   (call $std:Array<u32>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)
@@ -585,7 +585,7 @@
    )
   )
   (set_local $6
-   (call $std:Array<long>
+   (call $std:Array<i64>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)
@@ -597,7 +597,7 @@
    )
   )
   (set_local $7
-   (call $std:Array<ulong>
+   (call $std:Array<u64>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)
@@ -609,7 +609,7 @@
    )
   )
   (set_local $8
-   (call $std:Array<float>
+   (call $std:Array<f32>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)
@@ -621,7 +621,7 @@
    )
   )
   (set_local $9
-   (call $std:Array<double>
+   (call $std:Array<f64>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)
@@ -633,7 +633,7 @@
    )
   )
   (set_local $10
-   (call $std:Array<sbyte>
+   (call $std:Array<i8>
     (call $lib:memset
      (call $lib:malloc
       (i32.const 8)

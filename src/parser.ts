@@ -81,7 +81,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
             : negate ? 1 - <number>value : value;
         }
 
-        case Type.sbyte: {
+        case Type.i8: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -90,7 +90,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value << 24 >> 24;
         }
 
-        case Type.byte: {
+        case Type.u8: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -99,7 +99,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value & 0xff;
         }
 
-        case Type.short: {
+        case Type.i16: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -108,7 +108,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value << 16 >> 16;
         }
 
-        case Type.ushort: {
+        case Type.u16: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -117,7 +117,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value & 0xffff;
         }
 
-        case Type.int: {
+        case Type.i32: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -126,8 +126,8 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value | 0;
         }
 
-        case Type.uint:
-        case Type.uintptr32: {
+        case Type.u32:
+        case Type.usize32: {
           const value = tryParseInt(node.text);
           return value === null
             ? null
@@ -136,7 +136,7 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value >>> 0;
         }
 
-        case Type.long: {
+        case Type.i64: {
           const value = tryParseLong(ts.getTextOfNode(node), false); // can't use preprocessed 'node.text' here
           return value === null
             ? null
@@ -145,8 +145,8 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value;
         }
 
-        case Type.ulong:
-        case Type.uintptr64: {
+        case Type.u64:
+        case Type.usize64: {
           const value = tryParseLong(ts.getTextOfNode(node), true); // can't use preprocessed 'node.text' here
           return value === null
             ? null
@@ -155,8 +155,8 @@ export function tryParseLiteral(node: ts.LiteralExpression, contextualType: Type
               : value;
         }
 
-        case Type.float:
-        case Type.double: {
+        case Type.f32:
+        case Type.f64: {
           const value = tryParseFloat(node.text);
           return value === null
             ? null

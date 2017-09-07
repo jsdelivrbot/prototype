@@ -109,7 +109,7 @@ export function compileDo(compiler: Compiler, node: ts.DoStatement): Statement {
   }
 
   loop[loopLength++] = op.break("continue$" + label,
-    compiler.compileExpression(node.expression, Type.int, Type.int, false)
+    compiler.compileExpression(node.expression, Type.i32, Type.i32, false)
   );
 
   loop.length = loopLength;
@@ -178,7 +178,7 @@ export function compileFor(compiler: Compiler, node: ts.ForStatement): Statement
     context.push(
       op.loop("continue$" + label,
         op.if(
-          compiler.compileExpression(node.condition, Type.int, Type.int, false),
+          compiler.compileExpression(node.condition, Type.i32, Type.i32, false),
           ifTrue.length === 1 ? ifTrue[0] : op.block("", ifTrue)
         )
       )
@@ -205,7 +205,7 @@ export function compileFor(compiler: Compiler, node: ts.ForStatement): Statement
 export function compileIf(compiler: Compiler, node: ts.IfStatement): Statement {
   const op = compiler.module;
   return op.if(
-    compiler.compileExpression(node.expression, Type.int, Type.int, true),
+    compiler.compileExpression(node.expression, Type.i32, Type.i32, true),
     compile(compiler, node.thenStatement) || op.nop(),
     node.elseStatement && compile(compiler, node.elseStatement) || undefined
   );
@@ -236,11 +236,11 @@ export function compileSwitch(compiler: Compiler, node: ts.SwitchStatement): Sta
   const op = compiler.module;
 
   if (node.caseBlock.clauses && node.caseBlock.clauses.length) {
-    const switchExpression = compiler.compileExpression(node.expression, Type.int, Type.int, true);
+    const switchExpression = compiler.compileExpression(node.expression, Type.i32, Type.i32, true);
     const label = compiler.enterBreakContext();
 
     // create a temporary variable holding the switch expression's result
-    const conditionLocal = compiler.currentFunction.addLocal("condition$" + label, Type.int);
+    const conditionLocal = compiler.currentFunction.addLocal("condition$" + label, Type.i32);
 
     interface SwitchCase {
       label: string;
@@ -275,7 +275,7 @@ export function compileSwitch(compiler: Compiler, node: ts.SwitchStatement): Sta
           label:  "case" + i + "$" + label,
           index: i,
           statements: statements,
-          expression: compiler.maybeConvertValue(clause.expression, compiler.compileExpression(clause.expression, Type.int), getReflectedType(clause.expression), Type.int, true)
+          expression: compiler.maybeConvertValue(clause.expression, compiler.compileExpression(clause.expression, Type.i32), getReflectedType(clause.expression), Type.i32, true)
         };
         labels.push(cases[i].label);
       }
@@ -286,7 +286,7 @@ export function compileSwitch(compiler: Compiler, node: ts.SwitchStatement): Sta
     let condition = op.i32.const(-1);
     for (let i = cases.length - 1; i >= 0; --i)
       if (cases[i] !== defaultCase)
-        condition = op.select(op.i32.eq(op.getLocal(conditionLocal.localIndex, compiler.typeOf(Type.int)), <I32Expression>cases[i].expression), op.i32.const(i), condition);
+        condition = op.select(op.i32.eq(op.getLocal(conditionLocal.localIndex, compiler.typeOf(Type.i32)), <I32Expression>cases[i].expression), op.i32.const(i), condition);
 
     // create the innermost br_table block using the first case's label
     let currentBlock = op.block(cases[0].label, [
@@ -399,7 +399,7 @@ export function compileWhile(compiler: Compiler, node: ts.WhileStatement): State
   return op.block("break$" + label, [
     op.loop("continue$" + label,
       op.if(
-        compiler.compileExpression(node.expression, Type.int, Type.int, true),
+        compiler.compileExpression(node.expression, Type.i32, Type.i32, true),
         ifTrue.length === 1 ? ifTrue[0] : op.block("", ifTrue)
       )
     )

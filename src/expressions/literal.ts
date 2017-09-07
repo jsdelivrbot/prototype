@@ -46,15 +46,15 @@ export function compileLiteral(compiler: Compiler, node: ts.LiteralExpression, c
       }
       switch (contextualType) {
 
-        case Type.float:
+        case Type.f32:
           return op.f32.const(<number>parsed);
 
-        case Type.double:
+        case Type.f64:
           return op.f64.const(<number>parsed);
 
-        case Type.long:
-        case Type.ulong:
-        case Type.uintptr64:
+        case Type.i64:
+        case Type.u64:
+        case Type.usize64:
           return op.i64.const((<Long>parsed).low, (<Long>parsed).high);
 
       }

@@ -36,7 +36,7 @@ export function compilePostfixUnary(compiler: Compiler, node: ts.PostfixUnaryExp
           );
 
           if (local.type.isByte || local.type.isShort)
-            calculate = compiler.maybeConvertValue(node, calculate, Type.int, local.type, true); // mask or sign-extend
+            calculate = compiler.maybeConvertValue(node, calculate, Type.i32, local.type, true); // mask or sign-extend
 
           if (contextualType === Type.void) {
             setReflectedType(node, Type.void);

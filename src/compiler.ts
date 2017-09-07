@@ -190,7 +190,7 @@ export class Compiler {
   get uintptrSize(): number { return this.uintptrType.size; }
 
   /** Gets the size of an array header in bytes. */
-  get arrayHeaderSize(): number { return 2 * Type.int.size; } // capacity + length
+  get arrayHeaderSize(): number { return 2 * Type.i32.size; } // capacity + length
 
   /**
    * Constructs a new AssemblyScript compiler.
@@ -223,7 +223,7 @@ export class Compiler {
       this.runtimeExports = [];
     }
 
-    this.uintptrType = this.target === CompilerTarget.WASM64 ? Type.uintptr64 : Type.uintptr32;
+    this.uintptrType = this.target === CompilerTarget.WASM64 ? Type.usize64 : Type.usize32;
     this.memory = new Memory(this, 32); // NULL + HEAP + MSPACE + GC, each aligned to 8 bytes
 
     const sourceFiles = program.getSourceFiles();
@@ -951,7 +951,7 @@ export class Compiler {
     // no conversion required
     if (fromType.kind === toType.kind) {
 
-      if (fromType.kind === TypeKind.uintptr && fromType.underlyingClass !== toType.underlyingClass)
+      if (fromType.kind === TypeKind.usize && fromType.underlyingClass !== toType.underlyingClass)
         compiler.report(node, ts.DiagnosticsEx.Types_0_and_1_are_incompatible, toType.underlyingClass ? toType.underlyingClass.toString() : "uintptr", fromType.underlyingClass ? fromType.underlyingClass.toString() : "uintptr");
 
       return expr;
@@ -964,132 +964,132 @@ export class Compiler {
     if (!explicit) {
 
       if (
-        (this.uintptrSize === 4 && fromType.kind === TypeKind.uintptr && toType.isInt) ||
-        (this.uintptrSize === 8 && fromType.isLong && toType.kind === TypeKind.uintptr)
+        (this.uintptrSize === 4 && fromType.kind === TypeKind.usize && toType.isInt) ||
+        (this.uintptrSize === 8 && fromType.isLong && toType.kind === TypeKind.usize)
       )
         this.report(node, ts.DiagnosticsEx.Conversion_from_0_to_1_will_fail_when_switching_between_WASM32_64, fromType.toString(), toType.toString());
     }
 
     util.setReflectedType(node, toType);
 
-    if (fromType === Type.float) {
+    if (fromType === Type.f32) {
 
-      if (!explicit && toType !== Type.double)
+      if (!explicit && toType !== Type.f64)
         illegalImplicitConversion();
 
       switch (toType) {
 
-        case Type.byte:
-        case Type.ushort:
-        case Type.uint:
-        case Type.uintptr32:
+        case Type.u8:
+        case Type.u16:
+        case Type.u32:
+        case Type.usize32:
         case Type.bool:
-          return this.maybeConvertValue(node, op.i32.trunc_u.f32(expr), Type.int, toType, explicit);
+          return this.maybeConvertValue(node, op.i32.trunc_u.f32(expr), Type.i32, toType, explicit);
 
-        case Type.sbyte:
-        case Type.short:
-        case Type.int:
-          return this.maybeConvertValue(node, op.i32.trunc_s.f32(expr), Type.int, toType, explicit);
+        case Type.i8:
+        case Type.i16:
+        case Type.i32:
+          return this.maybeConvertValue(node, op.i32.trunc_s.f32(expr), Type.i32, toType, explicit);
 
-        case Type.uintptr64:
-        case Type.ulong:
+        case Type.usize64:
+        case Type.u64:
           return op.i64.trunc_u.f32(expr);
 
-        case Type.long:
+        case Type.i64:
           return op.i64.trunc_s.f32(expr);
 
         // floatType == floatType
 
-        case Type.double:
+        case Type.f64:
           return op.f64.promote(expr);
 
       }
 
-    } else if (fromType === Type.double) {
+    } else if (fromType === Type.f64) {
 
       if (!explicit) illegalImplicitConversion();
 
       switch (toType) {
 
-        case Type.byte:
-        case Type.ushort:
-        case Type.uint:
-        case Type.uintptr32:
+        case Type.u8:
+        case Type.u16:
+        case Type.u32:
+        case Type.usize32:
         case Type.bool:
-          return this.maybeConvertValue(node, op.i32.trunc_u.f64(expr), Type.int, toType, explicit); // maybe mask
+          return this.maybeConvertValue(node, op.i32.trunc_u.f64(expr), Type.i32, toType, explicit); // maybe mask
 
-        case Type.sbyte:
-        case Type.short:
-        case Type.int:
-          return this.maybeConvertValue(node, op.i32.trunc_s.f64(expr), Type.int, toType, explicit); // maybe sign extend
+        case Type.i8:
+        case Type.i16:
+        case Type.i32:
+          return this.maybeConvertValue(node, op.i32.trunc_s.f64(expr), Type.i32, toType, explicit); // maybe sign extend
 
-        case Type.ulong:
-        case Type.uintptr64:
+        case Type.u64:
+        case Type.usize64:
           return op.i64.trunc_u.f64(expr);
 
-        case Type.long:
+        case Type.i64:
           return op.i64.trunc_s.f64(expr);
 
-        case Type.float:
+        case Type.f32:
           return op.f32.demote(expr);
 
         // doubleType == doubleType
 
       }
 
-    } else if (toType === Type.float) { // int to float
+    } else if (toType === Type.f32) { // int to float
 
       switch (fromType) {
 
-        case Type.uint:
-        case Type.uintptr32:
+        case Type.u32:
+        case Type.usize32:
           if (!explicit) illegalImplicitConversion();
 
-        case Type.byte:
-        case Type.ushort:
+        case Type.u8:
+        case Type.u16:
         case Type.bool:
           return op.f32.convert_u.i32(expr);
 
-        case Type.int:
+        case Type.i32:
           if (!explicit) illegalImplicitConversion();
 
-        case Type.sbyte:
-        case Type.short:
+        case Type.i8:
+        case Type.i16:
           return op.f32.convert_s.i32(expr);
 
-        case Type.ulong:
-        case Type.uintptr64:
+        case Type.u64:
+        case Type.usize64:
           if (!explicit) illegalImplicitConversion();
           return op.f32.convert_u.i64(expr);
 
-        case Type.long:
+        case Type.i64:
           if (!explicit) illegalImplicitConversion();
           return op.f32.convert_s.i64(expr);
 
       }
 
-    } else if (toType === Type.double) { // int to double
+    } else if (toType === Type.f64) { // int to double
 
       switch (fromType) {
 
-        case Type.uint:
-        case Type.uintptr32:
-        case Type.byte:
-        case Type.ushort:
+        case Type.u32:
+        case Type.usize32:
+        case Type.u8:
+        case Type.u16:
         case Type.bool:
           return op.f64.convert_u.i32(expr);
 
-        case Type.int:
-        case Type.sbyte:
-        case Type.short:
+        case Type.i32:
+        case Type.i8:
+        case Type.i16:
           return op.f64.convert_s.i32(expr);
 
-        case Type.ulong:
-        case Type.uintptr64:
+        case Type.u64:
+        case Type.usize64:
           if (!explicit) illegalImplicitConversion();
           return op.f64.convert_u.i64(expr);
 
-        case Type.long:
+        case Type.i64:
           if (!explicit) illegalImplicitConversion();
           return op.f64.convert_s.i64(expr);
 
@@ -1107,7 +1107,7 @@ export class Compiler {
       if (!explicit) illegalImplicitConversion();
 
       expr = op.i32.wrap(expr);
-      fromType = fromType.isSigned ? Type.int : Type.uint;
+      fromType = fromType.isSigned ? Type.i32 : Type.u32;
 
       // fallthrough
     }
@@ -1121,7 +1121,7 @@ export class Compiler {
 
     if (toType.isSigned) { // sign-extend
 
-      const shift = toType === Type.sbyte ? 24 : 16;
+      const shift = toType === Type.i8 ? 24 : 16;
       return op.i32.shr_s(
         op.i32.shl(
           expr,
@@ -1132,7 +1132,7 @@ export class Compiler {
 
     } else { // mask
 
-      const mask = toType === Type.byte ? 0xff : 0xffff;
+      const mask = toType === Type.u8 ? 0xff : 0xffff;
       return op.i32.and(
         expr,
         op.i32.const(mask)
@@ -1202,7 +1202,7 @@ export class Compiler {
 
       case ts.SyntaxKind.NumberKeyword:
         this.report(type, ts.DiagnosticsEx.Assuming_0_instead_of_1, "double", "number");
-        return Type.double;
+        return Type.f64;
 
       case ts.SyntaxKind.ThisKeyword:
       case ts.SyntaxKind.ThisType:
@@ -1224,17 +1224,17 @@ export class Compiler {
 
             // Exit early if it's a basic type
             switch (ts.getNameOfSymbol(symbol)) {
-              case "byte": return Type.byte;
-              case "sbyte": return Type.sbyte;
-              case "short": return Type.short;
-              case "ushort": return Type.ushort;
-              case "int": return Type.int;
-              case "uint": return Type.uint;
-              case "long": return Type.long;
-              case "ulong": return Type.ulong;
+              case "byte": return Type.u8;
+              case "sbyte": return Type.i8;
+              case "short": return Type.i16;
+              case "ushort": return Type.u16;
+              case "int": return Type.i32;
+              case "uint": return Type.u32;
+              case "long": return Type.i64;
+              case "ulong": return Type.u64;
               case "bool": return Type.bool;
-              case "float": return Type.float;
-              case "double": return Type.double;
+              case "float": return Type.f32;
+              case "double": return Type.f64;
               case "uintptr": return this.uintptrType;
               case "string": return this.classes[LIB_PREFIX + "String"].type;
             }
@@ -1331,27 +1331,27 @@ export class Compiler {
   identifierOf(type: Type): string {
     switch (type.kind) {
 
-      case TypeKind.sbyte:
-      case TypeKind.byte:
-      case TypeKind.short:
-      case TypeKind.ushort:
-      case TypeKind.int:
-      case TypeKind.uint:
+      case TypeKind.i8:
+      case TypeKind.u8:
+      case TypeKind.i16:
+      case TypeKind.u16:
+      case TypeKind.i32:
+      case TypeKind.u32:
       case TypeKind.bool:
         return "i";
 
-      case TypeKind.long:
-      case TypeKind.ulong:
+      case TypeKind.i64:
+      case TypeKind.u64:
         return "I";
 
-      case TypeKind.float:
+      case TypeKind.f32:
         return "f";
 
-      case TypeKind.double:
+      case TypeKind.f64:
         return "F";
 
-      case TypeKind.uintptr:
-        return this.uintptrType === Type.uintptr32 ? "i" : "I";
+      case TypeKind.usize:
+        return this.uintptrType === Type.usize32 ? "i" : "I";
 
       case TypeKind.void:
         return "v";
@@ -1374,27 +1374,27 @@ export class Compiler {
   typeOf(type: Type): binaryen.Type {
     switch (type.kind) {
 
-      case TypeKind.sbyte:
-      case TypeKind.byte:
-      case TypeKind.short:
-      case TypeKind.ushort:
-      case TypeKind.int:
-      case TypeKind.uint:
+      case TypeKind.i8:
+      case TypeKind.u8:
+      case TypeKind.i16:
+      case TypeKind.u16:
+      case TypeKind.i32:
+      case TypeKind.u32:
       case TypeKind.bool:
         return binaryen.i32;
 
-      case TypeKind.long:
-      case TypeKind.ulong:
+      case TypeKind.i64:
+      case TypeKind.u64:
         return binaryen.i64;
 
-      case TypeKind.float:
+      case TypeKind.f32:
         return binaryen.f32;
 
-      case TypeKind.double:
+      case TypeKind.f64:
         return binaryen.f64;
 
-      case TypeKind.uintptr:
-        return this.uintptrType === Type.uintptr32 ? binaryen.i32 : binaryen.i64;
+      case TypeKind.usize:
+        return this.uintptrType === Type.usize32 ? binaryen.i32 : binaryen.i64;
 
       case TypeKind.void:
         return binaryen.none;
@@ -1408,27 +1408,27 @@ export class Compiler {
 
     switch (type.kind) {
 
-      case TypeKind.sbyte:
-      case TypeKind.byte:
-      case TypeKind.short:
-      case TypeKind.ushort:
-      case TypeKind.int:
-      case TypeKind.uint:
+      case TypeKind.i8:
+      case TypeKind.u8:
+      case TypeKind.i16:
+      case TypeKind.u16:
+      case TypeKind.i32:
+      case TypeKind.u32:
       case TypeKind.bool:
         return op.i32;
 
-      case TypeKind.long:
-      case TypeKind.ulong:
+      case TypeKind.i64:
+      case TypeKind.u64:
         return op.i64;
 
-      case TypeKind.float:
+      case TypeKind.f32:
         return op.f32;
 
-      case TypeKind.double:
+      case TypeKind.f64:
         return op.f64;
 
-      case TypeKind.uintptr:
-        return this.uintptrType === Type.uintptr32 ? op.i32 : op.i64;
+      case TypeKind.usize:
+        return this.uintptrType === Type.usize32 ? op.i32 : op.i64;
     }
     throw Error("unexpected type");
   }
@@ -1447,30 +1447,30 @@ export class Compiler {
 
     switch (type.kind) {
 
-      case TypeKind.byte:
+      case TypeKind.u8:
         return op.i32.const(value & 0xff);
 
-      case TypeKind.sbyte:
+      case TypeKind.i8:
         return op.i32.const((value << 24) >> 24);
 
-      case TypeKind.short:
+      case TypeKind.i16:
         return op.i32.const((value << 16) >> 16);
 
-      case TypeKind.ushort:
+      case TypeKind.u16:
         return op.i32.const(value & 0xffff);
 
-      case TypeKind.int:
-      case TypeKind.uint:
-      case TypeKind.uintptr: // long already handled
+      case TypeKind.i32:
+      case TypeKind.u32:
+      case TypeKind.usize: // long already handled
         return op.i32.const(value);
 
       case TypeKind.bool:
         return op.i32.const(value ? 1 : 0);
 
-      case TypeKind.float:
+      case TypeKind.f32:
         return op.f32.const(value);
 
-      case TypeKind.double:
+      case TypeKind.f64:
         return op.f64.const(value);
     }
     throw Error("unexpected type");

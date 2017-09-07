@@ -145,14 +145,14 @@ export function rotl(compiler: Compiler, nodes: TypeScriptExpressionPair, exprs:
 
     switch (leftType) {
 
-      case Type.int:
-      case Type.uint:
-      case Type.uintptr32:
+      case Type.i32:
+      case Type.u32:
+      case Type.usize32:
         return op.i32.rotl(exprs[0], exprs[1]);
 
-      case Type.long:
-      case Type.ulong:
-      case Type.uintptr64:
+      case Type.i64:
+      case Type.u64:
+      case Type.usize64:
         return op.i64.rotl(exprs[0], exprs[1]);
     }
   }
@@ -169,14 +169,14 @@ export function rotr(compiler: Compiler, nodes: TypeScriptExpressionPair, exprs:
   if (leftType === rightType) {
     switch (leftType) {
 
-      case Type.int:
-      case Type.uint:
-      case Type.uintptr32:
+      case Type.i32:
+      case Type.u32:
+      case Type.usize32:
         return op.i32.rotr(exprs[0], exprs[1]);
 
-      case Type.long:
-      case Type.ulong:
-      case Type.uintptr64:
+      case Type.i64:
+      case Type.u64:
+      case Type.usize64:
         return op.i64.rotr(exprs[0], exprs[1]);
     }
   }
@@ -190,14 +190,14 @@ export function clz(compiler: Compiler, node: ts.Expression, expr: Expression): 
   const type = getReflectedType(node);
   switch (type) {
 
-    case Type.int:
-    case Type.uint:
-    case Type.uintptr32:
+    case Type.i32:
+    case Type.u32:
+    case Type.usize32:
       return op.i32.clz(expr);
 
-    case Type.long:
-    case Type.ulong:
-    case Type.uintptr64:
+    case Type.i64:
+    case Type.u64:
+    case Type.usize64:
       return op.i64.clz(expr);
   }
   throw Error("unsupported operation");
@@ -210,14 +210,14 @@ export function ctz(compiler: Compiler, node: ts.Expression, expr: Expression): 
   const type = getReflectedType(node);
   switch (type) {
 
-    case Type.int:
-    case Type.uint:
-    case Type.uintptr32:
+    case Type.i32:
+    case Type.u32:
+    case Type.usize32:
       return op.i32.ctz(expr);
 
-    case Type.int:
-    case Type.uint:
-    case Type.uintptr32:
+    case Type.i32:
+    case Type.u32:
+    case Type.usize32:
       return op.i64.ctz(expr);
   }
   throw Error("unsupported operation");
@@ -230,14 +230,14 @@ export function popcnt(compiler: Compiler, node: ts.Expression, expr: Expression
   const type = getReflectedType(node);
   switch (type) {
 
-    case Type.int:
-    case Type.uint:
-    case Type.uintptr32:
+    case Type.i32:
+    case Type.u32:
+    case Type.usize32:
       return op.i32.popcnt(expr);
 
-    case Type.int:
-    case Type.uint:
-    case Type.uintptr32:
+    case Type.i32:
+    case Type.u32:
+    case Type.usize32:
       return op.i64.popcnt(expr);
   }
   throw Error("unsupported operation");
@@ -250,10 +250,10 @@ export function abs(compiler: Compiler, node: ts.Expression, expr: Expression): 
   const type = getReflectedType(node);
   switch (type) {
 
-    case Type.float:
+    case Type.f32:
       return op.f32.abs(expr);
 
-    case Type.double:
+    case Type.f64:
       return op.f64.abs(expr);
   }
   throw Error("unsupported operation");
@@ -266,10 +266,10 @@ export function ceil(compiler: Compiler, node: ts.Expression, expr: Expression):
   const type = getReflectedType(node);
   switch (type) {
 
-    case Type.float:
+    case Type.f32:
       return op.f32.ceil(expr);
 
-    case Type.double:
+    case Type.f64:
       return op.f64.ceil(expr);
   }
   throw Error("unsupported operation");
@@ -282,10 +282,10 @@ export function floor(compiler: Compiler, node: ts.Expression, expr: Expression)
   const type = getReflectedType(node);
   switch (type) {
 
-    case Type.float:
+    case Type.f32:
       return op.f32.floor(expr);
 
-    case Type.double:
+    case Type.f64:
       return op.f64.floor(expr);
   }
   throw Error("unsupported operation");
@@ -298,10 +298,10 @@ export function sqrt(compiler: Compiler, node: ts.Expression, expr: Expression):
   const type = getReflectedType(node);
   switch (type) {
 
-    case Type.float:
+    case Type.f32:
       return op.f32.sqrt(expr);
 
-    case Type.double:
+    case Type.f64:
       return op.f64.sqrt(expr);
   }
   throw Error("unsupported operation");
@@ -314,10 +314,10 @@ export function trunc(compiler: Compiler, node: ts.Expression, expr: Expression)
   const type = getReflectedType(node);
   switch (type) {
 
-    case Type.float:
+    case Type.f32:
       return op.f32.trunc(expr);
 
-    case Type.double:
+    case Type.f64:
       return op.f64.trunc(expr);
   }
   throw Error("unsupported operation");
@@ -330,10 +330,10 @@ export function nearest(compiler: Compiler, node: ts.Expression, expr: Expressio
   const type = getReflectedType(node);
   switch (type) {
 
-    case Type.float:
+    case Type.f32:
       return op.f32.nearest(expr);
 
-    case Type.double:
+    case Type.f64:
       return op.f64.nearest(expr);
   }
   throw Error("unsupported operation");
@@ -349,10 +349,10 @@ export function min(compiler: Compiler, nodes: TypeScriptExpressionPair, exprs: 
   if (leftType === rightType) {
     switch (leftType) {
 
-      case Type.float:
+      case Type.f32:
         return op.f32.min(exprs[0], exprs[1]);
 
-      case Type.double:
+      case Type.f64:
         return op.f64.min(exprs[0], exprs[1]);
     }
   }
@@ -369,10 +369,10 @@ export function max(compiler: Compiler, nodes: TypeScriptExpressionPair, exprs: 
   if (leftType === rightType) {
     switch (leftType) {
 
-      case Type.float:
+      case Type.f32:
         return op.f32.max(exprs[0], exprs[1]);
 
-      case Type.double:
+      case Type.f64:
         return op.f64.max(exprs[0], exprs[1]);
     }
   }
@@ -389,10 +389,10 @@ export function copysign(compiler: Compiler, nodes: TypeScriptExpressionPair, ex
   if (leftType === rightType) {
     switch (leftType) {
 
-      case Type.float:
+      case Type.f32:
         return op.f32.copysign(exprs[0], exprs[1]);
 
-      case Type.double:
+      case Type.f64:
         return op.f64.copysign(exprs[0], exprs[1]);
     }
   }
@@ -406,20 +406,20 @@ export function reinterpret(compiler: Compiler, node: ts.Expression, expr: Expre
   const type = getReflectedType(node);
   switch (type) {
 
-    case Type.int:
-    case Type.uint:
-    case Type.uintptr32:
+    case Type.i32:
+    case Type.u32:
+    case Type.usize32:
       return op.f32.reinterpret(expr);
 
-    case Type.long:
-    case Type.ulong:
-    case Type.uintptr64:
+    case Type.i64:
+    case Type.u64:
+    case Type.usize64:
       return op.f64.reinterpret(expr);
 
-    case Type.float:
+    case Type.f32:
       return op.i32.reinterpret(expr);
 
-    case Type.double:
+    case Type.f64:
       return op.i64.reinterpret(expr);
 
   }
@@ -466,7 +466,7 @@ export function sizeof(compiler: Compiler, type: Type): Expression {
   const op = compiler.module;
   const size = type.underlyingClass ? type.underlyingClass.size : type.size;
 
-  return compiler.uintptrType === Type.uintptr32
+  return compiler.uintptrType === Type.usize32
     ? op.i32.const(size)
     : op.i64.const(size, 0); // TODO: long?
 }
@@ -552,7 +552,7 @@ export function internal_fmod(compiler: Compiler, nodes: TypeScriptExpressionPai
   const xType = getReflectedType(nodes[0]);
   const yType = getReflectedType(nodes[1]);
 
-  if (!(xType === Type.double && yType === Type.double) && !(xType === Type.float && yType === Type.float))
+  if (!(xType === Type.f64 && yType === Type.f64) && !(xType === Type.f32 && yType === Type.f32))
     throw Error("unsupported operation: " + xType + " / " + yType);
 
   // FIXME: this is a naive implementation
@@ -561,7 +561,7 @@ export function internal_fmod(compiler: Compiler, nodes: TypeScriptExpressionPai
   const temp = compiler.currentFunction.localsByName[tempName] || compiler.currentFunction.addLocal(tempName, xType);
   const tempBinaryenType = compiler.typeOf(xType);
 
-  return xType === Type.double
+  return xType === Type.f64
     // x - (((x / y) as long) as double) * y
     ? op.f64.sub(
       op.teeLocal(temp.localIndex, exprs[0]), // evaluate x

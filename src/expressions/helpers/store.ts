@@ -14,33 +14,33 @@ export function compileStore(compiler: Compiler, node: ts.Expression, type: Type
 
   switch (type.kind) {
 
-    case TypeKind.byte:
-    case TypeKind.sbyte:
+    case TypeKind.u8:
+    case TypeKind.i8:
       return op.i32.store8(offset, type.size, ptr, value);
 
-    case TypeKind.short:
-    case TypeKind.ushort:
+    case TypeKind.i16:
+    case TypeKind.u16:
       return op.i32.store16(offset, type.size, ptr, value);
 
-    case TypeKind.int:
-    case TypeKind.uint:
+    case TypeKind.i32:
+    case TypeKind.u32:
     case TypeKind.bool:
       return op.i32.store(offset, type.size, ptr, value);
 
-    case TypeKind.long:
-    case TypeKind.ulong:
+    case TypeKind.i64:
+    case TypeKind.u64:
       return op.i64.store(offset, type.size, ptr, value);
 
-    case TypeKind.uintptr:
+    case TypeKind.usize:
       if (type.size === 4)
         return op.i32.store(offset, type.size, ptr, value);
       else
         return op.i64.store(offset, type.size, ptr, value);
 
-    case TypeKind.float:
+    case TypeKind.f32:
       return op.f32.store(offset, type.size, ptr, value);
 
-    case TypeKind.double:
+    case TypeKind.f64:
       return op.f64.store(offset, type.size, ptr, value);
   }
   throw Error("unexpected type"); // should handle all possible types above

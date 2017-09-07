@@ -64,7 +64,7 @@ export class Memory {
     for (let i = 0; i < value.length; ++i)
       values[i] = value.charCodeAt(i);
 
-    const array = this.createArray(values, Type.ushort);
+    const array = this.createArray(values, Type.u16);
     if (reuse)
       this.stringPool[value] = array;
 
@@ -96,32 +96,32 @@ export class Memory {
           innerOffset += writeBool(buffer, innerOffset, value);
         break;
 
-      case TypeKind.sbyte:
-      case TypeKind.byte:
+      case TypeKind.i8:
+      case TypeKind.u8:
         for (const value of values)
           innerOffset += writeByte(buffer, innerOffset, <number>value);
         break;
 
-      case TypeKind.short:
-      case TypeKind.ushort:
+      case TypeKind.i16:
+      case TypeKind.u16:
         for (const value of values)
           innerOffset += writeShort(buffer, innerOffset, <number>value);
         break;
 
-      case TypeKind.int:
-      case TypeKind.uint:
+      case TypeKind.i32:
+      case TypeKind.u32:
         for (const value of values)
           innerOffset += writeInt(buffer, innerOffset, Long.isLong(value) ? (<Long>value).toInt() : <number>value);
         break;
 
-      case TypeKind.long:
-      case TypeKind.ulong:
+      case TypeKind.i64:
+      case TypeKind.u64:
         for (const value of values)
           innerOffset += writeLong(buffer, innerOffset, Long.fromValue(<Long>value));
         break;
 
-      case TypeKind.uintptr: {
-        if (this.compiler.uintptrType === Type.uintptr32)
+      case TypeKind.usize: {
+        if (this.compiler.uintptrType === Type.usize32)
           for (const value of values)
             innerOffset += writeInt(buffer, innerOffset, Long.isLong(value) ? (<Long>value).toInt() : <number>value);
         else
@@ -129,12 +129,12 @@ export class Memory {
             innerOffset += writeLong(buffer, innerOffset, Long.fromValue(<Long>value));
         break;
       }
-      case TypeKind.float:
+      case TypeKind.f32:
         for (const value of values)
           innerOffset += writeFloat(buffer, innerOffset, <number>value);
         break;
 
-      case TypeKind.double:
+      case TypeKind.f64:
         for (const value of values)
           innerOffset += writeDouble(buffer, innerOffset, <number>value);
         break;
