@@ -78,7 +78,7 @@ export function compilePropertyAccess(compiler: Compiler, node: ts.PropertyAcces
     }
   }
 
-  const expression = compiler.compileExpression(node.expression, compiler.uintptrType);
+  const expression = compiler.compileExpression(node.expression, compiler.usizeType);
   const expressionType = getReflectedType(node.expression);
 
   if (!(expressionType && expressionType.underlyingClass))

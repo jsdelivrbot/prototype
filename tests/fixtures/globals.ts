@@ -1,33 +1,33 @@
 //! { "noRuntime": true }
 
-export function getNaN(): double {
+export function getNaN(): f64 {
   return NaN;
 }
 
-export function getNaNAsNaNf(): float {
-  return NaN as float;
+export function getNaNAsNaNf(): f32 {
+  return NaN as f32;
 }
 
-export function getNaNf(): float {
+export function getNaNf(): f32 {
   return NaNf;
 }
 
-export function getNaNfAsNaN(): double {
+export function getNaNfAsNaN(): f64 {
   return NaNf;
 }
 
-export function getInfinity(): double {
+export function getInfinity(): f64 {
   return Infinity;
 }
 
-export function getInfinityAsInfinityf(): float {
-  return Infinity as float;
+export function getInfinityAsInfinityf(): f32 {
+  return Infinity as f32;
 }
 
-export function getInfinityf(): float {
+export function getInfinityf(): f32 {
   return Infinityf;
 }
 
-export function getInfinityfAsInfinity(): double {
+export function getInfinityfAsInfinity(): f64 {
   return Infinityf;
 }

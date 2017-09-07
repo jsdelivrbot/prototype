@@ -1,14 +1,14 @@
 //! { "noRuntime": true }
 
-const arrayLiteral: int[] = [1,2,,-4];
+const arrayLiteral: i32[] = [1,2,,-4];
 
 export function getArrayLiteral(): int[] {
   return arrayLiteral;
 }
 
-const arrayInitializer: int[] = new Array(3);
+const arrayInitializer: i32[] = new Array(3);
 
-export function getArrayInitializer(): int[] {
+export function getArrayInitializer(): i32[] {
   return arrayInitializer;
 }
 

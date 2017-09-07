@@ -54,7 +54,7 @@ export function compileNew(compiler: Compiler, node: ts.NewExpression, contextua
 
   const allocate = instance.implicitMalloc
     ? compiler.compileMallocInvocation(instance.size) // implicit allocation
-    : compiler.valueOf(compiler.uintptrType, 0);  // allocates on its own (this=null)
+    : compiler.valueOf(compiler.usizeType, 0);  // allocates on its own (this=null)
 
   // If there is no constructor defined, just allocate memory
   if (!(ctor && ctor.body))

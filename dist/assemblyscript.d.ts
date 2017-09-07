@@ -470,7 +470,7 @@ declare module 'assemblyscript/compiler' {
       profiler: Profiler;
       currentFunction: Function;
       runtimeExports: string[];
-      uintptrType: Type;
+      usizeType: Type;
       functionTemplates: {
           [key: string]: FunctionTemplate;
       };
@@ -518,7 +518,7 @@ declare module 'assemblyscript/compiler' {
         */
       static compileProgram(program: ts.Program, options?: CompilerOptions): binaryen.Module | null;
       /** Gets the configured byte size of a pointer. `4` when compiling for 32-bit WebAssembly, `8` when compiling for 64-bit WebAssembly. */
-      readonly uintptrSize: number;
+      readonly usizeSize: number;
       /** Gets the size of an array header in bytes. */
       readonly arrayHeaderSize: number;
       /**
@@ -1175,39 +1175,39 @@ declare module 'assemblyscript/reflection/type' {
       /** First unsigned integer of any size. */
       FirstUnsigned = 0,
       /** Unsigned 8-bit integer type. */
-      byte = 0,
+      u8 = 0,
       /** Unsigned 16-bit integer type. */
-      ushort = 1,
+      u16 = 1,
       /** Unsigned 32-bit integer type. */
-      uint = 2,
+      u32 = 2,
       /** Unsigned 64-bit integer type. */
-      ulong = 3,
+      u64 = 3,
       /** Last unsigned integer of any size. */
       LastUnsigned = 4,
       /** Unsigned 32-/64-bit pointer type. */
-      uintptr = 4,
+      usize = 4,
       /** First signed integer of any size. */
       FirstSigned = 5,
       /** Signed 8-bit integer type. */
-      sbyte = 5,
+      i8 = 5,
       /** Signed 16-bit integer type. */
-      short = 6,
+      i16 = 6,
       /** Signed 32-bit integer type. */
-      int = 7,
+      i32 = 7,
       /** Last signed integer of any size. */
       LastSigned = 8,
       /** Last integer of any size and signage. */
       LastInteger = 8,
       /** Signed 64-bit integer type. */
-      long = 8,
+      i64 = 8,
       /** First float of any size. */
       FirstFloat = 9,
       /** 32-bit float type. */
-      float = 9,
+      f32 = 9,
       /** Last float of any size. */
       LastFloat = 10,
       /** 64-bit float type. */
-      double = 10,
+      f64 = 10,
       /** Bool type. */
       bool = 11,
       /** Void type. */
@@ -1261,29 +1261,29 @@ declare module 'assemblyscript/reflection/type' {
       /** Reflected bool type. */
       static bool: Type;
       /** Reflected signed 8-bit integer type. */
-      static sbyte: Type;
+      static i8: Type;
       /** Reflected unsigned 8-bit integer type. */
-      static byte: Type;
+      static u8: Type;
       /** Reflected signed 16-bit integer type. */
-      static short: Type;
+      static i16: Type;
       /** Reflected unsigned 16-bit integer type. */
-      static ushort: Type;
+      static u16: Type;
       /** Reflected signed 32-bit integer type. */
-      static int: Type;
+      static i32: Type;
       /** Reflected unsigned 32-bit integer type. */
-      static uint: Type;
+      static u32: Type;
       /** Reflected signed 64-bit integer type. */
-      static long: Type;
+      static i64: Type;
       /** Reflected unsigned 64-bit integer type. */
-      static ulong: Type;
+      static u64: Type;
       /** Reflected 32-bit float type. */
-      static float: Type;
+      static f32: Type;
       /** Reflected 64-bit float type. */
-      static double: Type;
+      static f64: Type;
       /** Reflected 32-bit pointer type. Relevant only when compiling for 32-bit WebAssembly. */
-      static uintptr32: Type;
+      static usize32: Type;
       /** Reflected 64-bit pointer type. Relevant only when compiling for 64-bit WebAssembly. */
-      static uintptr64: Type;
+      static usize64: Type;
       /** Reflected void type. */
       static void: Type;
   }

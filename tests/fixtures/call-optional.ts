@@ -1,6 +1,6 @@
 //! { "noRuntime": true }
 
-function fn(a: int = 1, b: int = 2): void {
+function fn(a: i32 = 1, b: i32 = 2): void {
 }
 
 export function test(): void {

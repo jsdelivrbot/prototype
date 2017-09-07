@@ -1,9 +1,9 @@
 //! { "noRuntime": true }
 
-export function doload(offset: uintptr): int {
+export function doload(offset: usize): i32 {
   return load<int>(offset);
 }
 
-export function dostore(offset: uintptr, value: int): void {
+export function dostore(offset: usize, value: i32): void {
   store<int>(offset, value);
 }

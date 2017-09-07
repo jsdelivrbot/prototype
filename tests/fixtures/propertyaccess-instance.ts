@@ -1,11 +1,11 @@
 //! { "noRuntime": true }
 
 class B {
-  c: int;
+  c: i32;
 }
 
 class A {
-  a: int;
+  a: i32;
   b: B;
 }
 

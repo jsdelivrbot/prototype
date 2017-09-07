@@ -11,11 +11,11 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
 
   const elementCount = typeof elementsOrSize === "number" ? elementsOrSize : elementsOrSize.length;
 
-  const binaryenUintptrType = compiler.typeOf(compiler.uintptrType);
+  const binaryenUsizeType = compiler.typeOf(compiler.usizeType);
   const binaryenElementSize = compiler.valueOf(Type.i32, elementCount);
 
   // create a unique local holding a pointer to allocated memory
-  const arrptr = compiler.currentFunction.addUniqueLocal(compiler.uintptrType, "arrptr");
+  const arrptr = compiler.currentFunction.addUniqueLocal(compiler.usizeType, "arrptr");
 
   // initialize header
   const block = [
@@ -24,7 +24,7 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
       compiler.compileMallocInvocation(compiler.arrayHeaderSize + elementCount * elementType.size) // capacity + length + N * element
     ), binaryenElementSize),
     // length: *(arrptr + 4) = elementSize
-    op.i32.store(Type.i32.size, Type.i32.size, op.getLocal(arrptr.localIndex, binaryenUintptrType), binaryenElementSize)
+    op.i32.store(Type.i32.size, Type.i32.size, op.getLocal(arrptr.localIndex, binaryenUsizeType), binaryenElementSize)
   ];
 
   // initialize concrete values if specified
@@ -32,7 +32,7 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
     for (let i = 0; i < elementCount; ++i)
       block.push(
         compileStore(compiler, elementsOrSize[i], elementType,
-          op.getLocal(arrptr.localIndex, binaryenUintptrType),
+          op.getLocal(arrptr.localIndex, binaryenUsizeType),
           compiler.arrayHeaderSize + i * elementType.size,
           compiler.compileExpression(elementsOrSize[i], elementType, elementType)
         )
@@ -40,10 +40,10 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
 
   // return the pointer as the block's result
   block.push(
-    op.getLocal(arrptr.localIndex, binaryenUintptrType)
+    op.getLocal(arrptr.localIndex, binaryenUsizeType)
   );
 
-  return op.block("", block, binaryenUintptrType);
+  return op.block("", block, binaryenUsizeType);
 }
 
 export default compileNewArray;

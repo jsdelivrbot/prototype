@@ -1,7 +1,7 @@
 //! { "noRuntime": true }
 
 class A {
-  static a: int;
+  static a: i32;
 }
 
 export function test(): void {

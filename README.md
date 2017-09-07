@@ -5,7 +5,7 @@
 
 Try it out [in your browser](http://assemblyscript.org/try)!
 
-[![npm](https://img.shields.io/npm/v/assemblyscript.svg)](https://www.npmjs.com/package/assemblyscript) [![Build Status](https://travis-ci.org/AssemblyScript/assemblyscript.svg?branch=master)](https://travis-ci.org/AssemblyScript/assemblyscript) [![npm](https://img.shields.io/npm/dm/assemblyscript.svg)](https://www.npmjs.com/package/assemblyscript) <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dcode%40dcode.io&item_name=Open%20Source%20Software%20Donation&item_number=dcodeIO%2Fprotobuf.js"><img alt="donate ❤" src="https://img.shields.io/badge/donate-❤-ff2244.svg"></a>
+[![npm](https://img.shields.io/npm/v/assemblyscript.svg)](https://www.npmjs.com/package/assemblyscript) [![Build Status](https://travis-ci.org/AssemblyScript/assemblyscript.svg?branch=master)](https://travis-ci.org/AssemblyScript/assemblyscript) [![npm](https://img.shields.io/npm/dm/assemblyscript.svg)](https://www.npmjs.com/package/assemblyscript) <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=dcode%40dcode.io&item_name=Open%20Source%20Software%20Donation&item_number=dcodeIO%2FAssemblyScript"><img alt="donate ❤" src="https://img.shields.io/badge/donate-❤-ff2244.svg"></a>
 
 Contents
 --------
@@ -65,8 +65,8 @@ Example
 -------
 
 ```ts
-export function add(a: int, b: double): short {
-  return (a + (b as int)) as short;
+export function add(a: i32, b: i32): i16 {
+  return (a + (b as i32)) as i16;
 }
 ```
 
@@ -142,149 +142,149 @@ The `tsconfig.json`-approach is recommended to inherit other important settings 
 
 Once configured, the following AssemblyScript-specific types become available:
 
-Type      | Alias     | Native type | sizeof | Description
-----------|-----------|-------------|--------|-------------
-`sbyte`   | `int8`    | i32         | 1      | An 8-bit signed integer.
-`byte`    | `uint8`   | i32         | 1      | An 8-bit unsigned integer.
-`short`   | `int16`   | i32         | 2      | A 16-bit signed integer.
-`ushort`  | `uint16`  | i32         | 2      | A 16-bit unsigned integer.
-`int`     | `int32`   | i32         | 4      | A 32-bit signed integer.
-`uint`    | `uint32`  | i32         | 4      | A 32-bit unsigned integer.
-`long`    | `int64`   | i64         | 8      | A 64-bit signed integer.
-`ulong`   | `uint64`  | i64         | 8      | A 64-bit unsigned integer.
-`uintptr` | -         | i32 / i64   | 4 / 8  | A 32-bit unsigned integer when targeting 32-bit WebAssembly.<br />A 64-bit unsigned integer when targeting 64-bit WebAssembly.
-`float`   | `float32` | f32         | 4      | A 32-bit float.
-`double`  | `float64` | f64         | 8      | A 64-bit float.
-`bool`    | -         | i32         | 1      | A 1-bit unsigned integer.
-`void`    | -         | none        | -      | No return type
+Type    | Aliases             | Native type | sizeof | Description
+--------|---------------------|-------------|--------|-------------
+`i8`    | `int8`, `sbyte`     | i32         | 1      | An 8-bit signed integer.
+`u8`    | `uint8`, `byte`     | i32         | 1      | An 8-bit unsigned integer.
+`i16`   | `int16`, `short`    | i32         | 2      | A 16-bit signed integer.
+`u16`   | `uint16`, `ushort`  | i32         | 2      | A 16-bit unsigned integer.
+`i32`   | `int32`, `int`      | i32         | 4      | A 32-bit signed integer.
+`u32`   | `uint32`, `uint`    | i32         | 4      | A 32-bit unsigned integer.
+`i64`   | `int64`, `long`     | i64         | 8      | A 64-bit signed integer.
+`u64`   | `uint64`, `ulong`   | i64         | 8      | A 64-bit unsigned integer.
+`usize` | `uintptr`           | i32 / i64   | 4 / 8  | A 32-bit unsigned integer when targeting 32-bit WebAssembly.<br />A 64-bit unsigned integer when targeting 64-bit WebAssembly.
+`f32`   | `float32`, `float`  | f32         | 4      | A 32-bit float.
+`f64`   | `float64`, `double` | f64         | 8      | A 64-bit float.
+`bool`  | -                   | i32         | 1      | A 1-bit unsigned integer.
+`void`  | -                   | none        | -      | No return type
 
-While generating a warning to avoid type confusion, the JavaScript types `number` and `boolean` resolve to `double` and `bool` respectively.
+While generating a warning to avoid type confusion, the JavaScript types `number` and `boolean` resolve to `f64` and `bool` respectively.
 
 WebAssembly-specific operations are available as built-in functions that translate to the respective opcode directly:
 
-* **rotl**(value: `int`, shift: `int`): `int`<br />
+* **rotl**(value: `i32`, shift: `i32`): `i32`<br />
   Performs the sign-agnostic rotate left operation on a 32-bit integer.
-* **rotll**(value: `long`, shift: `long`): `long`<br />
+* **rotll**(value: `i64`, shift: `i64`): `i64`<br />
   Performs the sign-agnostic rotate left operation on a 64-bit integer.
-* **rotr**(value: `int`, shift: `int`): `int`<br />
+* **rotr**(value: `i32`, shift: `i32`): `i32`<br />
   Performs the sign-agnostic rotate right operation on a 32-bit integer.
-* **rotrl**(value: `long`, shift: `long`): `long`<br />
+* **rotrl**(value: `i64`, shift: `i64`): `i64`<br />
   Performs the sign-agnostic rotate right operation on a 64-bit integer.
-* **clz**(value: `int`): `int`<br />
+* **clz**(value: `i32`): `i32`<br />
   Performs the sign-agnostic count leading zero bits operation on a 32-bit integer. All zero bits are considered leading if the value is zero.
-* **clzl**(value: `long`): `long`<br />
+* **clzl**(value: `i64`): `i64`<br />
   Performs the sign-agnostic count leading zero bits operation on a 64-bit integer. All zero bits are considered leading if the value is zero.
-* **ctz**(value: `int`): `int`<br />
+* **ctz**(value: `i32`): `i32`<br />
   Performs the sign-agnostic count tailing zero bits operation on a 32-bit integer. All zero bits are considered trailing if the value is zero.
-* **ctzl**(value: `long`): `long`<br />
+* **ctzl**(value: `i64`): `i64`<br />
   Performs the sign-agnostic count trailing zero bits operation on a 64-bit integer. All zero bits are considered trailing if the value is zero.
-* **popcnt**(value: `int`): `int`<br />
+* **popcnt**(value: `i32`): `i32`<br />
   Performs the sign-agnostic count number of one bits operation on a 32-bit integer.
-* **popcntl**(value: `long`): `long`<br />
+* **popcntl**(value: `i64`): `i64`<br />
   Performs the sign-agnostic count number of one bits operation on a 64-bit integer.
-* **abs**(value: `double`): `double`<br />
+* **abs**(value: `f64`): `f64`<br />
   Computes the absolute value of a 64-bit float.
-* **absf**(value: `float`): `float`<br />
+* **absf**(value: `f32`): `f32`<br />
   Computes the absolute value of a 32-bit float.
-* **ceil**(value: `double`): `double`<br />
+* **ceil**(value: `f64`): `f64`<br />
   Performs the ceiling operation on a 64-bit float.
-* **ceilf**(value: `float`): `float`<br />
+* **ceilf**(value: `f32`): `f32`<br />
   Performs the ceiling operation on a 32-bit float.
-* **floor**(value: `double`): `double`<br />
+* **floor**(value: `f64`): `f64`<br />
   Performs the floor operation on a 64-bit float.
-* **floorf**(value: `float`): `float`<br />
+* **floorf**(value: `f32`): `f32`<br />
   Performs the floor operation on a 32-bit float.
-* **sqrt**(value: `double`): `double`<br />
+* **sqrt**(value: `f64`): `f64`<br />
   Calculates the square root of a 64-bit float.
-* **sqrtf**(value: `float`): `float`<br />
+* **sqrtf**(value: `f32`): `f32`<br />
   Calculates the square root of a 32-bit float.
-* **trunc**(value: `double`): `double`<br />
+* **trunc**(value: `f64`): `f64`<br />
   Rounds to the nearest integer towards zero of a 64-bit float.
-* **truncf**(value: `float`): `float`<br />
+* **truncf**(value: `f32`): `f32`<br />
   Rounds to the nearest integer towards zero of a 32-bit float.
-* **nearest**(value: `double`): `double`<br />
+* **nearest**(value: `f64`): `f64`<br />
   Rounds to the nearest integer tied to even of a 64-bit float.
-* **nearestf**(value: `float`): `float`<br />
+* **nearestf**(value: `f32`): `f32`<br />
   Rounds to the nearest integer tied to even of a 32-bit float.
-* **min**(left: `double`, right: `double`): `double`<br />
+* **min**(left: `f64`, right: `f64`): `f64`<br />
   Determines the minimum of two 64-bit floats. If either operand is `NaN`, returns `NaN`.
-* **minf**(left: `float`, right: `float`): `float`<br />
+* **minf**(left: `f32`, right: `f32`): `f32`<br />
   Determines the minimum of two 32-bit floats. If either operand is `NaN`, returns `NaN`.
-* **max**(left: `double`, right: `double`): `double`<br />
+* **max**(left: `f64`, right: `f64`): `f64`<br />
   Determines the maximum of two 64-bit floats. If either operand is `NaN`, returns `NaN`.
-* **maxf**(left: `float`, right: `float`): `float`<br />
+* **maxf**(left: `f32`, right: `f32`): `f32`<br />
   Determines the maximum of two 32-bit floats. If either operand is `NaN`, returns `NaN`.
-* **copysign**(x: `double`, y: `double`): `double`<br />
+* **copysign**(x: `f64`, y: `f64`): `f64`<br />
   Composes a 64-bit float from the magnitude of `x` and the sign of `y`.
-* **copysignf**(x: `float`, y: `float`): `float`<br />
+* **copysignf**(x: `f32`, y: `f32`): `f32`<br />
   Composes a 32-bit float from the magnitude of `x` and the sign of `y`.
-* **reinterpreti**(value: `float`): `int`<br />
+* **reinterpreti**(value: `f32`): `i32`<br />
   Reinterprets the bits of a 32-bit float as a 32-bit integer.
-* **reinterpretl**(value: `double`): `long`<br />
+* **reinterpretl**(value: `f64`): `i64`<br />
   Reinterprets the bits of a 64-bit float as a 64-bit integer.
-* **reinterpretf**(value: `int`): `float`<br />
+* **reinterpretf**(value: `i32`): `f32`<br />
   Reinterprets the bits of a 32-bit integer as a 32-bit float.
-* **reinterpretd**(value: `long`): `double`<br />
+* **reinterpretd**(value: `i64`): `f64`<br />
   Reinterprets the bits of a 64-bit integer as a 64-bit double.
-* **current_memory**(): `int`<br />
+* **current_memory**(): `i32`<br />
   Returns the current memory size in units of pages. One page is 64kb.
-* **grow_memory**(value: `uint`): `int`<br />
+* **grow_memory**(value: `i32`): `i32`<br />
   Grows linear memory by a given unsigned delta of pages. One page is 64kb. Returns the previous memory size in units of pages or `-1` on failure.
 * **unreachable**(): `void`<br />
   Emits an unreachable operation that results in a runtime error when executed.
-* **load**<`T`>(offset: `uintptr`): `T`<br />
+* **load**<`T`>(offset: `usize`): `T`<br />
   Loads a value of the specified type from memory.
-* **store**<`T`>(offset: `uintptr`, value: `T`): `void`<br />
+* **store**<`T`>(offset: `usize`, value: `T`): `void`<br />
   Stores a value of the specified type to memory.
 
 The following AssemblyScript-specific operations are implemented as built-ins as well:
 
-* **sizeof**<`T`>(): `uintptr`<br />
+* **sizeof**<`T`>(): `usize`<br />
   Determines the byte size of the specified core or class type. Compiles to a constant.
 * **unsafe_cast**<`T1`,`T2`>(value: `T1`): `T2`<br />
   Casts a value of type `T1` to a value of type `T2`. Useful for casting classes to pointers and vice-versa. Does not perform any checks.
-* **isNaN**(value: `double`): `bool`<br />
+* **isNaN**(value: `f64`): `bool`<br />
   Tests if a 64-bit float is a NaN.
-* **isNaNf**(value: `float`): `bool`<br />
+* **isNaNf**(value: `f32`): `bool`<br />
   Tests if a 32-bit float is a NaN.
-* **isFinite**(value: `double`): `bool`<br />
+* **isFinite**(value: `f64`): `bool`<br />
   Tests if a 64-bit float is finite.
-* **isFinitef**(value: `float`): `bool`<br />
+* **isFinitef**(value: `f32`): `bool`<br />
   Tests if a 32-bit float is finite.
 
 These constants are present as immutable globals (note that optimizers might inline them):
 
-* **NaN**: `double`<br />
+* **NaN**: `f64`<br />
   NaN (not a number) as a 64-bit float.
-* **NaNf**: `float`<br />
+* **NaNf**: `f32`<br />
   NaN (not a number) as a 32-bit float.
-* **Infinity**: `double`<br />
+* **Infinity**: `f64`<br />
   Positive infinity as a 64-bit float.
-* **Infinityf**: `float`<br />
+* **Infinityf**: `f32`<br />
   Positive infinity as a 32-bit float.
 
 By default, [AssemblyScript's memory management runtime](https://github.com/AssemblyScript/runtime) will be linked statically:
 
-* **memcpy**(dest: `uintptr`, src: `uintptr`, size: `uintptr`): `uintptr`<br />
+* **memcpy**(dest: `usize`, src: `usize`, size: `usize`): `usize`<br />
   Copies data from one chunk of memory to another.
-* **memset**(dest: `uintptr`, c: `int`, size: `uintptr`): `uintptr`<br />
+* **memset**(dest: `usize`, c: `i32`, size: `usize`): `usize`<br />
   Sets a chunk of memory to the provided value `c`. Usually used to reset it to all `0`s.
-* **memcmp**(vl: `uintptr`, vr: `uintptr`, n: `uintptr`): `int`<br />
+* **memcmp**(vl: `usize`, vr: `usize`, n: `usize`): `i32`<br />
   Compares a chunk of memory to another. Returns `0` if both are equal, otherwise `vl[i] - vr[i]` at the first difference's byte offset `i`.
-* **malloc**(size: `uintptr`): `uintptr`<br />
+* **malloc**(size: `usize`): `usize`<br />
   Allocates a chunk of memory of the specified size.
-* **realloc**(ptr: `uintptr`, size: `uintptr`): `uintptr`<br />
+* **realloc**(ptr: `usize`, size: `usize`): `usize`<br />
   Changes the size of an allocated memory block.
-* **free**(ptr: `uintptr`): `void`<br />
+* **free**(ptr: `usize`): `void`<br />
   Frees a previously allocated chunk of memory.
 
 Linking in the runtime adds up to 14kb to a module, but the optimizer is able to eliminate unused runtime code. Once WebAssembly exposes the garbage collector natively, there'll be other options as well. If the runtime has been excluded through `--noRuntime`, its methods will be imported where referenced (i.e. when using `new`). Also note that manually calling `grow_memory` where the runtime is present will most likely break it.
 
-Type coercion requires an explicit cast where precision or signage is lost respectively is implicit where it is maintained. For example, to cast a `double` to an `int`:
+Type coercion requires an explicit cast where precision or signage is lost respectively is implicit where it is maintained. For example, to cast a `f64` to an `i32`:
 
 ```ts
-function example(value: double): int {
-  return value as int; // translates to the respective opcode
+function example(value: f64): i32 {
+  return value as i32; // translates to the respective opcode
 }
 ```
 
@@ -401,7 +401,7 @@ It's also possible to use the API programmatically:
 import { Compiler, CompilerTarget, CompilerMemoryModel, typescript } from "assemblyscript";
 
 const module = Compiler.compileString(`
-export function add(a: int, b: int): int {
+export function add(a: i32, b: i32): i32 {
   return a + b;
 }
 `, {

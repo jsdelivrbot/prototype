@@ -7,10 +7,10 @@ class TestImplicit {
 
 @no_implicit_malloc()
 class TestExplicit {
-  readonly prop: byte; // let's pretend...
+  readonly prop: u8; // let's pretend...
   constructor() {
-    let ptr: uintptr = malloc(1);
-    return unsafe_cast<uintptr,this>(ptr);
+    let ptr: usize = malloc(1);
+    return unsafe_cast<usize,this>(ptr);
   }
 }
 

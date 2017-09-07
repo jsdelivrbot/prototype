@@ -1,26 +1,26 @@
-let a: float[] = [0.125];
-let b: double[] = [1.25];
+let a: f32[] = [0.125];
+let b: f64[] = [1.25];
 
-export function getFloatArray(): float[] {
+export function getFloatArray(): f32[] {
   return a;
 }
 
-export function getFloatValue(): float {
+export function getFloatValue(): f32 {
   return a[0];
 }
 
-export function setFloatValue(v: float): void {
+export function setFloatValue(v: f32): void {
   a[0] = v;
 }
 
-export function getDoubleArray(): double[] {
+export function getDoubleArray(): f64[] {
   return b;
 }
 
-export function getDoubleValue(): double {
+export function getDoubleValue(): f64 {
   return b[0];
 }
 
-export function setDoubleValue(v: double): void {
+export function setDoubleValue(v: f64): void {
   b[0] = v;
 }

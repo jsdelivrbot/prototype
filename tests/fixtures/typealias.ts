@@ -1,7 +1,7 @@
 //! { "noRuntime": true }
 
-type f64 = double;
+type myFloat64 = f64;
 
-export function test(a: f64): f64 {
+export function test(a: myFloat64): myFloat64 {
   return a;
 }

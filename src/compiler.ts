@@ -81,7 +81,7 @@ export class Compiler {
   runtimeExports: string[];
 
   // Reflection
-  uintptrType: Type;
+  usizeType: Type;
   functionTemplates: { [key: string]: FunctionTemplate } = {};
   classTemplates: { [key: string]: ClassTemplate } = {};
   globals: { [key: string]: Variable } = {};
@@ -187,7 +187,7 @@ export class Compiler {
   }
 
   /** Gets the configured byte size of a pointer. `4` when compiling for 32-bit WebAssembly, `8` when compiling for 64-bit WebAssembly. */
-  get uintptrSize(): number { return this.uintptrType.size; }
+  get usizeSize(): number { return this.usizeType.size; }
 
   /** Gets the size of an array header in bytes. */
   get arrayHeaderSize(): number { return 2 * Type.i32.size; } // capacity + length
@@ -223,7 +223,7 @@ export class Compiler {
       this.runtimeExports = [];
     }
 
-    this.uintptrType = this.target === CompilerTarget.WASM64 ? Type.usize64 : Type.usize32;
+    this.usizeType = this.target === CompilerTarget.WASM64 ? Type.usize64 : Type.usize32;
     this.memory = new Memory(this, 32); // NULL + HEAP + MSPACE + GC, each aligned to 8 bytes
 
     const sourceFiles = program.getSourceFiles();
@@ -398,7 +398,7 @@ export class Compiler {
         )
       ) {
         const segment = this.memory.createArray(arrayValues, (<Class>type.underlyingClass).typeArgumentsMap.T.type);
-        op.addGlobal(name, this.typeOf(type), false, this.valueOf(this.uintptrType, segment.offset));
+        op.addGlobal(name, this.typeOf(type), false, this.valueOf(this.usizeType, segment.offset));
 
       // constant string literals and initializers go to memory as well (and are not reused)
       } else if (
@@ -413,7 +413,7 @@ export class Compiler {
         )
       ) {
         const segment = this.memory.createArray(arrayValues, (<Class>type.underlyingClass).typeArgumentsMap.T.type);
-        op.addGlobal(name, this.typeOf(type), false, this.valueOf(this.uintptrType, segment.offset));
+        op.addGlobal(name, this.typeOf(type), false, this.valueOf(this.usizeType, segment.offset));
 
       // mutables (and everything else) become zeroed globals with a start function initializer
       } else {
@@ -671,7 +671,7 @@ export class Compiler {
     const binaryenSegments: binaryen.MemorySegment[] = [];
     this.memory.segments.forEach(segment => {
       binaryenSegments.push({
-        offset: this.valueOf(this.uintptrType, segment.offset),
+        offset: this.valueOf(this.usizeType, segment.offset),
         data: segment.buffer
       });
     });
@@ -682,7 +682,7 @@ export class Compiler {
       const buffer = new Uint8Array(8);
       util.writeLong(buffer, 0, heapOffset);
       binaryenSegments.unshift({
-        offset: this.valueOf(this.uintptrType, 8),
+        offset: this.valueOf(this.usizeType, 8),
         data: buffer
       });
     }
@@ -752,14 +752,14 @@ export class Compiler {
 
     // Simplify if possible but always obtain a pointer for consistency
     if (size === 0 || !clearMemory)
-      return mallocFunction.call([ this.valueOf(this.uintptrType, size) ]);
+      return mallocFunction.call([ this.valueOf(this.usizeType, size) ]);
 
     return memsetFunction.call([
       mallocFunction.call([
-        this.valueOf(this.uintptrType, size)
+        this.valueOf(this.usizeType, size)
       ]),
       op.i32.const(0), // 2nd memset argument is int
-      this.valueOf(this.uintptrType, size)
+      this.valueOf(this.usizeType, size)
     ]);
   }
 
@@ -820,7 +820,7 @@ export class Compiler {
         const property = (<Class>instance.parent).properties[param.name];
         if (property)
           body.push(
-            compileStore(this, /* solely used for diagnostics anyway */ <ts.Expression>param.node, property.type, op.getLocal(0, this.typeOf(this.uintptrType)), property.offset, op.getLocal(i, this.typeOf(param.type)))
+            compileStore(this, /* solely used for diagnostics anyway */ <ts.Expression>param.node, property.type, op.getLocal(0, this.typeOf(this.usizeType)), property.offset, op.getLocal(i, this.typeOf(param.type)))
           );
         else
           throw Error("missing parameter property");
@@ -841,7 +841,7 @@ export class Compiler {
       ));
     }
 
-    const binaryenPtrType = this.typeOf(this.uintptrType);
+    const binaryenPtrType = this.typeOf(this.usizeType);
 
     if (instance.isConstructor && (<Class>instance.parent).implicitMalloc) {
 
@@ -952,7 +952,7 @@ export class Compiler {
     if (fromType.kind === toType.kind) {
 
       if (fromType.kind === TypeKind.usize && fromType.underlyingClass !== toType.underlyingClass)
-        compiler.report(node, ts.DiagnosticsEx.Types_0_and_1_are_incompatible, toType.underlyingClass ? toType.underlyingClass.toString() : "uintptr", fromType.underlyingClass ? fromType.underlyingClass.toString() : "uintptr");
+        compiler.report(node, ts.DiagnosticsEx.Types_0_and_1_are_incompatible, toType.underlyingClass ? toType.underlyingClass.toString() : "usize", fromType.underlyingClass ? fromType.underlyingClass.toString() : "usize");
 
       return expr;
     }
@@ -964,8 +964,8 @@ export class Compiler {
     if (!explicit) {
 
       if (
-        (this.uintptrSize === 4 && fromType.kind === TypeKind.usize && toType.isInt) ||
-        (this.uintptrSize === 8 && fromType.isLong && toType.kind === TypeKind.usize)
+        (this.usizeSize === 4 && fromType.kind === TypeKind.usize && toType.isInt) ||
+        (this.usizeSize === 8 && fromType.isLong && toType.kind === TypeKind.usize)
       )
         this.report(node, ts.DiagnosticsEx.Conversion_from_0_to_1_will_fail_when_switching_between_WASM32_64, fromType.toString(), toType.toString());
     }
@@ -1146,18 +1146,18 @@ export class Compiler {
 
     // Exit early (before hitting 'number') if it's a built in type
     switch (ts.getNameOfSymbol(symbol)) {
-      case "byte":
-      case "sbyte":
-      case "short":
-      case "ushort":
-      case "int":
-      case "uint":
-      case "long":
-      case "ulong":
+      case "i8":
+      case "u8":
+      case "i16":
+      case "u16":
+      case "i32":
+      case "u32":
+      case "i64":
+      case "u64":
+      case "f32":
+      case "f64":
       case "bool":
-      case "float":
-      case "double":
-      case "uintptr":
+      case "usize":
       case "string":
         return symbol;
     }
@@ -1201,7 +1201,7 @@ export class Compiler {
         return Type.bool;
 
       case ts.SyntaxKind.NumberKeyword:
-        this.report(type, ts.DiagnosticsEx.Assuming_0_instead_of_1, "double", "number");
+        this.report(type, ts.DiagnosticsEx.Assuming_0_instead_of_1, "f64", "number");
         return Type.f64;
 
       case ts.SyntaxKind.ThisKeyword:
@@ -1224,18 +1224,18 @@ export class Compiler {
 
             // Exit early if it's a basic type
             switch (ts.getNameOfSymbol(symbol)) {
-              case "byte": return Type.u8;
-              case "sbyte": return Type.i8;
-              case "short": return Type.i16;
-              case "ushort": return Type.u16;
-              case "int": return Type.i32;
-              case "uint": return Type.u32;
-              case "long": return Type.i64;
-              case "ulong": return Type.u64;
+              case "i8": return Type.i8;
+              case "u8": return Type.u8;
+              case "i16": return Type.i16;
+              case "u16": return Type.u16;
+              case "i32": return Type.i32;
+              case "u32": return Type.u32;
+              case "i64": return Type.i64;
+              case "u64": return Type.u64;
+              case "f32": return Type.f32;
+              case "f64": return Type.f64;
               case "bool": return Type.bool;
-              case "float": return Type.f32;
-              case "double": return Type.f64;
-              case "uintptr": return this.uintptrType;
+              case "usize": return this.usizeType;
               case "string": return this.classes[LIB_PREFIX + "String"].type;
             }
 
@@ -1351,7 +1351,7 @@ export class Compiler {
         return "F";
 
       case TypeKind.usize:
-        return this.uintptrType === Type.usize32 ? "i" : "I";
+        return this.usizeType === Type.usize32 ? "i" : "I";
 
       case TypeKind.void:
         return "v";
@@ -1394,7 +1394,7 @@ export class Compiler {
         return binaryen.f64;
 
       case TypeKind.usize:
-        return this.uintptrType === Type.usize32 ? binaryen.i32 : binaryen.i64;
+        return this.usizeType === Type.usize32 ? binaryen.i32 : binaryen.i64;
 
       case TypeKind.void:
         return binaryen.none;
@@ -1428,7 +1428,7 @@ export class Compiler {
         return op.f64;
 
       case TypeKind.usize:
-        return this.uintptrType === Type.usize32 ? op.i32 : op.i64;
+        return this.usizeType === Type.usize32 ? op.i32 : op.i64;
     }
     throw Error("unexpected type");
   }

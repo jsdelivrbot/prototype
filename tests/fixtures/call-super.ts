@@ -1,7 +1,7 @@
 //! { "noRuntime": true }
 
 class A {
-  constructor(a: int, b: int = 2) {
+  constructor(a: i32, b: i32 = 2) {
   }
 }
 

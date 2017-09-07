@@ -1,6 +1,6 @@
 //! { "noRuntime": true }
 
-export function testInt(a: int, b: int): void {
+export function testInt(a: i32, b: i32): void {
   a + b;
   a - b;
   a * b;
@@ -22,7 +22,7 @@ export function testInt(a: int, b: int): void {
   a >>> b;
 }
 
-export function testUint(a: uint, b: uint): void {
+export function testUint(a: u32, b: u32): void {
   a / b;
   a > b;
   a >= b;
@@ -35,7 +35,7 @@ export function testUint(a: uint, b: uint): void {
   a >>> b;
 }
 
-export function testLong(a: long, b: long, c: int): void {
+export function testLong(a: i64, b: i64, c: i32): void {
   a + b;
   a - b;
   a * b;
@@ -62,7 +62,7 @@ export function testLong(a: long, b: long, c: int): void {
   a >>> c;
 }
 
-export function testUlong(a: ulong, b: ulong, c: int): void {
+export function testUlong(a: u64, b: u64, c: i32): void {
   a / b;
   a > b;
   a >= b;
@@ -80,7 +80,7 @@ export function testUlong(a: ulong, b: ulong, c: int): void {
   a >>> c;
 }
 
-export function testFloat(a: float, b: float): void {
+export function testFloat(a: f32, b: f32): void {
   a + b;
   a - b;
   a * b;
@@ -96,7 +96,7 @@ export function testFloat(a: float, b: float): void {
   // a % b;
 }
 
-export function testDouble(a: double, b: double): void {
+export function testDouble(a: f64, b: f64): void {
   a + b;
   a - b;
   a * b;

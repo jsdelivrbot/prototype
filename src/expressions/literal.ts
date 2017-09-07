@@ -34,8 +34,8 @@ export function compileLiteral(compiler: Compiler, node: ts.LiteralExpression, c
           compiler.report(node, ts.DiagnosticsEx.Types_0_and_1_are_incompatible, contextualType.toString(), nullableType.toString());
         }
       } else
-        setReflectedType(node, compiler.uintptrType);
-      return compiler.uintptrSize === 4 ? op.i32.const(0) : op.i64.const(0, 0);
+        setReflectedType(node, compiler.usizeType);
+      return compiler.usizeSize === 4 ? op.i32.const(0) : op.i64.const(0, 0);
 
     case ts.SyntaxKind.NumericLiteral:
     {
@@ -65,7 +65,7 @@ export function compileLiteral(compiler: Compiler, node: ts.LiteralExpression, c
     {
       const text = node.text;
       const offset = compiler.memory.createString(text, true).offset;
-      return compiler.valueOf(compiler.uintptrType, offset);
+      return compiler.valueOf(compiler.usizeType, offset);
     }
   }
 

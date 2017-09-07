@@ -362,7 +362,7 @@ export class FunctionTemplate extends FunctionBase {
       parameters.unshift({
         node: this.declaration,
         name: "this",
-        type: this.compiler.uintptrType
+        type: this.compiler.usizeType
       });
     }
 

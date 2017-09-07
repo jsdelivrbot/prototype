@@ -122,7 +122,7 @@ export class Class extends ClassBase {
 
     // initialize
     this.template = template;
-    this.type = compiler.uintptrType.withUnderlyingClass(this);
+    this.type = compiler.usizeType.withUnderlyingClass(this);
     this.typeArguments = typeArguments;
     this.typeArgumentsMap = compiler.resolveTypeArgumentsMap(typeArguments, this.declaration, base && base.typeArgumentsMap);
     this.base = base;

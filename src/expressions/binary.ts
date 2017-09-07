@@ -497,7 +497,7 @@ export function compileIsTrueish(compiler: Compiler, node: ts.Expression): Expre
       return op.f64.ne(expr, op.f64.const(0));
 
     case TypeKind.usize: // TODO: special handling of strings?
-      if (compiler.uintptrSize === 4)
+      if (compiler.usizeSize === 4)
         return op.i32.ne(expr, op.i32.const(0));
       else
         return op.i64.ne(expr, op.i64.const(0, 0));

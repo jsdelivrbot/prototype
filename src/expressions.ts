@@ -94,7 +94,7 @@ export function compile(compiler: Compiler, node: ts.Expression, contextualType:
         util.setReflectedType(node, compiler.currentFunction.parent.type);
       else
         compiler.report(node, ts.DiagnosticsEx.Identifier_0_is_invalid_in_this_context, "this");
-      return op.getLocal(0, compiler.typeOf(compiler.uintptrType));
+      return op.getLocal(0, compiler.typeOf(compiler.usizeType));
 
     case ts.SyntaxKind.TrueKeyword:
     case ts.SyntaxKind.FalseKeyword:

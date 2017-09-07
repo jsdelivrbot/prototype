@@ -1,7 +1,7 @@
 //! { "noRuntime": true }
 
-export function testInt(a: int): void {
-  let b: int;
+export function testInt(a: i32): void {
+  let b: i32;
   let c: bool;
 
   // should be dropped
@@ -29,8 +29,8 @@ export function testInt(a: int): void {
   b = a--;
 }
 
-export function testLong(a: long): void {
-  let b: long;
+export function testLong(a: i64): void {
+  let b: i64;
   let c: bool;
 
   // should be dropped
@@ -58,8 +58,8 @@ export function testLong(a: long): void {
   b = a--;
 }
 
-export function testFloat(a: float): void {
-  let b: float;
+export function testFloat(a: f32): void {
+  let b: f32;
   let c: bool;
 
   // should be dropped
@@ -85,8 +85,8 @@ export function testFloat(a: float): void {
   b = a--;
 }
 
-export function testDouble(a: double): void {
-  let b: double;
+export function testDouble(a: f64): void {
+  let b: f64;
   let c: bool;
 
   // should be dropped

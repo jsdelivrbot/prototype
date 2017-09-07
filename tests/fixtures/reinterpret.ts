@@ -1,17 +1,17 @@
 //! { "noRuntime": true }
 
-export function testIntToFloat(a: int): float {
+export function testIntToFloat(a: i32): f32 {
   return reinterpretf(a);
 }
 
-export function testLongToDouble(a: long): double {
+export function testLongToDouble(a: i64): f64 {
   return reinterpretd(a);
 }
 
-export function testFloatToInt(a: float): int {
+export function testFloatToInt(a: f32): i32 {
   return reinterpreti(a);
 }
 
-export function testDoubleToLong(a: double): long {
+export function testDoubleToLong(a: f64): i64 {
   return reinterpretl(a);
 }

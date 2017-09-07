@@ -9,9 +9,9 @@ class SomeClass<T> {
   };
 }
 
-export function test(a: SomeClass<int>, b: SomeClass<long>): void {
-  a.instanceMethod<float>(0.25);
-  b.instanceMethod<double>(0.5);
-  SomeClass.staticMethod<float>(0.75);
-  SomeClass.staticMethod<double>(1.0);
+export function test(a: SomeClass<i32>, b: SomeClass<i64>): void {
+  a.instanceMethod<f32>(0.25);
+  b.instanceMethod<f64>(0.5);
+  SomeClass.staticMethod<f32>(0.75);
+  SomeClass.staticMethod<f64>(1.0);
 }

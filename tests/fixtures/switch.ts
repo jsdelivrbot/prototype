@@ -1,6 +1,6 @@
 //! { "noRuntime": true }
 
-export function test1(a: int): int {
+export function test1(a: i32): i32 {
   switch (a) {
     case 3:
       return 3;
@@ -24,7 +24,7 @@ export function test1(a: int): int {
   }
 }
 
-export function test2(a: int): int {
+export function test2(a: i32): i32 {
   switch (a) {
     case 1:
       return 1;

@@ -1,23 +1,23 @@
 //! { "noRuntime": true }
 
-const a: int = 123;
+const a: i32 = 123;
 
-export function testGlobal(): int {
+export function testGlobal(): i32 {
   return a;
 }
 
-const b: int = -123;
+const b: i32 = -123;
 
-export function testGlobalNeg(): int {
+export function testGlobalNeg(): i32 {
   return b;
 }
 
-export function testLocal(): int {
-  const c: int = 123;
+export function testLocal(): i32 {
+  const c: i32 = 123;
   return c;
 }
 
-export function testLocalNeg(): int {
-  const d: int = -123;
+export function testLocalNeg(): i32 {
+  const d: i32 = -123;
   return d;
 }

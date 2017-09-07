@@ -39,7 +39,7 @@ export function compileCall(compiler: Compiler, node: ts.CallExpression/*, conte
 
     // otherwise expression.methodName
     if (!template) {
-      thisExpression = compiler.compileExpression(accessNode.expression, compiler.uintptrType);
+      thisExpression = compiler.compileExpression(accessNode.expression, compiler.usizeType);
       const thisType = getReflectedType(accessNode.expression);
       const underlyingClass = thisType.underlyingClass;
 
@@ -71,7 +71,7 @@ export function compileCall(compiler: Compiler, node: ts.CallExpression/*, conte
 
     instance = ctor;
     template = ctor.template;
-    thisExpression = op.getLocal(compiler.currentFunction.localsByName.this.localIndex, compiler.typeOf(compiler.uintptrType));
+    thisExpression = op.getLocal(compiler.currentFunction.localsByName.this.localIndex, compiler.typeOf(compiler.usizeType));
 
   // top-level function call
   } else if (node.expression.kind === ts.SyntaxKind.Identifier) {

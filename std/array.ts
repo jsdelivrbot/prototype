@@ -9,16 +9,16 @@ export class Array<T> implements IDisposable {
     if (capacity < 0)
       unreachable();
 
-    const elementsByteSize: uintptr = (capacity as uintptr) * sizeof<T>();
-    const ptr: uintptr = malloc(sizeof<ArrayStruct>() + elementsByteSize);
-    const struct: ArrayStruct = unsafe_cast<uintptr,ArrayStruct>(ptr);
+    const elementsByteSize: usize = (capacity as usize) * sizeof<T>();
+    const ptr: usize = malloc(sizeof<ArrayStruct>() + elementsByteSize);
+    const struct: ArrayStruct = unsafe_cast<usize,ArrayStruct>(ptr);
 
     struct.capacity = capacity;
     struct.length = capacity;
 
     memset(ptr + sizeof<ArrayStruct>(), 0, elementsByteSize);
 
-    return unsafe_cast<uintptr,this>(ptr);
+    return unsafe_cast<usize,this>(ptr);
   }
 
   indexOf(searchElement: T, fromIndex: int = 0): int {
@@ -88,13 +88,13 @@ export class Array<T> implements IDisposable {
       end = begin;
 
     const capacity: int = end - begin;
-    const elementsByteSize: uintptr = (capacity as uintptr) * sizeof<T>();
-    const ptr: uintptr = malloc(sizeof<ArrayStruct>() + elementsByteSize);
+    const elementsByteSize: usize = (capacity as usize) * sizeof<T>();
+    const ptr: usize = malloc(sizeof<ArrayStruct>() + elementsByteSize);
 
-    unsafe_cast<uintptr,ArrayStruct>(ptr).length = capacity;
-    memcpy(ptr + sizeof<ArrayStruct>(), unsafe_cast<this,uintptr>(this) + sizeof<ArrayStruct>() + begin * sizeof<T>(), elementsByteSize);
+    unsafe_cast<usize,ArrayStruct>(ptr).length = capacity;
+    memcpy(ptr + sizeof<ArrayStruct>(), unsafe_cast<this,usize>(this) + sizeof<ArrayStruct>() + begin * sizeof<T>(), elementsByteSize);
 
-    return unsafe_cast<uintptr,this>(ptr);
+    return unsafe_cast<usize,this>(ptr);
   }
 
   reverse(): this {
@@ -113,30 +113,8 @@ export class Array<T> implements IDisposable {
     return this;
   }
 
-  /* unsafeGrow(newCapacity: int): this {
-    const oldCapacity: int = this.capacity;
-    const length: int = this.length;
-
-    if (newCapacity <= oldCapacity)
-      unreachable();
-
-    const oldElementsByteSize: uintptr = (oldCapacity as uintptr) * sizeof<T>();
-    const newElementsByteSize: uintptr = (newCapacity as uintptr) * sizeof<T>();
-    const ptr: uintptr = malloc(sizeof<ArrayStruct>() + newElementsByteSize);
-    const struct: ArrayStruct = unsafe_cast<uintptr,ArrayStruct>(ptr);
-
-    struct.capacity = newCapacity;
-    struct.length = length;
-
-    memcpy(ptr + sizeof<ArrayStruct>(), unsafe_cast<this,uintptr>(this) + sizeof<ArrayStruct>(), oldElementsByteSize);
-    memset(ptr + sizeof<ArrayStruct>() + oldElementsByteSize, 0, newElementsByteSize - oldElementsByteSize);
-    free(unsafe_cast<this,uintptr>(this));
-
-    return unsafe_cast<uintptr,this>(ptr);
-  } */
-
   dispose(): void {
-    free(unsafe_cast<this,uintptr>(this));
+    free(unsafe_cast<this,usize>(this));
   }
 }
 

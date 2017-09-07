@@ -466,7 +466,7 @@ export function sizeof(compiler: Compiler, type: Type): Expression {
   const op = compiler.module;
   const size = type.underlyingClass ? type.underlyingClass.size : type.size;
 
-  return compiler.uintptrType === Type.usize32
+  return compiler.usizeType === Type.usize32
     ? op.i32.const(size)
     : op.i64.const(size, 0); // TODO: long?
 }

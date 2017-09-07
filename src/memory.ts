@@ -121,7 +121,7 @@ export class Memory {
         break;
 
       case TypeKind.usize: {
-        if (this.compiler.uintptrType === Type.usize32)
+        if (this.compiler.usizeType === Type.usize32)
           for (const value of values)
             innerOffset += writeInt(buffer, innerOffset, Long.isLong(value) ? (<Long>value).toInt() : <number>value);
         else

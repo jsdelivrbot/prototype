@@ -100,7 +100,7 @@ export class Type {
   /** Amends a pointer to reference the specified underlying class. */
   withUnderlyingClass(underlyingClass: Class): Type {
     if (this.kind !== TypeKind.usize)
-      throw Error("uintptr expected");
+      throw Error("usize expected");
     const type = new Type(this.kind, this.size);
     type.underlyingClass = underlyingClass;
     return type;

@@ -1,18 +1,18 @@
 //! { "noRuntime": true }
 
 /* class A {
-  a: int = 1;
-  b: int = this.a + 2;
+  a: i32 = 1;
+  b: i32 = this.a + 2;
 
   // doesn't work, yet
 } */
 
 class B {
-  a: int = 1;
-  b: int = this.a + 2;
+  a: i32 = 1;
+  b: i32 = this.a + 2;
 
   constructor(
-    public c: int
+    public c: i32
   ) {
   }
 }

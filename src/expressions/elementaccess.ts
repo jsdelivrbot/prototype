@@ -16,7 +16,7 @@ export function compileElementAccess(compiler: Compiler, node: ts.ElementAccessE
   setReflectedType(node, contextualType);
 
   // compile the expression and verify that it references an array
-  const expression = compiler.compileExpression(node.expression, compiler.uintptrType);
+  const expression = compiler.compileExpression(node.expression, compiler.usizeType);
   const expressionType = getReflectedType(node.expression);
 
   if (!(expressionType && expressionType.underlyingClass && expressionType.underlyingClass.isArray))
@@ -24,7 +24,7 @@ export function compileElementAccess(compiler: Compiler, node: ts.ElementAccessE
 
   // obtain the reflected element type
   const elementType = expressionType.underlyingClass.typeArgumentsMap.T.type;
-  const uintptrCategory = <I32Operations | I64Operations>compiler.categoryOf(compiler.uintptrType);
+  const usizeCategory = <I32Operations | I64Operations>compiler.categoryOf(compiler.usizeType);
   setReflectedType(node, elementType);
 
   // if this is a store instead of a load, compile the value expression
@@ -43,9 +43,9 @@ export function compileElementAccess(compiler: Compiler, node: ts.ElementAccessE
     if (/^[1-9][0-9]*$/.test(literalText)) {
       const value = Long.fromString(literalText, true, 10);
       return compileLoadOrStore(compiler, node, elementType,
-        uintptrCategory.add(
+        usizeCategory.add(
           expression,
-          compiler.valueOf(compiler.uintptrType, value.mul(elementType.size))
+          compiler.valueOf(compiler.usizeType, value.mul(elementType.size))
         ), compiler.arrayHeaderSize, valueExpression, contextualType
       );
     }
@@ -53,11 +53,11 @@ export function compileElementAccess(compiler: Compiler, node: ts.ElementAccessE
 
   // otherwise evaluate at runtime
   return compileLoadOrStore(compiler, node, elementType,
-    uintptrCategory.add(
+    usizeCategory.add(
       expression,
-      uintptrCategory.mul(
+      usizeCategory.mul(
         compiler.compileExpression(argumentNode, Type.i32, Type.i32, false),
-        compiler.valueOf(compiler.uintptrType, elementType.size)
+        compiler.valueOf(compiler.usizeType, elementType.size)
       )
     ), compiler.arrayHeaderSize, valueExpression, contextualType
   );
