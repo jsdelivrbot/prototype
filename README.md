@@ -433,8 +433,8 @@ Additional documentation
 
 #### AssemblyScript
 
-* [Standard Library Documentation](http://dcode.io/AssemblyScript/std)
-* [API Documentation](http://dcode.io/AssemblyScript/api)
+* [Standard Library Documentation](http://assemblyscript.org/docs/std)
+* [API Documentation](http://assemblyscript.org/docs/api)
 
 #### WebAssembly
 
