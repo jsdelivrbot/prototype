@@ -4,7 +4,7 @@ import * as ts from "../typescript";
 import * as builtins from "../builtins";
 import { Expression } from "binaryen";
 import { Compiler } from "../compiler";
-import { TypeArgumentsMap, Function, FunctionTemplate, Class, ClassTemplate, ObjectFlags } from "../reflection";
+import { TypeArgumentsMap, Function, FunctionTemplate, Class, ClassTemplate, ReflectionObjectKind } from "../reflection";
 import { getReflectedType, setReflectedType } from "../util";
 
 /** Compiles a function call expression. */
@@ -23,7 +23,7 @@ export function compileCall(compiler: Compiler, node: ts.CallExpression/*, conte
 
     // check for Classname.methodName
     if (accessNode.expression.kind === ts.SyntaxKind.Identifier) {
-      const reference = compiler.resolveReference(<ts.Identifier>accessNode.expression, ObjectFlags.ClassTemplate);
+      const reference = compiler.resolveReference(<ts.Identifier>accessNode.expression, ReflectionObjectKind.ClassTemplate);
       if (reference instanceof ClassTemplate) {
         const methodDeclaration = reference.methodDeclarations[methodName];
         if (methodDeclaration) {
@@ -75,7 +75,7 @@ export function compileCall(compiler: Compiler, node: ts.CallExpression/*, conte
 
   // top-level function call
   } else if (node.expression.kind === ts.SyntaxKind.Identifier) {
-    const reference = <Function | FunctionTemplate>compiler.resolveReference(<ts.Identifier>node.expression, ObjectFlags.FunctionInclTemplate);
+    const reference = <Function | FunctionTemplate>compiler.resolveReference(<ts.Identifier>node.expression, ReflectionObjectKind.FunctionTemplate | ReflectionObjectKind.Function);
 
     if (reference instanceof Function) {
       instance = reference;

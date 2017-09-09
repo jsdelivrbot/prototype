@@ -3,13 +3,12 @@
 import * as ts from "../typescript";
 import { Compiler } from "../compiler";
 import { Type } from "./type";
+import { ReflectionObject, ReflectionObjectKind } from "./object";
 import { isStatic } from "../util";
 
 /** A reflected property. Also used to describe enum values. */
-export class Property {
+export class Property extends ReflectionObject {
 
-  /** Compiler reference. */
-  compiler: Compiler;
   /** Global name. */
   name: string;
   /** Simple name. */
@@ -25,7 +24,7 @@ export class Property {
 
   /** Constructs a new reflected property. */
   constructor(compiler: Compiler, name: string, declaration: ts.PropertyDeclaration | ts.EnumMember, type: Type, offset: number, initializer?: ts.Expression) {
-    this.compiler = compiler;
+    super(ReflectionObjectKind.Property, compiler);
     this.name = name;
     this.declaration = declaration;
     this.simpleName = ts.getTextOfNode(this.declaration.name);

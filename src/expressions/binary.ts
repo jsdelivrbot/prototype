@@ -6,7 +6,7 @@ import { internal_fmod } from "../builtins";
 import { Compiler } from "../compiler";
 import { compileElementAccess } from "./elementaccess";
 import { compilePropertyAccess } from "./propertyaccess";
-import { Type, TypeKind, Variable, ObjectFlags } from "../reflection";
+import { Type, TypeKind, Variable, ReflectionObjectKind } from "../reflection";
 import { getReflectedType, setReflectedType } from "../util";
 
 /** Compiles a binary expression. Covers addition, multiplication and so on. */
@@ -409,7 +409,7 @@ export function compileAssignmentWithValue(compiler: Compiler, node: ts.BinaryEx
 
   // identifier = expression
   if (node.left.kind === ts.SyntaxKind.Identifier) {
-    const reference = compiler.resolveReference(<ts.Identifier>node.left, ObjectFlags.Variable);
+    const reference = compiler.resolveReference(<ts.Identifier>node.left, ReflectionObjectKind.Variable);
     if (reference instanceof Variable) {
       const variable = <Variable>reference;
       const expression = compiler.maybeConvertValue(node.right, value, getReflectedType(node.right), variable.type, false);

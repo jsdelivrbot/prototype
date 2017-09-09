@@ -1,13 +1,12 @@
 /** @module assemblyscript/reflection */ /** */
 
-import Compiler from "../compiler";
-import Type from "./type";
+import { Compiler } from "../compiler";
+import { ReflectionObject, ReflectionObjectKind } from "./object";
+import { Type } from "./type";
 
 /** A reflected variable. */
-export class Variable {
+export class Variable extends ReflectionObject {
 
-  /** Compiler reference. */
-  compiler: Compiler;
   /** Simple or global name, depending on context. */
   name: string;
   /** Reflected type. */
@@ -21,7 +20,7 @@ export class Variable {
 
   /** Constructs a new reflected variable. */
   constructor(compiler: Compiler, name: string, type: Type, mutable: boolean = true, localIndex: number = -1, constantValue: number | Long | null = null) {
-    this.compiler = compiler;
+    super(ReflectionObjectKind.Variable, compiler);
     this.name = name;
     this.type = type;
     this.mutable = mutable;

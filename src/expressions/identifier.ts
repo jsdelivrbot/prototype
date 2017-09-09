@@ -3,7 +3,7 @@
 import * as ts from "../typescript";
 import { Expression } from "binaryen";
 import { Compiler } from "../compiler";
-import { Type, Variable, ObjectFlags } from "../reflection";
+import { Type, Variable, ReflectionObjectKind } from "../reflection";
 import { setReflectedType } from "../util";
 
 /** Compiles an identifier expression. */
@@ -12,7 +12,7 @@ export function compileIdentifier(compiler: Compiler, node: ts.Identifier, conte
 
   setReflectedType(node, contextualType);
 
-  const reference = compiler.resolveReference(node, ObjectFlags.Variable);
+  const reference = compiler.resolveReference(node, ReflectionObjectKind.Variable);
   if (reference instanceof Variable) {
     const variable = <Variable>reference;
     setReflectedType(node, variable.type);

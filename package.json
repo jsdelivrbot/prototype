@@ -37,7 +37,7 @@
     "docs": "npm run docs:api && npm run docs:std"
   },
   "dependencies": {
-    "binaryen": "37.0.0-nightly.20170831",
+    "binaryen": "37.0.0-nightly.20170909",
     "chalk": "^2.1.0",
     "minimist": "^1.2.0",
     "wabt": "0.0.13-nightly.20170628"

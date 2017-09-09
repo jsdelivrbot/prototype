@@ -3,7 +3,7 @@
 import * as ts from "../typescript";
 import { Expression } from "binaryen";
 import { Compiler } from "../compiler";
-import { Type, Function, Class, ClassTemplate, ObjectFlags } from "../reflection";
+import { Type, Function, Class, ClassTemplate, ReflectionObjectKind } from "../reflection";
 import { setReflectedType } from "../util";
 
 /** Compiles a 'new' expression. */
@@ -21,7 +21,7 @@ export function compileNew(compiler: Compiler, node: ts.NewExpression, contextua
   if (contextualType !== Type.void && !contextualType.underlyingClass)
     throw Error("new used in non-class context"); // handled by typescript
 
-  const reference = compiler.resolveReference(identifierNode, ObjectFlags.ClassInclTemplate);
+  const reference = compiler.resolveReference(identifierNode, ReflectionObjectKind.ClassTemplate | ReflectionObjectKind.Class);
   let instance: Class;
 
   if (reference instanceof ClassTemplate) {

@@ -178,35 +178,10 @@ declare module 'assemblyscript/reflection' {
   export * from "assemblyscript/reflection/class";
   export * from "assemblyscript/reflection/enum";
   export * from "assemblyscript/reflection/function";
+  export * from "assemblyscript/reflection/object";
   export * from "assemblyscript/reflection/property";
   export * from "assemblyscript/reflection/type";
   export * from "assemblyscript/reflection/variable";
-  import * as reflection from "assemblyscript/reflection";
-  /** Union type of concrete reflection objects. */
-  export type Object = reflection.Variable | reflection.Enum | reflection.Function | reflection.FunctionTemplate | reflection.Class | reflection.ClassTemplate;
-  /** Filter flags for resolving specific reflection objects only. */
-  export enum ObjectFlags {
-      /** Accept variables. */
-      Variable = 1,
-      /** Accept enums. */
-      Enum = 2,
-      /** Accept class instances. */
-      Class = 4,
-      /** Accept class templates.  */
-      ClassTemplate = 8,
-      /** Accept function instances. */
-      Function = 16,
-      /** Accept function templates. */
-      FunctionTemplate = 32,
-      /** Accepts function instances and templates. */
-      FunctionInclTemplate = 48,
-      /** Accepts class instances and templates. */
-      ClassInclTemplate = 12,
-      /** Accepts any valid property parent. */
-      AnyPropertyParent = 6,
-      /** Accepts any reflection object. */
-      Any = -1,
-  }
 }
 
 declare module 'assemblyscript/typescript' {
@@ -418,7 +393,7 @@ declare module 'assemblyscript/compiler' {
   import * as Long from "long";
   import Memory from "assemblyscript/memory";
   import Profiler from "assemblyscript/profiler";
-  import { Type, TypeArgumentsMap, Class, ClassTemplate, ClassHandle, Function, FunctionTemplate, FunctionHandle, Variable, Enum, Object, ObjectFlags } from "assemblyscript/reflection";
+  import { Type, TypeArgumentsMap, Class, ClassTemplate, ClassHandle, Function, FunctionTemplate, FunctionHandle, Variable, Enum, ReflectionObjectKind } from "assemblyscript/reflection";
   import * as ts from "assemblyscript/typescript";
   /** Library name prefix. */
   export const LIB_PREFIX = "lib:";
@@ -578,7 +553,7 @@ declare module 'assemblyscript/compiler' {
       /** Resolves a TypeScript type to a AssemblyScript type. */
       resolveType(type: ts.TypeNode, acceptVoid?: boolean, typeArgumentsMap?: TypeArgumentsMap): Type | null;
       /** Resolves an identifier or name to the corresponding reflection object. */
-      resolveReference(node: ts.Identifier | ts.EntityName, filter?: ObjectFlags): Object | null;
+      resolveReference(node: ts.Identifier | ts.EntityName, filter?: ReflectionObjectKind): Object | null;
       /** Resolves a list of type arguments to a type arguments map. */
       resolveTypeArgumentsMap(typeArguments: ts.NodeArray<ts.TypeNode> | ts.TypeNode[], declaration: ts.FunctionLikeDeclaration | ts.ClassDeclaration, baseTypeArgumentsMap?: TypeArgumentsMap): TypeArgumentsMap;
       /** Computes the binaryen signature identifier of a reflected type. */
@@ -858,19 +833,18 @@ declare module 'assemblyscript/reflection/class' {
   import * as ts from "assemblyscript/typescript";
   import { Compiler } from "assemblyscript/compiler";
   import { FunctionTemplate, Function } from "assemblyscript/reflection/function";
+  import { ReflectionObject, ReflectionObjectKind } from "assemblyscript/reflection/object";
   import { Property } from "assemblyscript/reflection/property";
   import { Type, TypeArgumentsMap } from "assemblyscript/reflection/type";
   /** Common base class of {@link Class} and {@link ClassTemplate}. */
-  export abstract class ClassBase {
-      /** Compiler reference. */
-      compiler: Compiler;
+  export abstract class ClassBase extends ReflectionObject {
       /** Global name. */
       name: string;
       /** Simple name. */
       simpleName: string;
       /** Declaration reference. */
       declaration: ts.ClassDeclaration;
-      protected constructor(compiler: Compiler, name: string, declaration: ts.ClassDeclaration);
+      constructor(kind: ReflectionObjectKind, compiler: Compiler, name: string, declaration: ts.ClassDeclaration);
       /** Tests if this class is generic. */
       readonly isGeneric: boolean;
       /** Tests if this class is exported. */
@@ -981,12 +955,11 @@ declare module 'assemblyscript/reflection/class' {
 declare module 'assemblyscript/reflection/enum' {
   /** @module assemblyscript/reflection */ /** */
   import * as ts from "assemblyscript/typescript";
-  import Compiler from "assemblyscript/compiler";
-  import Property from "assemblyscript/reflection/property";
+  import { Compiler } from "assemblyscript/compiler";
+  import { ReflectionObject } from "assemblyscript/reflection/object";
+  import { Property } from "assemblyscript/reflection/property";
   /** A reflected enum instance. */
-  export class Enum {
-      /** Compiler reference. */
-      compiler: Compiler;
+  export class Enum extends ReflectionObject {
       /** Global name. */
       name: string;
       /** Simple name. */
@@ -1010,6 +983,7 @@ declare module 'assemblyscript/reflection/function' {
   import { Expression, Type as BinaryenType, Function as BinaryenFunction, Signature } from "binaryen";
   import { Class } from "assemblyscript/reflection/class";
   import { Compiler } from "assemblyscript/compiler";
+  import { ReflectionObject, ReflectionObjectKind } from "assemblyscript/reflection/object";
   import { Type, TypeArgumentsMap } from "assemblyscript/reflection/type";
   import { Variable } from "assemblyscript/reflection/variable";
   /** A function handle consisting of its instance, if any, and its template. */
@@ -1018,9 +992,7 @@ declare module 'assemblyscript/reflection/function' {
       instance?: Function;
   }
   /** Common base class of {@link Function} and {@link FunctionTemplate}. */
-  export abstract class FunctionBase {
-      /** Compiler reference. */
-      compiler: Compiler;
+  export abstract class FunctionBase extends ReflectionObject {
       /** Global name. */
       name: string;
       /** Simple name. */
@@ -1029,7 +1001,7 @@ declare module 'assemblyscript/reflection/function' {
       declaration: ts.FunctionLikeDeclaration;
       /** Class declaration reference, if any. */
       classDeclaration?: ts.ClassDeclaration;
-      protected constructor(compiler: Compiler, name: string, declaration: ts.FunctionLikeDeclaration);
+      protected constructor(kind: ReflectionObjectKind, compiler: Compiler, name: string, declaration: ts.FunctionLikeDeclaration);
       /** Tests if this function is an import. */
       readonly isImport: boolean;
       /** Tests if this function is exported. */
@@ -1134,15 +1106,39 @@ declare module 'assemblyscript/reflection/function' {
   }
 }
 
+declare module 'assemblyscript/reflection/object' {
+  /** @module assemblyscript/reflection */ /** */
+  import { Compiler } from "assemblyscript/compiler";
+  /** Object kinds. Also used as filters. */
+  export const enum ReflectionObjectKind {
+      Variable = 1,
+      Enum = 2,
+      FunctionTemplate = 4,
+      Function = 8,
+      ClassTemplate = 16,
+      Class = 32,
+      Property = 64,
+  }
+  /** Base class of all reflection objects. */
+  export abstract class ReflectionObject {
+      /** Object kind. */
+      kind: ReflectionObjectKind;
+      /** Compiler reference. */
+      compiler: Compiler;
+      /** Constructs a neww reflection object. */
+      constructor(kind: ReflectionObjectKind, compiler: Compiler);
+  }
+  export default ReflectionObject;
+}
+
 declare module 'assemblyscript/reflection/property' {
   /** @module assemblyscript/reflection */ /** */
   import * as ts from "assemblyscript/typescript";
   import { Compiler } from "assemblyscript/compiler";
   import { Type } from "assemblyscript/reflection/type";
+  import { ReflectionObject } from "assemblyscript/reflection/object";
   /** A reflected property. Also used to describe enum values. */
-  export class Property {
-      /** Compiler reference. */
-      compiler: Compiler;
+  export class Property extends ReflectionObject {
       /** Global name. */
       name: string;
       /** Simple name. */
@@ -1303,12 +1299,11 @@ declare module 'assemblyscript/reflection/type' {
 
 declare module 'assemblyscript/reflection/variable' {
   /** @module assemblyscript/reflection */ /** */
-  import Compiler from "assemblyscript/compiler";
-  import Type from "assemblyscript/reflection/type";
+  import { Compiler } from "assemblyscript/compiler";
+  import { ReflectionObject } from "assemblyscript/reflection/object";
+  import { Type } from "assemblyscript/reflection/type";
   /** A reflected variable. */
-  export class Variable {
-      /** Compiler reference. */
-      compiler: Compiler;
+  export class Variable extends ReflectionObject {
       /** Simple or global name, depending on context. */
       name: string;
       /** Reflected type. */

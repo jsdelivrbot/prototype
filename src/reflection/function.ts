@@ -5,6 +5,7 @@ import { Expression, Type as BinaryenType, Function as BinaryenFunction, Signatu
 import { isRuntimeFunction } from "../builtins";
 import { Class } from "./class";
 import { Compiler } from "../compiler";
+import { ReflectionObject, ReflectionObjectKind } from "./object";
 import { Type, TypeArgumentsMap } from "./type";
 import { Variable } from "./variable";
 import { isDeclare, isExport, isStatic, getReflectedClass, getReflectedClassTemplate, setReflectedFunction, setReflectedFunctionTemplate } from "../util";
@@ -16,10 +17,8 @@ export interface FunctionHandle {
 }
 
 /** Common base class of {@link Function} and {@link FunctionTemplate}. */
-export abstract class FunctionBase {
+export abstract class FunctionBase extends ReflectionObject {
 
-  /** Compiler reference. */
-  compiler: Compiler;
   /** Global name. */
   name: string;
   /** Simple name. */
@@ -29,8 +28,8 @@ export abstract class FunctionBase {
   /** Class declaration reference, if any. */
   classDeclaration?: ts.ClassDeclaration;
 
-  protected constructor(compiler: Compiler, name: string, declaration: ts.FunctionLikeDeclaration) {
-    this.compiler = compiler;
+  protected constructor(kind: ReflectionObjectKind, compiler: Compiler, name: string, declaration: ts.FunctionLikeDeclaration) {
+    super(kind, compiler);
     this.name = name;
     this.simpleName = ts.getTextOfNode(<ts.Identifier>declaration.name);
     this.declaration = declaration;
@@ -133,7 +132,7 @@ export class Function extends FunctionBase {
 
   /** Constructs a new reflected function instance and binds it to its TypeScript declaration. */
   constructor(compiler: Compiler, name: string, template: FunctionTemplate, typeArguments: ts.NodeArray<ts.TypeNode> | ts.TypeNode[], typeArgumentsMap: TypeArgumentsMap, parameters: FunctionParameter[], returnType: Type, parent?: Class, body?: ts.Block | ts.Expression) {
-    super(compiler, name, template.declaration);
+    super(ReflectionObjectKind.Function, compiler, name, template.declaration);
 
     if (!this.compiler.options.noRuntime && isRuntimeFunction(this.name, true))
       this.internalName = "." + this.simpleName;
@@ -250,7 +249,7 @@ export class FunctionTemplate extends FunctionBase {
 
   /** Constructs a new reflected function template and binds it to its TypeScript declaration. */
   constructor(compiler: Compiler, name: string, declaration: ts.FunctionLikeDeclaration, parent?: Class) {
-    super(compiler, name, declaration);
+    super(ReflectionObjectKind.FunctionTemplate, compiler, name, declaration);
 
     if (this.isInstance && !parent)
       throw Error("missing parent");

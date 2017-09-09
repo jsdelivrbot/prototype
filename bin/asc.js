@@ -137,31 +137,44 @@ function main(args, callback) {
     }
   }
 
-  // default to text format if --outFile references a .wast or .wat and --textFormat isn't specified
+  // default to text format if --outFile references a .wast, .wat or .js and --textFormat isn't specified
   if (argv.outFile && !argv.textFormat) {
     if (/\.wast$/.test(argv.outFile))
       argv.textFormat = "sexpr";
     else if (/\.wat$/.test(argv.outFile))
       argv.textFormat = "linear";
+    else if (/\.js$/.test(argv.outfile))
+      argv.textFormat = "asmjs";
   }
 
   // emit to --outFile if specified, otherwise print to stdout
   var output = argv.outFile ? fs.createWriteStream(argv.outFile) : process.stdout;
 
-  // emit a text file alongside a binary if --textFile is provided
-  if (argv.textFile)
-    writeBinary(wasmModule, output, function(err) {
-      if (err) return finish(err);
-      writeText(wasmModule, argv.textFormat || /\.wat$/.test(argv.textFile) && "linear" || "sexpr", fs.createWriteStream(argv.textFile), finish);
-    });
+  // emit text format (textFormat is requested but no textFile has been specified) + asm.js (if applicable)
+  if ((argv.textFormat !== undefined || output.isTTY) && !argv.textFile) {
+    if (argv.textFormat === "asmjs" || /\.js$/.test(argv.outFile))
+      writeAsmjs(wasmModule, output, finish);
+    else
+      writeText(wasmModule, argv.textFormat, output, maybeWriteAsmjs);
 
-  // emit just text format if --textFormat is provided but --textFile isn't
-  else if (argv.textFormat !== undefined || output.isTTY)
-    writeText(wasmModule, argv.textFormat, output, finish);
+  // emit a binary + text format (if specified) + asm.js (if specified)
+  } else
+    writeBinary(wasmModule, output, maybeWriteText);
 
-  // emit a binary otherwise
-  else
-    writeBinary(wasmModule, output, finish);
+  function maybeWriteText(err) {
+    if (err || !argv.textFile)
+      return finish(err);
+    if (argv.textFormat === "asmjs" || (!argv.textFormat && /\.js$/.test(argv.textFile)))
+      writeAsmjs(wasmModule, fs.createWriteStream(argv.textFile), finish);
+    else
+      writeText(wasmModule, argv.textFormat || /\.wat$/.test(argv.textFile) && "linear" || "sexpr", fs.createWriteStream(argv.textFile), maybeWriteAsmjs);
+  }
+
+  function maybeWriteAsmjs(err) {
+    if (err || !argv.asmjsFile)
+      return finish(err);
+    writeAsmjs(wasmModule, fs.createWriteStream(argv.asmjsFile), finish);
+  }
 
   function finish(err) {
     wasmModule.dispose();
@@ -194,6 +207,16 @@ exports.writeText = writeText;
 /** Writes a binary of the specified module. */
 function writeBinary(wasmModule, output, callback) {
   output.write(Buffer.from(wasmModule.emitBinary()), end);
+
+  function end(err) {
+    if (err || output === process.stdout) return callback(err);
+    output.end(callback);
+  }
+}
+
+/** Writes the asm.js representation of the specified module. */
+function writeAsmjs(wasmModule, output, callback) {
+  output.write(Buffer.from(wasmModule.emitAsmjs()), end);
 
   function end(err) {
     if (err || output === process.stdout) return callback(err);

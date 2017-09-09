@@ -12,7 +12,7 @@ import * as library from "./library";
 import Memory from "./memory";
 import { tryParseLiteral, tryParseArrayLiteral } from "./parser";
 import Profiler from "./profiler";
-import { Type, TypeKind, TypeArgumentsMap, Class, ClassTemplate, ClassHandle, Function, FunctionTemplate, FunctionHandle, Variable, Enum, Object, ObjectFlags, patchClassImplementation } from "./reflection";
+import { Type, TypeKind, TypeArgumentsMap, Class, ClassTemplate, ClassHandle, Function, FunctionTemplate, FunctionHandle, Variable, Enum, ReflectionObjectKind, patchClassImplementation } from "./reflection";
 import * as statements from "./statements";
 import * as ts from "./typescript";
 import * as util from "./util";
@@ -512,7 +512,7 @@ export class Compiler {
             throw Error("expected exactly one extended class");
           const extendsNode = clause.types[0];
           if (extendsNode.expression.kind === ts.SyntaxKind.Identifier) {
-            const reference = this.resolveReference(<ts.Identifier>extendsNode.expression, ObjectFlags.ClassTemplate);
+            const reference = this.resolveReference(<ts.Identifier>extendsNode.expression, ReflectionObjectKind.ClassTemplate);
             if (reference instanceof ClassTemplate) {
               base = reference;
               baseTypeArguments = extendsNode.typeArguments || [];
@@ -1239,7 +1239,7 @@ export class Compiler {
               case "string": return this.classes[LIB_PREFIX + "String"].type;
             }
 
-            const reference = this.resolveReference(referenceNode.typeName, ObjectFlags.ClassInclTemplate);
+            const reference = this.resolveReference(referenceNode.typeName, ReflectionObjectKind.ClassTemplate | ReflectionObjectKind.Class);
 
             if (reference instanceof Class)
               return (<Class>reference).type;
@@ -1275,7 +1275,7 @@ export class Compiler {
   }
 
   /** Resolves an identifier or name to the corresponding reflection object. */
-  resolveReference(node: ts.Identifier | ts.EntityName, filter: ObjectFlags = ObjectFlags.Any): Object | null {
+  resolveReference(node: ts.Identifier | ts.EntityName, filter: ReflectionObjectKind = -1): Object | null {
 
     // Locals including 'this'
     const localName = ts.getTextOfNode(node);
@@ -1290,22 +1290,22 @@ export class Compiler {
         const declaration = symbol.declarations[i];
         const globalName = this.mangleGlobalName(ts.getNameOfSymbol(symbol), ts.getSourceFileOfNode(declaration));
 
-        if (filter & ObjectFlags.Variable && this.globals[globalName])
+        if (filter & ReflectionObjectKind.Variable && this.globals[globalName])
           return this.globals[globalName];
 
-        if (filter & ObjectFlags.Enum && this.enums[globalName])
+        if (filter & ReflectionObjectKind.Enum && this.enums[globalName])
           return this.enums[globalName];
 
-        if (filter & ObjectFlags.Function && this.functions[globalName])
+        if (filter & ReflectionObjectKind.Function && this.functions[globalName])
           return this.functions[globalName];
 
-        if (filter & ObjectFlags.FunctionTemplate && this.functionTemplates[globalName])
+        if (filter & ReflectionObjectKind.FunctionTemplate && this.functionTemplates[globalName])
           return this.functionTemplates[globalName];
 
-        if (filter & ObjectFlags.Class && this.classes[globalName])
+        if (filter & ReflectionObjectKind.Class && this.classes[globalName])
           return this.classes[globalName];
 
-        if (filter & ObjectFlags.ClassTemplate && this.classTemplates[globalName])
+        if (filter & ReflectionObjectKind.ClassTemplate && this.classTemplates[globalName])
           return this.classTemplates[globalName];
       }
     }

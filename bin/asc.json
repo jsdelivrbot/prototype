@@ -5,7 +5,7 @@
     "aliases": [ "c" ]
   },
   "outFile": {
-    "desc": "Specifies the output file name. Emits text format if ending with .wast\n(sexpr) or .wat (linear). Prints to stdout if omitted.",
+    "desc": "Specifies the output file name. Emits text format if ending with .wast\n(sexpr), .wat (linear) or .js (asmjs). Prints to stdout if omitted.",
     "type": "string",
     "aliases": [ "o", "outfile", "out-file", "out" ],
     "isPath": true
@@ -35,7 +35,7 @@
     "default": "wasm32"
   },
   "textFormat": {
-    "desc": "Specifies the format to use for text output:\n\nsexpr   Emits s-expression syntax (.wast) [default]\nlinear  Emits official linear syntax (.wat)\n\nText format only is emitted when used without --textFile.",
+    "desc": "Specifies the format to use for text output:\n\nsexpr   Emits s-expression syntax (.wast) [default]\nlinear  Emits official linear syntax (.wat)\nasmjs   Emits just asm.js (.js) - experimental\n\nText format only is emitted when used without --textFile.",
     "type": "string",
     "aliases": [ "f", "textformat", "text-format", "text" ]
   },
@@ -44,6 +44,11 @@
     "type": "string",
     "aliases": [ "textfile", "text-file", "textOut", "textout", "text-out" ],
     "isPath": true
+  },
+  "asmjsFile": {
+    "desc": "Can be used to save asm.js alongside a binary in one command. - experimental",
+    "type": "string",
+    "aliases": ["asmjsfile", "asmjs-file", "asmjs"]
   },
   "noTreeShaking": {
     "desc": "Whether to disable built-in tree-shaking.",

@@ -41,7 +41,7 @@ Under the hood, AssemblyScript rewires TypeScript's [compiler API](https://githu
 
 Every AssemblyScript program is valid TypeScript syntactically, but not necessarily semantically. The definitions required to start developing in AssemblyScript are provided by [assembly.d.ts](./assembly.d.ts). See also: [Usage](#usage)
 
-The compiler is able to produce WebAssembly binaries (.wasm) as well as their corresponding text format. Both Binaryen's s-expression format (.wast) and, with a little help of [WABT](https://github.com/WebAssembly/wabt), official linear text format (.wat) are supported. See also: [CLI](#command-line)
+The compiler is able to produce WebAssembly binaries (.wasm) as well as their corresponding text format. Both Binaryen's s-expression format (.wast) and, with a little help of [WABT](https://github.com/WebAssembly/wabt), official linear text format (.wat) are supported. Currently, there are also efforts on the Binaryen side to support asm.js (.js) output suitable as a compatibility fallback. See also: [CLI](#command-line)
 
 What to expect
 --------------
@@ -322,7 +322,7 @@ Options:
                     Will look for 'asconfig.json' in the entry's directory if omitted.
 
  --outFile, -o      Specifies the output file name. Emits text format if ending with .wast
-                    (sexpr) or .wat (linear). Prints to stdout if omitted.
+                    (sexpr), .wat (linear) or .js (asmjs). Prints to stdout if omitted.
 
  --optimize, -O     Runs optimizing binaryen IR passes.
 
@@ -339,10 +339,13 @@ Options:
 
                     sexpr   Emits s-expression syntax (.wast) [default]
                     linear  Emits official linear syntax (.wat)
+                    asmjs   Emits just asm.js (.js) - experimental
 
                     Text format only is emitted when used without --textFile.
 
  --textFile         Can be used to save text format alongside a binary in one command.
+
+ --asmjsFile        Can be used to save asm.js alongside a binary in one command. - experimental
 
  --noTreeShaking    Whether to disable built-in tree-shaking.
 

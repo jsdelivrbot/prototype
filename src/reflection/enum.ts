@@ -1,15 +1,14 @@
 /** @module assemblyscript/reflection */ /** */
 
 import * as ts from "../typescript";
-import Compiler from "../compiler";
-import Property from "./property";
-import Type from "./type";
+import { Compiler } from "../compiler";
+import { ReflectionObject, ReflectionObjectKind } from "./object";
+import { Property } from "./property";
+import { Type } from "./type";
 
 /** A reflected enum instance. */
-export class Enum {
+export class Enum extends ReflectionObject {
 
-  /** Compiler reference. */
-  compiler: Compiler;
   /** Global name. */
   name: string;
   /** Simple name. */
@@ -21,7 +20,7 @@ export class Enum {
 
   /** Constructs a new reflected enum and binds it to its TypeScript declaration. */
   constructor(compiler: Compiler, name: string, declaration: ts.EnumDeclaration) {
-    this.compiler = compiler;
+    super(ReflectionObjectKind.Enum, compiler);
     this.name = name;
     this.declaration = declaration;
     this.simpleName = ts.getTextOfNode(this.declaration.name);

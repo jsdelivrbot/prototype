@@ -3,15 +3,14 @@
 import * as ts from "../typescript";
 import { Compiler, LIB_PREFIX, STD_PREFIX } from "../compiler";
 import { FunctionTemplate, Function } from "./function";
+import { ReflectionObject, ReflectionObjectKind } from "./object";
 import { Property } from "./property";
 import { Type, TypeArgumentsMap } from "./type";
 import { getReflectedFunction, setReflectedFunction, setReflectedFunctionTemplate, setReflectedClass, setReflectedClassTemplate, isExport, isStatic, startsWith } from "../util";
 
 /** Common base class of {@link Class} and {@link ClassTemplate}. */
-export abstract class ClassBase {
+export abstract class ClassBase extends ReflectionObject {
 
-  /** Compiler reference. */
-  compiler: Compiler;
   /** Global name. */
   name: string;
   /** Simple name. */
@@ -19,8 +18,8 @@ export abstract class ClassBase {
   /** Declaration reference. */
   declaration: ts.ClassDeclaration;
 
-  protected constructor(compiler: Compiler, name: string, declaration: ts.ClassDeclaration) {
-    this.compiler = compiler;
+  constructor(kind: ReflectionObjectKind, compiler: Compiler, name: string, declaration: ts.ClassDeclaration) {
+    super(kind, compiler);
     this.name = name;
     this.declaration = declaration;
 
@@ -112,7 +111,7 @@ export class Class extends ClassBase {
 
   /** Constructs a new reflected class and binds it to its TypeScript declaration. */
   constructor(compiler: Compiler, name: string, template: ClassTemplate, typeArguments: ts.NodeArray<ts.TypeNode> | ts.TypeNode[] , base?: Class) {
-    super(compiler, name, template.declaration);
+    super(ReflectionObjectKind.Class, compiler, name, template.declaration);
 
     // register
     if (compiler.classes[this.name])
@@ -262,7 +261,7 @@ export class ClassTemplate extends ClassBase {
 
   /** Constructs a new reflected class template and binds it to its declaration. */
   constructor(compiler: Compiler, name: string, declaration: ts.ClassDeclaration, base?: ClassTemplate, baseTypeArguments?: ts.NodeArray<ts.TypeNode> | ts.TypeNode[]) {
-    super(compiler, name, declaration);
+    super(ReflectionObjectKind.ClassTemplate, compiler, name, declaration);
 
     if (base && !baseTypeArguments)
       throw Error("missing base type arguments"); // handled by typescript

@@ -4,7 +4,7 @@ import * as ts from "../typescript";
 import { Expression } from "binaryen";
 import { Compiler } from "../compiler";
 import { compileLoadOrStore } from "./helpers/loadorstore";
-import { Type, Class, Enum, ObjectFlags } from "../reflection";
+import { Type, Class, Enum, ReflectionObjectKind } from "../reflection";
 import { getReflectedType, setReflectedType } from "../util";
 
 /** Compiles a property access expression. Sets the property's value to `valueNode` if specified, otherwise gets it. */
@@ -19,7 +19,7 @@ export function compilePropertyAccess(compiler: Compiler, node: ts.PropertyAcces
 
   // handle globals
   if (node.expression.kind === ts.SyntaxKind.Identifier) {
-    const reference = compiler.resolveReference(<ts.Identifier>node.expression, ObjectFlags.AnyPropertyParent);
+    const reference = compiler.resolveReference(<ts.Identifier>node.expression, ReflectionObjectKind.Enum | ReflectionObjectKind.ClassTemplate | ReflectionObjectKind.Class);
 
     // enum values are constants
     if (reference instanceof Enum) {
