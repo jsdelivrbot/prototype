@@ -71,7 +71,7 @@ export function compileCall(compiler: Compiler, node: ts.CallExpression/*, conte
 
     instance = ctor;
     template = ctor.template;
-    thisExpression = op.getLocal(compiler.currentFunction.localsByName.this.localIndex, compiler.typeOf(compiler.usizeType));
+    thisExpression = op.getLocal(compiler.currentFunction.localsByName.this.index, compiler.typeOf(compiler.usizeType));
 
   // top-level function call
   } else if (node.expression.kind === ts.SyntaxKind.Identifier) {

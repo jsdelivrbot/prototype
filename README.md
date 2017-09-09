@@ -394,9 +394,9 @@ It's also possible to use the API programmatically:
    Compiler target.
 
    * **WASM32**<br />
-     32-bit WebAssembly target using uint pointers.
+     32-bit WebAssembly target using 32-bit (`usize := u32`) pointers.
    * **WASM64**<br />
-     64-bit WebAssembly target using ulong pointers.
+     64-bit WebAssembly target using 64-bit (`usize := u64`) pointers. Not yet supported by most runtimes.
 
 ### Example
 

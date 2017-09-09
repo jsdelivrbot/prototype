@@ -97,7 +97,7 @@ export function compilePrefixUnary(compiler: Compiler, node: ts.PrefixUnaryExpre
 
           const calculate = (isIncrement ? cat.add : cat.sub).call(cat,
             op.getLocal(
-              local.localIndex,
+              local.index,
               compiler.typeOf(local.type)
             ),
             compiler.valueOf(local.type, 1)
@@ -105,10 +105,10 @@ export function compilePrefixUnary(compiler: Compiler, node: ts.PrefixUnaryExpre
 
           if (contextualType === Type.void) {
             setReflectedType(node, Type.void);
-            return op.setLocal(local.localIndex, calculate);
+            return op.setLocal(local.index, calculate);
           } else {
             setReflectedType(node, local.type);
-            return op.teeLocal(local.localIndex, calculate);
+            return op.teeLocal(local.index, calculate);
           }
         }
       }

@@ -498,8 +498,8 @@ export function isNaN(compiler: Compiler, node: ts.Expression, expr: Expression)
   const tempBinaryenType = compiler.typeOf(type);
 
   return category.ne(
-    op.teeLocal(temp.localIndex, expr),
-    op.getLocal(temp.localIndex, tempBinaryenType)
+    op.teeLocal(temp.index, expr),
+    op.getLocal(temp.index, tempBinaryenType)
   );
 }
 
@@ -533,13 +533,13 @@ export function isFinite(compiler: Compiler, node: ts.Expression, expr: Expressi
 
   return op.select(
     category.ne(
-      op.teeLocal(temp.localIndex, expr),
-      op.getLocal(temp.localIndex, tempBinaryenType)
+      op.teeLocal(temp.index, expr),
+      op.getLocal(temp.index, tempBinaryenType)
     ),
     op.i32.const(0),
     category.ne(
       category.abs(
-        op.getLocal(temp.localIndex, tempBinaryenType)
+        op.getLocal(temp.index, tempBinaryenType)
       ),
       compiler.valueOf(type, Infinity)
     )
@@ -564,32 +564,32 @@ export function internal_fmod(compiler: Compiler, nodes: TypeScriptExpressionPai
   return xType === Type.f64
     // x - (((x / y) as long) as double) * y
     ? op.f64.sub(
-      op.teeLocal(temp.localIndex, exprs[0]), // evaluate x
+      op.teeLocal(temp.index, exprs[0]), // evaluate x
       op.f64.mul(
         op.f64.convert_s.i64(
           op.i64.trunc_s.f64(
             op.f64.div(
-              op.getLocal(temp.localIndex, tempBinaryenType), // reuse evaluated x
-              op.teeLocal(temp.localIndex, exprs[1]) // evalute y
+              op.getLocal(temp.index, tempBinaryenType), // reuse evaluated x
+              op.teeLocal(temp.index, exprs[1]) // evalute y
             )
           )
         ),
-        op.getLocal(temp.localIndex, tempBinaryenType) // reuse evaluated y
+        op.getLocal(temp.index, tempBinaryenType) // reuse evaluated y
       )
     )
     // x - (((x / y) as long) as float) * y
     : op.f32.sub(
-      op.teeLocal(temp.localIndex, exprs[0]), // evaluate x
+      op.teeLocal(temp.index, exprs[0]), // evaluate x
       op.f32.mul(
         op.f32.convert_s.i64(
           op.i64.trunc_s.f32(
             op.f32.div(
-              op.getLocal(temp.localIndex, tempBinaryenType), // reuse evaluated x
-              op.teeLocal(temp.localIndex, exprs[1]) // evalute y
+              op.getLocal(temp.index, tempBinaryenType), // reuse evaluated x
+              op.teeLocal(temp.index, exprs[1]) // evalute y
             )
           )
         ),
-        op.getLocal(temp.localIndex, tempBinaryenType) // reuse evaluated y
+        op.getLocal(temp.index, tempBinaryenType) // reuse evaluated y
       )
     );
 }

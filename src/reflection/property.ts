@@ -9,10 +9,6 @@ import { isStatic } from "../util";
 /** A reflected property. Also used to describe enum values. */
 export class Property extends ReflectionObject {
 
-  /** Global name. */
-  name: string;
-  /** Simple name. */
-  simpleName: string;
   /** Declaration reference. */
   declaration: ts.PropertyDeclaration | ts.EnumMember;
   /** Resolved type. */
@@ -24,10 +20,8 @@ export class Property extends ReflectionObject {
 
   /** Constructs a new reflected property. */
   constructor(compiler: Compiler, name: string, declaration: ts.PropertyDeclaration | ts.EnumMember, type: Type, offset: number, initializer?: ts.Expression) {
-    super(ReflectionObjectKind.Property, compiler);
-    this.name = name;
+    super(ReflectionObjectKind.Property, compiler, name);
     this.declaration = declaration;
-    this.simpleName = ts.getTextOfNode(this.declaration.name);
     this.type = type;
     this.offset = offset;
     this.initializer = initializer;
@@ -35,8 +29,6 @@ export class Property extends ReflectionObject {
 
   /** Tests if this property is an instance member. */
   get isInstance(): boolean { return this.declaration.kind !== ts.SyntaxKind.EnumMember && !isStatic(this.declaration); }
-
-  toString(): string { return this.name; }
 }
 
 export default Property;

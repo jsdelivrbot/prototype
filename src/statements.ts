@@ -286,11 +286,11 @@ export function compileSwitch(compiler: Compiler, node: ts.SwitchStatement): Sta
     let condition = op.i32.const(-1);
     for (let i = cases.length - 1; i >= 0; --i)
       if (cases[i] !== defaultCase)
-        condition = op.select(op.i32.eq(op.getLocal(conditionLocal.localIndex, compiler.typeOf(Type.i32)), <I32Expression>cases[i].expression), op.i32.const(i), condition);
+        condition = op.select(op.i32.eq(op.getLocal(conditionLocal.index, compiler.typeOf(Type.i32)), <I32Expression>cases[i].expression), op.i32.const(i), condition);
 
     // create the innermost br_table block using the first case's label
     let currentBlock = op.block(cases[0].label, [
-      op.setLocal(conditionLocal.localIndex, switchExpression),
+      op.setLocal(conditionLocal.index, switchExpression),
       op.switch(labels, defaultCase ? defaultCase.label : "break$" + label, condition)
     ]);
 
@@ -370,7 +370,7 @@ function compileVariableDeclarationList(compiler: Compiler, node: ts.VariableDec
     }
     const local = compiler.currentFunction.addLocal(declarationName, declarationType, mutable);
     if (declaration.initializer)
-      initializers.push(op.setLocal(local.localIndex, compiler.compileExpression(declaration.initializer, declarationType, declarationType, false)));
+      initializers.push(op.setLocal(local.index, compiler.compileExpression(declaration.initializer, declarationType, declarationType, false)));
   }
 
   return initializers.length === 0 ? null

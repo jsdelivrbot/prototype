@@ -6,7 +6,7 @@ import { internal_fmod } from "../builtins";
 import { Compiler } from "../compiler";
 import { compileElementAccess } from "./elementaccess";
 import { compilePropertyAccess } from "./propertyaccess";
-import { Type, TypeKind, Variable, ReflectionObjectKind } from "../reflection";
+import { Type, TypeKind, VariableBase, LocalVariable, ReflectionObjectKind } from "../reflection";
 import { getReflectedType, setReflectedType } from "../util";
 
 /** Compiles a binary expression. Covers addition, multiplication and so on. */
@@ -409,23 +409,23 @@ export function compileAssignmentWithValue(compiler: Compiler, node: ts.BinaryEx
 
   // identifier = expression
   if (node.left.kind === ts.SyntaxKind.Identifier) {
-    const reference = compiler.resolveReference(<ts.Identifier>node.left, ReflectionObjectKind.Variable);
-    if (reference instanceof Variable) {
-      const variable = <Variable>reference;
+    const reference = compiler.resolveReference(<ts.Identifier>node.left, ReflectionObjectKind.GlobalVariable | ReflectionObjectKind.LocalVariable);
+    if (reference instanceof VariableBase) {
+      const variable = <VariableBase>reference;
       const expression = compiler.maybeConvertValue(node.right, value, getReflectedType(node.right), variable.type, false);
 
       if (contextualType === Type.void)
-        return variable.isGlobal
-          ? op.setGlobal(variable.name, expression)
-          : op.setLocal(variable.localIndex, expression);
+        return variable instanceof LocalVariable
+          ? op.setLocal((<LocalVariable>variable).index, expression)
+          : op.setGlobal(variable.name, expression);
 
       setReflectedType(node, variable.type);
-      return variable.isGlobal
-        ? op.block("", [ // emulates teeGlobal
+      return variable instanceof LocalVariable
+        ? op.teeLocal((<LocalVariable>variable).index, expression)
+        : op.block("", [ // emulates teeGlobal
             op.setGlobal(variable.name, expression),
             op.getGlobal(variable.name, compiler.typeOf(variable.type))
-          ], compiler.typeOf(variable.type))
-        : op.teeLocal(variable.localIndex, expression);
+          ], compiler.typeOf(variable.type));
     }
 
   } else if (node.left.kind === ts.SyntaxKind.ElementAccessExpression)

@@ -12,7 +12,7 @@ import * as library from "./library";
 import Memory from "./memory";
 import { tryParseLiteral, tryParseArrayLiteral } from "./parser";
 import Profiler from "./profiler";
-import { Type, TypeKind, TypeArgumentsMap, Class, ClassTemplate, ClassHandle, Function, FunctionTemplate, FunctionHandle, Variable, Enum, ReflectionObjectKind, patchClassImplementation } from "./reflection";
+import { Type, TypeKind, TypeArgumentsMap, Class, ClassTemplate, ClassHandle, Function, FunctionTemplate, FunctionHandle, GlobalVariable, Enum, ReflectionObjectKind, patchClassImplementation } from "./reflection";
 import * as statements from "./statements";
 import * as ts from "./typescript";
 import * as util from "./util";
@@ -84,7 +84,7 @@ export class Compiler {
   usizeType: Type;
   functionTemplates: { [key: string]: FunctionTemplate } = {};
   classTemplates: { [key: string]: ClassTemplate } = {};
-  globals: { [key: string]: Variable } = {};
+  globals: { [key: string]: GlobalVariable } = {};
   functions: { [key: string]: Function } = {};
   classes: { [key: string]: Class } = {};
   enums: { [key: string]: Enum } = {};
@@ -289,7 +289,7 @@ export class Compiler {
             break;
 
           case ts.SyntaxKind.EnumDeclaration:
-            this.initializeEnum(<ts.EnumDeclaration>statement);
+            Enum.initialize(this, <ts.EnumDeclaration>statement);
             break;
 
           case ts.SyntaxKind.ModuleDeclaration:
@@ -364,7 +364,7 @@ export class Compiler {
   addGlobal(name: string, type: Type, mutable: boolean, initializerNode?: ts.Expression): void {
     const op = this.module;
 
-    const global = new Variable(this, name, type, mutable);
+    const global = new GlobalVariable(this, name, type, mutable);
     if (initializerNode) {
       let arrayValues: Array<number | Long | string | null> | null;
 
@@ -609,24 +609,6 @@ export class Compiler {
     return { template, instance };
   }
 
-  /** Initializes an enum. */
-  initializeEnum(node: ts.EnumDeclaration): Enum {
-
-    // determine the enum's global name
-    const name = this.mangleGlobalName(ts.getTextOfNode(node.name), ts.getSourceFileOfNode(node));
-
-    // check if it is already initialized
-    if (this.enums[name])
-      return this.enums[name];
-
-    // enums cannot be exported yet (only functions are supported)
-    if (ts.getSourceFileOfNode(node) === this.entryFile && util.isExport(node))
-      this.report(node.name, ts.DiagnosticsEx.Unsupported_modifier_0, "export");
-
-    // create the instance
-    return new Enum(this, name, node); // registers as a side-effect
-  }
-
   /** Compiles the module and its components. */
   compile(): void {
 
@@ -731,7 +713,7 @@ export class Compiler {
     // make sure to check for additional locals
     const additionalLocals: binaryen.Type[] = [];
     for (i = 0; i < this.startFunction.locals.length; ++i)
-      if (!this.startFunction.locals[i].isInlined)
+      if (!this.startFunction.locals[i].isInlineable)
         additionalLocals.push(this.typeOf(this.startFunction.locals[i].type));
 
     // and finally add the function
@@ -872,7 +854,7 @@ export class Compiler {
     const additionalLocals: binaryen.Type[] = [];
     for (let i = initialLocalsLength; i < instance.locals.length; ++i) {
       const local = instance.locals[i];
-      if (!local.isInlined)
+      if (!local.isInlineable)
         additionalLocals.push(this.typeOf(local.type));
     }
     const binaryenFunction = instance.binaryenFunction = this.module.addFunction(instance.name, instance.binaryenSignature, additionalLocals, op.block("", body));
@@ -1279,7 +1261,7 @@ export class Compiler {
 
     // Locals including 'this'
     const localName = ts.getTextOfNode(node);
-    if (this.currentFunction && this.currentFunction.localsByName[localName])
+    if (filter & ReflectionObjectKind.LocalVariable && this.currentFunction && this.currentFunction.localsByName[localName])
       return this.currentFunction.localsByName[localName];
 
     // Globals, enums, functions and classes
@@ -1290,22 +1272,22 @@ export class Compiler {
         const declaration = symbol.declarations[i];
         const globalName = this.mangleGlobalName(ts.getNameOfSymbol(symbol), ts.getSourceFileOfNode(declaration));
 
-        if (filter & ReflectionObjectKind.Variable && this.globals[globalName])
+        if (filter & ReflectionObjectKind.GlobalVariable && this.globals.hasOwnProperty(globalName))
           return this.globals[globalName];
 
-        if (filter & ReflectionObjectKind.Enum && this.enums[globalName])
+        if (filter & ReflectionObjectKind.Enum && this.enums.hasOwnProperty(globalName))
           return this.enums[globalName];
 
-        if (filter & ReflectionObjectKind.Function && this.functions[globalName])
+        if (filter & ReflectionObjectKind.Function && this.functions.hasOwnProperty(globalName))
           return this.functions[globalName];
 
-        if (filter & ReflectionObjectKind.FunctionTemplate && this.functionTemplates[globalName])
+        if (filter & ReflectionObjectKind.FunctionTemplate && this.functionTemplates.hasOwnProperty(globalName))
           return this.functionTemplates[globalName];
 
-        if (filter & ReflectionObjectKind.Class && this.classes[globalName])
+        if (filter & ReflectionObjectKind.Class && this.classes.hasOwnProperty(globalName))
           return this.classes[globalName];
 
-        if (filter & ReflectionObjectKind.ClassTemplate && this.classTemplates[globalName])
+        if (filter & ReflectionObjectKind.ClassTemplate && this.classTemplates.hasOwnProperty(globalName))
           return this.classTemplates[globalName];
       }
     }

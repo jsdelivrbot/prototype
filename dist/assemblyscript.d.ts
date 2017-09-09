@@ -393,7 +393,7 @@ declare module 'assemblyscript/compiler' {
   import * as Long from "long";
   import Memory from "assemblyscript/memory";
   import Profiler from "assemblyscript/profiler";
-  import { Type, TypeArgumentsMap, Class, ClassTemplate, ClassHandle, Function, FunctionTemplate, FunctionHandle, Variable, Enum, ReflectionObjectKind } from "assemblyscript/reflection";
+  import { Type, TypeArgumentsMap, Class, ClassTemplate, ClassHandle, Function, FunctionTemplate, FunctionHandle, GlobalVariable, Enum, ReflectionObjectKind } from "assemblyscript/reflection";
   import * as ts from "assemblyscript/typescript";
   /** Library name prefix. */
   export const LIB_PREFIX = "lib:";
@@ -453,7 +453,7 @@ declare module 'assemblyscript/compiler' {
           [key: string]: ClassTemplate;
       };
       globals: {
-          [key: string]: Variable;
+          [key: string]: GlobalVariable;
       };
       functions: {
           [key: string]: Function;
@@ -524,8 +524,6 @@ declare module 'assemblyscript/compiler' {
       initializeStaticMethod(node: ts.MethodDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration): FunctionHandle;
       /** Initializes an instance method. */
       initializeInstanceMethod(node: ts.MethodDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration | ts.ConstructorDeclaration, parent: Class): FunctionHandle;
-      /** Initializes an enum. */
-      initializeEnum(node: ts.EnumDeclaration): Enum;
       /** Compiles the module and its components. */
       compile(): void;
       /** Compiles the start function if either a user-provided start function is or global initializes are present. */
@@ -838,10 +836,6 @@ declare module 'assemblyscript/reflection/class' {
   import { Type, TypeArgumentsMap } from "assemblyscript/reflection/type";
   /** Common base class of {@link Class} and {@link ClassTemplate}. */
   export abstract class ClassBase extends ReflectionObject {
-      /** Global name. */
-      name: string;
-      /** Simple name. */
-      simpleName: string;
       /** Declaration reference. */
       declaration: ts.ClassDeclaration;
       constructor(kind: ReflectionObjectKind, compiler: Compiler, name: string, declaration: ts.ClassDeclaration);
@@ -851,7 +845,6 @@ declare module 'assemblyscript/reflection/class' {
       readonly isExport: boolean;
       /** Tests if this class has been annotated with a decorator of the specified name. */
       hasDecorator(name: string): boolean;
-      toString(): string;
   }
   /** Interface describing a reflected class method. */
   export interface ClassMethod {
@@ -957,22 +950,26 @@ declare module 'assemblyscript/reflection/enum' {
   import * as ts from "assemblyscript/typescript";
   import { Compiler } from "assemblyscript/compiler";
   import { ReflectionObject } from "assemblyscript/reflection/object";
-  import { Property } from "assemblyscript/reflection/property";
-  /** A reflected enum instance. */
+  /** A reflected enum. */
   export class Enum extends ReflectionObject {
-      /** Global name. */
-      name: string;
-      /** Simple name. */
-      simpleName: string;
+      /** Initializes a new reflected enum. */
+      static initialize(compiler: Compiler, declaration: ts.EnumDeclaration): Enum;
       /** Declaration reference. */
       declaration: ts.EnumDeclaration;
       /** Enum values by simple name. */
       values: {
-          [key: string]: Property;
+          [key: string]: EnumValue;
       };
-      /** Constructs a new reflected enum and binds it to its TypeScript declaration. */
+      /** Constructs a new reflected enum. */
       constructor(compiler: Compiler, name: string, declaration: ts.EnumDeclaration);
-      toString(): string;
+  }
+  /** A reflected enum value. */
+  export class EnumValue extends ReflectionObject {
+      /** Property name. */
+      name: string;
+      /** Declaration reference. */
+      declaration: ts.EnumMember;
+      constructor(compiler: Compiler, name: string, declaration: ts.EnumMember);
   }
   export default Enum;
 }
@@ -985,7 +982,7 @@ declare module 'assemblyscript/reflection/function' {
   import { Compiler } from "assemblyscript/compiler";
   import { ReflectionObject, ReflectionObjectKind } from "assemblyscript/reflection/object";
   import { Type, TypeArgumentsMap } from "assemblyscript/reflection/type";
-  import { Variable } from "assemblyscript/reflection/variable";
+  import { LocalVariable } from "assemblyscript/reflection/variable";
   /** A function handle consisting of its instance, if any, and its template. */
   export interface FunctionHandle {
       template: FunctionTemplate;
@@ -993,8 +990,6 @@ declare module 'assemblyscript/reflection/function' {
   }
   /** Common base class of {@link Function} and {@link FunctionTemplate}. */
   export abstract class FunctionBase extends ReflectionObject {
-      /** Global name. */
-      name: string;
       /** Simple name. */
       simpleName: string;
       /** Declaration reference. */
@@ -1052,10 +1047,10 @@ declare module 'assemblyscript/reflection/function' {
       /** Current unique local id. */
       uniqueLocalId: 1;
       /** Local variables. */
-      locals: Variable[];
+      locals: LocalVariable[];
       /** Local variables by name for lookups. */
       localsByName: {
-          [key: string]: Variable;
+          [key: string]: LocalVariable;
       };
       /** Resolved binaryen parameter types. */
       binaryenParameterTypes: BinaryenType[];
@@ -1080,9 +1075,9 @@ declare module 'assemblyscript/reflection/function' {
       /** Gets the current break label for use with binaryen loops and blocks. */
       readonly breakLabel: string;
       /** Introduces an additional local variable of the specified name and type. */
-      addLocal(name: string, type: Type, mutable?: boolean, value?: number | Long | null): Variable;
+      addLocal(name: string, type: Type, mutable?: boolean, value?: number | Long | null): LocalVariable;
       /** Introduces an additional unique local variable of the specified type. */
-      addUniqueLocal(type: Type, prefix?: string): Variable;
+      addUniqueLocal(type: Type, prefix?: string): LocalVariable;
       /** Compiles a call to this function using the specified arguments. Arguments to instance functions include `this` as the first argument or can specifiy it in `thisArg`. */
       compileCall(argumentNodes: ts.NodeArray<ts.Expression> | ts.Expression[], thisArg?: Expression): Expression;
       /** Makes a call to this function using the specified operands. */
@@ -1111,13 +1106,15 @@ declare module 'assemblyscript/reflection/object' {
   import { Compiler } from "assemblyscript/compiler";
   /** Object kinds. Also used as filters. */
   export const enum ReflectionObjectKind {
-      Variable = 1,
+      GlobalVariable = 1,
       Enum = 2,
-      FunctionTemplate = 4,
-      Function = 8,
-      ClassTemplate = 16,
-      Class = 32,
-      Property = 64,
+      EnumValue = 4,
+      FunctionTemplate = 8,
+      Function = 16,
+      LocalVariable = 32,
+      ClassTemplate = 64,
+      Class = 128,
+      Property = 256,
   }
   /** Base class of all reflection objects. */
   export abstract class ReflectionObject {
@@ -1125,8 +1122,11 @@ declare module 'assemblyscript/reflection/object' {
       kind: ReflectionObjectKind;
       /** Compiler reference. */
       compiler: Compiler;
-      /** Constructs a neww reflection object. */
-      constructor(kind: ReflectionObjectKind, compiler: Compiler);
+      /** Global name. */
+      name: string;
+      /** Constructs a new reflection object. */
+      constructor(kind: ReflectionObjectKind, compiler: Compiler, name: string);
+      toString(): string;
   }
   export default ReflectionObject;
 }
@@ -1139,10 +1139,6 @@ declare module 'assemblyscript/reflection/property' {
   import { ReflectionObject } from "assemblyscript/reflection/object";
   /** A reflected property. Also used to describe enum values. */
   export class Property extends ReflectionObject {
-      /** Global name. */
-      name: string;
-      /** Simple name. */
-      simpleName: string;
       /** Declaration reference. */
       declaration: ts.PropertyDeclaration | ts.EnumMember;
       /** Resolved type. */
@@ -1155,7 +1151,6 @@ declare module 'assemblyscript/reflection/property' {
       constructor(compiler: Compiler, name: string, declaration: ts.PropertyDeclaration | ts.EnumMember, type: Type, offset: number, initializer?: ts.Expression);
       /** Tests if this property is an instance member. */
       readonly isInstance: boolean;
-      toString(): string;
   }
   export default Property;
 }
@@ -1300,33 +1295,37 @@ declare module 'assemblyscript/reflection/type' {
 declare module 'assemblyscript/reflection/variable' {
   /** @module assemblyscript/reflection */ /** */
   import { Compiler } from "assemblyscript/compiler";
-  import { ReflectionObject } from "assemblyscript/reflection/object";
+  import { ReflectionObject, ReflectionObjectKind } from "assemblyscript/reflection/object";
   import { Type } from "assemblyscript/reflection/type";
-  /** A reflected variable. */
-  export class Variable extends ReflectionObject {
-      /** Simple or global name, depending on context. */
-      name: string;
+  /** Common base class of {@link GlobalVariable} and {@link LocalVariable}. */
+  export abstract class VariableBase extends ReflectionObject {
       /** Reflected type. */
       type: Type;
       /** Whether mutable or not. */
       mutable: boolean;
-      /** Local index, if applicable. */
-      localIndex: number;
-      /** Constant value, if applicable. */
+      /** Constant value, if applicable, otherwise `null`. */
       constantValue: number | Long | null;
-      /** Constructs a new reflected variable. */
-      constructor(compiler: Compiler, name: string, type: Type, mutable?: boolean, localIndex?: number, constantValue?: number | Long | null);
+      /** Constructs a new reflected global variable. */
+      constructor(kind: ReflectionObjectKind, compiler: Compiler, name: string, type: Type, mutable?: boolean, constantValue?: number | Long | null);
       /** Tests if this variable is declared constant. */
       readonly isConstant: boolean;
-      /** Tests if this is a global variable. */
-      readonly isGlobal: boolean;
-      /** Tests if this is a local variable. */
-      readonly isLocal: boolean;
-      /** Tests if this variable's value is inlined. */
-      readonly isInlined: boolean;
-      toString(): string;
+      /** Tests if this variable's value is inlineable. */
+      readonly isInlineable: boolean;
   }
-  export default Variable;
+  /** A reflected global variable. */
+  export class GlobalVariable extends VariableBase {
+      /** Constructs a new reflected global variable. */
+      constructor(compiler: Compiler, name: string, type: Type, mutable?: boolean, constantValue?: number | Long | null);
+  }
+  /** A reflected local variable. */
+  export class LocalVariable extends VariableBase {
+      /** Local name. */
+      name: string;
+      /** Local variable index. */
+      index: number;
+      /** Constructs a new reflected local variable. */
+      constructor(compiler: Compiler, name: string, type: Type, index: number, mutable?: boolean, constantValue?: number | Long | null);
+  }
 }
 
 declare module 'assemblyscript/typescript/diagnosticMessages.generated' {

@@ -29,9 +29,9 @@ export function compileLoadOrStore(compiler: Compiler, node: ts.Expression, type
   const tempVar = compiler.currentFunction.localsByName[type.tempName] || compiler.currentFunction.addLocal(type.tempName, type);
 
   return op.block("", [
-    op.setLocal(tempVar.localIndex, ptr),
-    compileStore(compiler, node, type, op.getLocal(tempVar.localIndex, binaryenType), offset, valueToSet),
-    compileLoad(compiler, node, type, op.getLocal(tempVar.localIndex, binaryenType), offset)
+    op.setLocal(tempVar.index, ptr),
+    compileStore(compiler, node, type, op.getLocal(tempVar.index, binaryenType), offset, valueToSet),
+    compileLoad(compiler, node, type, op.getLocal(tempVar.index, binaryenType), offset)
   ], binaryenType);
 }
 

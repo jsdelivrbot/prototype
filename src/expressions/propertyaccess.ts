@@ -29,15 +29,15 @@ export function compilePropertyAccess(compiler: Compiler, node: ts.PropertyAcces
       setReflectedType(node, Type.i32);
 
       const enm = <Enum>reference;
-      const enmProperty = enm.values[propertyName];
+      const enmValue = enm.values[propertyName];
 
-      if (!enmProperty)
+      if (!enmValue)
         throw Error("no such enum property"); // handled by typescript
 
-      const value = compiler.checker.getConstantValue(<ts.EnumMember>enmProperty.declaration);
+      const value = compiler.checker.getConstantValue(<ts.EnumMember>enmValue.declaration);
       if (typeof value === "number") {
-        setReflectedType(node, enmProperty.type);
-        return compiler.valueOf(enmProperty.type, value);
+        setReflectedType(node, Type.i32);
+        return compiler.valueOf(Type.i32, value);
       }
 
       compiler.report(node.expression, ts.DiagnosticsEx.Unsupported_literal_0, value);

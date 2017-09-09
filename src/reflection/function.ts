@@ -7,7 +7,7 @@ import { Class } from "./class";
 import { Compiler } from "../compiler";
 import { ReflectionObject, ReflectionObjectKind } from "./object";
 import { Type, TypeArgumentsMap } from "./type";
-import { Variable } from "./variable";
+import { LocalVariable } from "./variable";
 import { isDeclare, isExport, isStatic, getReflectedClass, getReflectedClassTemplate, setReflectedFunction, setReflectedFunctionTemplate } from "../util";
 
 /** A function handle consisting of its instance, if any, and its template. */
@@ -19,8 +19,6 @@ export interface FunctionHandle {
 /** Common base class of {@link Function} and {@link FunctionTemplate}. */
 export abstract class FunctionBase extends ReflectionObject {
 
-  /** Global name. */
-  name: string;
   /** Simple name. */
   simpleName: string;
   /** Declaration reference. */
@@ -29,8 +27,7 @@ export abstract class FunctionBase extends ReflectionObject {
   classDeclaration?: ts.ClassDeclaration;
 
   protected constructor(kind: ReflectionObjectKind, compiler: Compiler, name: string, declaration: ts.FunctionLikeDeclaration) {
-    super(kind, compiler);
-    this.name = name;
+    super(kind, compiler, name);
     this.simpleName = ts.getTextOfNode(<ts.Identifier>declaration.name);
     this.declaration = declaration;
     if (declaration.parent && declaration.parent.kind === ts.SyntaxKind.ClassDeclaration)
@@ -105,9 +102,9 @@ export class Function extends FunctionBase {
   // Set on initialization
 
   /** Local variables. */
-  locals: Variable[];
+  locals: LocalVariable[];
   /** Local variables by name for lookups. */
-  localsByName: { [key: string]: Variable };
+  localsByName: { [key: string]: LocalVariable };
   /** Resolved binaryen parameter types. */
   binaryenParameterTypes: BinaryenType[];
   /** Resolved binaryen return type. */
@@ -160,7 +157,7 @@ export class Function extends FunctionBase {
     const ids: string[] = [];
 
     for (let i = 0, k = this.parameters.length; i < k; ++i) {
-      const variable = new Variable(this.compiler, this.parameters[i].name, this.parameters[i].type, true, this.locals.length);
+      const variable = new LocalVariable(this.compiler, this.parameters[i].name, this.parameters[i].type, this.locals.length, true);
       this.binaryenParameterTypes.push(this.compiler.typeOf(this.parameters[i].type));
       this.locals.push(variable);
       this.localsByName[variable.name] = variable;
@@ -177,15 +174,15 @@ export class Function extends FunctionBase {
   get breakLabel(): string { return this.breakNumber + "." + this.breakDepth; }
 
   /** Introduces an additional local variable of the specified name and type. */
-  addLocal(name: string, type: Type, mutable: boolean = true, value: number | Long | null = null): Variable {
-    const variable = new Variable(this.compiler, name, type, mutable, this.locals.length, value);
+  addLocal(name: string, type: Type, mutable: boolean = true, value: number | Long | null = null): LocalVariable {
+    const variable = new LocalVariable(this.compiler, name, type, this.locals.length, mutable, value);
     this.locals.push(variable);
     this.localsByName[variable.name] = variable;
     return variable;
   }
 
   /** Introduces an additional unique local variable of the specified type. */
-  addUniqueLocal(type: Type, prefix: string = ""): Variable {
+  addUniqueLocal(type: Type, prefix: string = ""): LocalVariable {
     return this.addLocal("." + (prefix || this.compiler.identifierOf(type)) + this.uniqueLocalId++, type);
   }
 

@@ -11,20 +11,12 @@ import { getReflectedFunction, setReflectedFunction, setReflectedFunctionTemplat
 /** Common base class of {@link Class} and {@link ClassTemplate}. */
 export abstract class ClassBase extends ReflectionObject {
 
-  /** Global name. */
-  name: string;
-  /** Simple name. */
-  simpleName: string;
   /** Declaration reference. */
   declaration: ts.ClassDeclaration;
 
   constructor(kind: ReflectionObjectKind, compiler: Compiler, name: string, declaration: ts.ClassDeclaration) {
-    super(kind, compiler);
-    this.name = name;
+    super(kind, compiler, name);
     this.declaration = declaration;
-
-    const p = name.lastIndexOf("/");
-    this.simpleName = p > -1 ? name.substring(p + 1) : name;
   }
 
   /** Tests if this class is generic. */
@@ -49,8 +41,6 @@ export abstract class ClassBase extends ReflectionObject {
     }
     return false;
   }
-
-  toString(): string { return this.name; }
 }
 
 /** Interface describing a reflected class method. */

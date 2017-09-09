@@ -29,7 +29,7 @@ export function compilePostfixUnary(compiler: Compiler, node: ts.PostfixUnaryExp
 
           let calculate = (isIncrement ? cat.add : cat.sub).call(cat,
             op.getLocal(
-              local.localIndex,
+              local.index,
               compiler.typeOf(local.type)
             ),
             one
@@ -40,10 +40,10 @@ export function compilePostfixUnary(compiler: Compiler, node: ts.PostfixUnaryExp
 
           if (contextualType === Type.void) {
             setReflectedType(node, Type.void);
-            return op.setLocal(local.localIndex, calculate);
+            return op.setLocal(local.index, calculate);
           } else {
             setReflectedType(node, local.type);
-            return (isIncrement ? cat.sub : cat.add).call(cat, op.teeLocal(local.localIndex, calculate), one);
+            return (isIncrement ? cat.sub : cat.add).call(cat, op.teeLocal(local.index, calculate), one);
           }
         }
         default:

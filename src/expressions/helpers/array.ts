@@ -20,11 +20,11 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
   // initialize header
   const block = [
     // capacity: *(arrptr = malloc(...)) = elementSize
-    op.i32.store(0, Type.i32.size, op.teeLocal(arrptr.localIndex,
+    op.i32.store(0, Type.i32.size, op.teeLocal(arrptr.index,
       compiler.compileMallocInvocation(compiler.arrayHeaderSize + elementCount * elementType.size) // capacity + length + N * element
     ), binaryenElementSize),
     // length: *(arrptr + 4) = elementSize
-    op.i32.store(Type.i32.size, Type.i32.size, op.getLocal(arrptr.localIndex, binaryenUsizeType), binaryenElementSize)
+    op.i32.store(Type.i32.size, Type.i32.size, op.getLocal(arrptr.index, binaryenUsizeType), binaryenElementSize)
   ];
 
   // initialize concrete values if specified
@@ -32,7 +32,7 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
     for (let i = 0; i < elementCount; ++i)
       block.push(
         compileStore(compiler, elementsOrSize[i], elementType,
-          op.getLocal(arrptr.localIndex, binaryenUsizeType),
+          op.getLocal(arrptr.index, binaryenUsizeType),
           compiler.arrayHeaderSize + i * elementType.size,
           compiler.compileExpression(elementsOrSize[i], elementType, elementType)
         )
@@ -40,7 +40,7 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
 
   // return the pointer as the block's result
   block.push(
-    op.getLocal(arrptr.localIndex, binaryenUsizeType)
+    op.getLocal(arrptr.index, binaryenUsizeType)
   );
 
   return op.block("", block, binaryenUsizeType);
