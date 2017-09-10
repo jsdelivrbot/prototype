@@ -108,6 +108,30 @@
     (i32.const 1)
    )
   )
+  (set_global $int_c
+   (i32.add
+    (get_global $int_c)
+    (i32.const 1)
+   )
+  )
+  (set_global $int_c
+   (i32.sub
+    (get_global $int_c)
+    (i32.const 1)
+   )
+  )
+  (set_global $int_c
+   (i32.add
+    (get_global $int_c)
+    (i32.const 1)
+   )
+  )
+  (set_global $int_c
+   (i32.sub
+    (get_global $int_c)
+    (i32.const 1)
+   )
+  )
  )
  (func $testLong (type $Iv) (param $0 i64)
   (local $1 i64)
@@ -214,6 +238,30 @@
     (i64.const 1)
    )
   )
+  (set_global $long_c
+   (i64.add
+    (get_global $long_c)
+    (i64.const 1)
+   )
+  )
+  (set_global $long_c
+   (i64.sub
+    (get_global $long_c)
+    (i64.const 1)
+   )
+  )
+  (set_global $long_c
+   (i64.add
+    (get_global $long_c)
+    (i64.const 1)
+   )
+  )
+  (set_global $long_c
+   (i64.sub
+    (get_global $long_c)
+    (i64.const 1)
+   )
+  )
  )
  (func $testFloat (type $fv) (param $0 f32)
   (local $1 f32)
@@ -308,6 +356,30 @@
     (f32.const 1)
    )
   )
+  (set_global $float_c
+   (f32.add
+    (get_global $float_c)
+    (f32.const 1)
+   )
+  )
+  (set_global $float_c
+   (f32.sub
+    (get_global $float_c)
+    (f32.const 1)
+   )
+  )
+  (set_global $float_c
+   (f32.add
+    (get_global $float_c)
+    (f32.const 1)
+   )
+  )
+  (set_global $float_c
+   (f32.sub
+    (get_global $float_c)
+    (f32.const 1)
+   )
+  )
  )
  (func $testDouble (type $Fv) (param $0 f64)
   (local $1 f64)
@@ -399,6 +471,30 @@
       (f64.const 1)
      )
     )
+    (f64.const 1)
+   )
+  )
+  (set_global $double_c
+   (f64.add
+    (get_global $double_c)
+    (f64.const 1)
+   )
+  )
+  (set_global $double_c
+   (f64.sub
+    (get_global $double_c)
+    (f64.const 1)
+   )
+  )
+  (set_global $double_c
+   (f64.add
+    (get_global $double_c)
+    (f64.const 1)
+   )
+  )
+  (set_global $double_c
+   (f64.sub
+    (get_global $double_c)
     (f64.const 1)
    )
   )

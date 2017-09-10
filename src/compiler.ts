@@ -1260,9 +1260,11 @@ export class Compiler {
   resolveReference(node: ts.Identifier | ts.EntityName, filter: ReflectionObjectKind = -1): Object | null {
 
     // Locals including 'this'
-    const localName = ts.getTextOfNode(node);
-    if (filter & ReflectionObjectKind.LocalVariable && this.currentFunction && this.currentFunction.localsByName[localName])
-      return this.currentFunction.localsByName[localName];
+    if (filter & ReflectionObjectKind.LocalVariable && this.currentFunction) {
+      const localName = ts.getTextOfNode(node);
+      if (this.currentFunction.localsByName.hasOwnProperty(localName))
+        return this.currentFunction.localsByName[localName];
+    }
 
     // Globals, enums, functions and classes
     const symbol = this.checker.getSymbolAtLocation(node);

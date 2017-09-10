@@ -965,7 +965,7 @@ declare module 'assemblyscript/reflection/enum' {
   }
   /** A reflected enum value. */
   export class EnumValue extends ReflectionObject {
-      /** Property name. */
+      /** Value name. */
       name: string;
       /** Declaration reference. */
       declaration: ts.EnumMember;

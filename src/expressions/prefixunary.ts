@@ -3,7 +3,7 @@
 import * as ts from "../typescript";
 import { Expression } from "binaryen";
 import { Compiler } from "../compiler";
-import { Type } from "../reflection";
+import { Type, ReflectionObjectKind, VariableBase, LocalVariable } from "../reflection";
 import { getReflectedType, setReflectedType } from "../util";
 
 /** Compiles a unary prefix expression. */
@@ -88,28 +88,41 @@ export function compilePrefixUnary(compiler: Compiler, node: ts.PrefixUnaryExpre
     {
       if (node.operand.kind === ts.SyntaxKind.Identifier) {
 
-        const localName = ts.getTextOfNode(node.operand);
-        const local = compiler.currentFunction.localsByName[localName];
-        if (local) {
+        const reference = compiler.resolveReference(<ts.Identifier>node.operand, ReflectionObjectKind.LocalVariable | ReflectionObjectKind.GlobalVariable);
+        if (reference instanceof VariableBase) {
+          const variable = <VariableBase>reference;
 
-          const cat = compiler.categoryOf(local.type);
+          const cat = compiler.categoryOf(variable.type);
           const isIncrement = node.operator === ts.SyntaxKind.PlusPlusToken;
+          const binaryenType = compiler.typeOf(variable.type);
 
           const calculate = (isIncrement ? cat.add : cat.sub).call(cat,
-            op.getLocal(
-              local.index,
-              compiler.typeOf(local.type)
-            ),
-            compiler.valueOf(local.type, 1)
+            variable instanceof LocalVariable
+              ? op.getLocal(
+                  variable.index,
+                  binaryenType
+                )
+              : op.getGlobal(
+                  variable.name,
+                  binaryenType
+                ),
+            compiler.valueOf(variable.type, 1)
           );
 
           if (contextualType === Type.void) {
             setReflectedType(node, Type.void);
-            return op.setLocal(local.index, calculate);
-          } else {
-            setReflectedType(node, local.type);
-            return op.teeLocal(local.index, calculate);
+            return variable instanceof LocalVariable
+              ? op.setLocal(variable.index, calculate)
+              : op.setGlobal(variable.name, calculate);
           }
+
+          setReflectedType(node, variable.type);
+          return variable instanceof LocalVariable
+            ? op.teeLocal(variable.index, calculate)
+            : op.block("", [
+                op.setGlobal(variable.name, calculate),
+                op.getGlobal(variable.name, binaryenType)
+              ], binaryenType);
         }
       }
     }

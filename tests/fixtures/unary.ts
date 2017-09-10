@@ -1,8 +1,10 @@
 //! { "noRuntime": true }
 
+let int_c: i32;
+
 export function testInt(a: i32): void {
   let b: i32;
-  let c: bool;
+  let r: bool;
 
   // should be dropped
   !a;
@@ -11,7 +13,7 @@ export function testInt(a: i32): void {
   ~a;
 
   // should be kept
-  c = !a;
+  r = !a;
   b = +a;
   b = -a;
   b = ~a;
@@ -27,11 +29,19 @@ export function testInt(a: i32): void {
   b = --a;
   b = a++;
   b = a--;
+
+  // should become a set_global
+  ++int_c;
+  --int_c;
+  int_c++;
+  int_c--;
 }
+
+let long_c: i64;
 
 export function testLong(a: i64): void {
   let b: i64;
-  let c: bool;
+  let r: bool;
 
   // should be dropped
   !a;
@@ -40,7 +50,7 @@ export function testLong(a: i64): void {
   ~a;
 
   // should be kept
-  c = !a;
+  r = !a;
   b = +a;
   b = -a;
   b = ~a;
@@ -56,11 +66,19 @@ export function testLong(a: i64): void {
   b = --a;
   b = a++;
   b = a--;
+
+  // should become a set_global
+  ++long_c;
+  --long_c;
+  long_c++;
+  long_c--;
 }
+
+let float_c: f32;
 
 export function testFloat(a: f32): void {
   let b: f32;
-  let c: bool;
+  let r: bool;
 
   // should be dropped
   !a;
@@ -68,7 +86,7 @@ export function testFloat(a: f32): void {
   -a;
 
   // should be kept
-  c = !a;
+  r = !a;
   b = +a;
   b = -a;
 
@@ -83,11 +101,19 @@ export function testFloat(a: f32): void {
   b = --a;
   b = a++;
   b = a--;
+
+  // should become a set_global
+  ++float_c;
+  --float_c;
+  float_c++;
+  float_c--;
 }
+
+let double_c: f64;
 
 export function testDouble(a: f64): void {
   let b: f64;
-  let c: bool;
+  let r: bool;
 
   // should be dropped
   !a;
@@ -95,7 +121,7 @@ export function testDouble(a: f64): void {
   -a;
 
   // should be kept
-  c = !a;
+  r = !a;
   b = +a;
   b = -a;
 
@@ -110,4 +136,10 @@ export function testDouble(a: f64): void {
   b = --a;
   b = a++;
   b = a--;
+
+  // should become a set_global
+  ++double_c;
+  --double_c;
+  double_c++;
+  double_c--;
 }
