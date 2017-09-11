@@ -97,8 +97,8 @@ export class Type {
   /** Gets the common name of a temporary variable of this type. */
   get tempName(): string { return "." + TypeKind[this.kind]; }
 
-  /** Amends a pointer to reference the specified underlying class. */
-  withUnderlyingClass(underlyingClass: Class): Type {
+  /** Derives a class type from a pointer type. */
+  asClass(underlyingClass: Class): Type {
     if (this.kind !== TypeKind.usize)
       throw Error("usize expected");
     const type = new Type(this.kind, this.size);

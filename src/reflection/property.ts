@@ -19,12 +19,12 @@ export class Property extends ReflectionObject {
   initializer: ts.Expression | undefined;
 
   /** Constructs a new reflected property. */
-  constructor(compiler: Compiler, name: string, declaration: ts.PropertyDeclaration | ts.EnumMember, type: Type, offset: number, initializer?: ts.Expression) {
+  constructor(compiler: Compiler, name: string, declaration: ts.PropertyDeclaration | ts.EnumMember, type: Type, offset: number) {
     super(ReflectionObjectKind.Property, compiler, name);
     this.declaration = declaration;
     this.type = type;
     this.offset = offset;
-    this.initializer = initializer;
+    this.initializer = declaration.initializer;
   }
 
   /** Tests if this property is an instance member. */

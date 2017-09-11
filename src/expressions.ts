@@ -119,7 +119,7 @@ export function compile(compiler: Compiler, node: ts.Expression, contextualType:
 }
 
 /** Evaluates any supported expression. Returns `null` if that's not possible. */
-export function evaluate(node: ts.Expression, contextualType: reflection.Type): number | Long | string | Array<number | Long | string | null> | null {
+export function tryEvaluate(node: ts.Expression, contextualType: reflection.Type): number | Long | string | Array<number | Long | string | null> | null {
 
   // TODO: See https://github.com/AssemblyScript/assemblyscript/issues/100
 
@@ -129,7 +129,7 @@ export function evaluate(node: ts.Expression, contextualType: reflection.Type): 
   switch (node.kind) {
 
     case ts.SyntaxKind.ParenthesizedExpression:
-      return evaluate((<ts.ParenthesizedExpression>node).expression, contextualType);
+      return tryEvaluate((<ts.ParenthesizedExpression>node).expression, contextualType);
 
     case ts.SyntaxKind.PrefixUnaryExpression: {
       const expr = <ts.PrefixUnaryExpression>node;

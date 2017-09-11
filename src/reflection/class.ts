@@ -111,7 +111,7 @@ export class Class extends ClassBase {
 
     // initialize
     this.template = template;
-    this.type = compiler.usizeType.withUnderlyingClass(this);
+    this.type = compiler.usizeType.asClass(this);
     this.typeArguments = typeArguments;
     this.typeArgumentsMap = compiler.resolveTypeArgumentsMap(typeArguments, this.declaration, base && base.typeArgumentsMap);
     this.base = base;
@@ -141,7 +141,7 @@ export class Class extends ClassBase {
       if (propertyDeclaration.type) {
         const propertyType = this.compiler.resolveType(propertyDeclaration.type);
         if (propertyType) {
-          this.properties[propertyName] = new Property(this.compiler, propertyName, propertyDeclaration, propertyType, this.size, propertyDeclaration.initializer);
+          this.properties[propertyName] = new Property(this.compiler, propertyName, propertyDeclaration, propertyType, this.size);
           if (isStatic(propertyDeclaration))
             this.compiler.addGlobal(this.name + "." + propertyName, propertyType, true, propertyDeclaration.initializer);
           else

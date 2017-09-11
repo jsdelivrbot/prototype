@@ -155,7 +155,7 @@ declare module 'assemblyscript/expressions' {
   /** Compiles any supported expression. */
   export function compile(compiler: Compiler, node: ts.Expression, contextualType: reflection.Type): binaryen.Expression;
   /** Evaluates any supported expression. Returns `null` if that's not possible. */
-  export function evaluate(node: ts.Expression, contextualType: reflection.Type): number | Long | string | Array<number | Long | string | null> | null;
+  export function tryEvaluate(node: ts.Expression, contextualType: reflection.Type): number | Long | string | Array<number | Long | string | null> | null;
 }
 
 declare module 'assemblyscript/library' {
@@ -952,8 +952,6 @@ declare module 'assemblyscript/reflection/enum' {
   import { ReflectionObject } from "assemblyscript/reflection/object";
   /** A reflected enum. */
   export class Enum extends ReflectionObject {
-      /** Initializes a new reflected enum. */
-      static initialize(compiler: Compiler, declaration: ts.EnumDeclaration): Enum;
       /** Declaration reference. */
       declaration: ts.EnumDeclaration;
       /** Enum values by simple name. */
@@ -962,6 +960,8 @@ declare module 'assemblyscript/reflection/enum' {
       };
       /** Constructs a new reflected enum. */
       constructor(compiler: Compiler, name: string, declaration: ts.EnumDeclaration);
+      /** Initializes a new reflected enum. */
+      static initialize(compiler: Compiler, declaration: ts.EnumDeclaration): Enum;
   }
   /** A reflected enum value. */
   export class EnumValue extends ReflectionObject {
@@ -969,7 +969,9 @@ declare module 'assemblyscript/reflection/enum' {
       name: string;
       /** Declaration reference. */
       declaration: ts.EnumMember;
-      constructor(compiler: Compiler, name: string, declaration: ts.EnumMember);
+      /** Value. */
+      value: number;
+      constructor(compiler: Compiler, name: string, declaration: ts.EnumMember, value: number);
   }
   export default Enum;
 }
@@ -1148,7 +1150,7 @@ declare module 'assemblyscript/reflection/property' {
       /** Initializer expression, if applicable. */
       initializer: ts.Expression | undefined;
       /** Constructs a new reflected property. */
-      constructor(compiler: Compiler, name: string, declaration: ts.PropertyDeclaration | ts.EnumMember, type: Type, offset: number, initializer?: ts.Expression);
+      constructor(compiler: Compiler, name: string, declaration: ts.PropertyDeclaration | ts.EnumMember, type: Type, offset: number);
       /** Tests if this property is an instance member. */
       readonly isInstance: boolean;
   }
@@ -1244,8 +1246,8 @@ declare module 'assemblyscript/reflection/type' {
       readonly isNullable: boolean;
       /** Gets the common name of a temporary variable of this type. */
       readonly tempName: string;
-      /** Amends a pointer to reference the specified underlying class. */
-      withUnderlyingClass(underlyingClass: Class): Type;
+      /** Derives a class type from a pointer type. */
+      asClass(underlyingClass: Class): Type;
       /** Derives the respective nullable type of this type. */
       asNullable(): Type;
       toString(): string;
@@ -1460,6 +1462,12 @@ declare module 'assemblyscript/typescript/diagnosticMessages.generated' {
           message: string;
       };
       Compiling_global_with_unsupported_constant_initializer_expression_as_mutable: {
+          code: number;
+          category: DiagnosticCategory;
+          key: string;
+          message: string;
+      };
+      Unsupported_constant_expression: {
           code: number;
           category: DiagnosticCategory;
           key: string;
