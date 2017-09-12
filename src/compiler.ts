@@ -1161,14 +1161,43 @@ export class Compiler {
     return symbol;
   }
 
+  /** Reduces a literal union type to a common kind of type. Returns `null` if that's not possible. */
+  tryReduceLiteralUnionType(type: ts.UnionTypeNode): ts.TypeNode | null {
+    let commonType: ts.LiteralTypeNode | null = null;
+    for (let i = 0, k = type.types.length; i < k; ++i) {
+      let subType: ts.TypeNode | null = type.types[i];
+      if (subType.kind === ts.SyntaxKind.UnionType) {
+        subType = this.tryReduceLiteralUnionType(<ts.UnionTypeNode>subType);
+        if (subType === null)
+          return null;
+      }
+      if (subType.kind !== ts.SyntaxKind.LiteralType)
+        return null;
+      if (!commonType)
+        commonType = <ts.LiteralTypeNode>subType;
+      else if ((<ts.LiteralTypeNode>subType).literal.kind !== commonType.literal.kind)
+        return null;
+    }
+    return commonType;
+  }
+
   /** Resolves a TypeScript type to a AssemblyScript type. */
   resolveType(type: ts.TypeNode, acceptVoid: boolean = false, typeArgumentsMap?: TypeArgumentsMap): Type | null {
 
-    // only supported union type is `something | null`, representing a nullable that must reference a class
-    if (type.kind === ts.SyntaxKind.UnionType && (<ts.UnionTypeNode>type).types.length === 2 && ts.getTextOfNode((<ts.UnionTypeNode>type).types[1]) === "null") {
-      const nonNullable = this.resolveType((<ts.UnionTypeNode>type).types[0], false, typeArgumentsMap);
-      if (nonNullable)
-        return nonNullable.asNullable();
+    if (type.kind === ts.SyntaxKind.UnionType) {
+
+      // `something | null`, representing a nullable referencing a class
+      if ((<ts.UnionTypeNode>type).types.length === 2 && (<ts.UnionTypeNode>type).types[1].kind === ts.SyntaxKind.NullKeyword) {
+        const nonNullable = this.resolveType((<ts.UnionTypeNode>type).types[0], false, typeArgumentsMap);
+        if (nonNullable)
+          return nonNullable.asNullable();
+
+      // `"a" | "b"`, reduced to a common kind of literal type
+      } else {
+        const reducedType = this.tryReduceLiteralUnionType(<ts.UnionTypeNode>type);
+        if (reducedType !== null)
+          type = reducedType;
+      }
     }
 
     switch (type.kind) {
@@ -1235,6 +1264,11 @@ export class Compiler {
         }
         break;
       }
+
+      case ts.SyntaxKind.LiteralType:
+        if ((<ts.LiteralTypeNode>type).literal.kind !== ts.SyntaxKind.StringLiteral)
+          break;
+        // fallthrough
 
       case ts.SyntaxKind.StringKeyword: {
         const stringClass = this.classes[LIB_PREFIX + "String"];

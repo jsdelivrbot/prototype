@@ -46,6 +46,7 @@ export import GetAccessorDeclaration = ts.GetAccessorDeclaration;
 export import Identifier = ts.Identifier;
 export import IfStatement = ts.IfStatement;
 export import LiteralExpression = ts.LiteralExpression;
+export import LiteralTypeNode = ts.LiteralTypeNode;
 export import MethodDeclaration = ts.MethodDeclaration;
 export import ModifierFlags = ts.ModifierFlags;
        import ModuleKind = ts.ModuleKind;

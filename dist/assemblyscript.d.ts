@@ -217,6 +217,7 @@ declare module 'assemblyscript/typescript' {
   export import Identifier = ts.Identifier;
   export import IfStatement = ts.IfStatement;
   export import LiteralExpression = ts.LiteralExpression;
+  export import LiteralTypeNode = ts.LiteralTypeNode;
   export import MethodDeclaration = ts.MethodDeclaration;
   export import ModifierFlags = ts.ModifierFlags;
   export import NewExpression = ts.NewExpression;
@@ -548,6 +549,8 @@ declare module 'assemblyscript/compiler' {
       maybeConvertValue(node: ts.Expression, expr: binaryen.Expression, fromType: Type, toType: Type, explicit: boolean): binaryen.Expression;
       /** Resolves a TypeScript type alias to the root AssemblyScript type where applicable, by symbol. */
       maybeResolveAlias(symbol: ts.Symbol): ts.Symbol;
+      /** Reduces a literal union type to a common kind of type. Returns `null` if that's not possible. */
+      tryReduceLiteralUnionType(type: ts.UnionTypeNode): ts.TypeNode | null;
       /** Resolves a TypeScript type to a AssemblyScript type. */
       resolveType(type: ts.TypeNode, acceptVoid?: boolean, typeArgumentsMap?: TypeArgumentsMap): Type | null;
       /** Resolves an identifier or name to the corresponding reflection object. */
