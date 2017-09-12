@@ -1,7 +1,7 @@
 /** @module assemblyscript/expressions */ /** */
 
 import * as ts from "../../typescript";
-import { Expression } from "binaryen";
+import { Expression, I32Operations, I64Operations } from "binaryen";
 import { Compiler } from "../../compiler";
 import { compileStore } from "./store";
 import { Type } from "../../reflection";
@@ -12,6 +12,7 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
   const elementCount = typeof elementsOrSize === "number" ? elementsOrSize : elementsOrSize.length;
 
   const binaryenUsizeType = compiler.typeOf(compiler.usizeType);
+  const binaryenUsizeCategory = <I32Operations | I64Operations>compiler.categoryOf(compiler.usizeType);
   const binaryenElementSize = compiler.valueOf(Type.i32, elementCount);
 
   // create a unique local holding a pointer to allocated memory
@@ -21,19 +22,25 @@ export function compileNewArray(compiler: Compiler, elementType: Type, elementsO
   const block = [
     // capacity: *(arrptr = malloc(...)) = elementSize
     op.i32.store(0, Type.i32.size, op.teeLocal(arrptr.index,
-      compiler.compileMallocInvocation(compiler.arrayHeaderSize + elementCount * elementType.size) // capacity + length + N * element
+      compiler.compileMallocInvocation(compiler.arrayHeaderSize) // capacity + length + data
     ), binaryenElementSize),
     // length: *(arrptr + 4) = elementSize
-    op.i32.store(Type.i32.size, Type.i32.size, op.getLocal(arrptr.index, binaryenUsizeType), binaryenElementSize)
+    op.i32.store(Type.i32.size, Type.i32.size, op.getLocal(arrptr.index, binaryenUsizeType), binaryenElementSize),
+    // data: *(arrptr + 8) = malloc(...)
+    binaryenUsizeCategory.store(2 * Type.i32.size, compiler.usizeType.size, op.getLocal(arrptr.index, binaryenUsizeType),
+      compiler.compileMallocInvocation(elementCount * elementType.size, !Array.isArray(elementsOrSize))
+    )
   ];
 
   // initialize concrete values if specified
   if (Array.isArray(elementsOrSize))
     for (let i = 0; i < elementCount; ++i)
       block.push(
-        compileStore(compiler, elementsOrSize[i], elementType,
-          op.getLocal(arrptr.index, binaryenUsizeType),
-          compiler.arrayHeaderSize + i * elementType.size,
+        compileStore(compiler, elementType,
+          binaryenUsizeCategory.load(2 * Type.i32.size, compiler.usizeType.size,
+            op.getLocal(arrptr.index, binaryenUsizeType)
+          ),
+          i * elementType.size,
           compiler.compileExpression(elementsOrSize[i], elementType, elementType)
         )
       );

@@ -711,34 +711,31 @@ declare module 'assemblyscript/expressions/elementaccess' {
 
 declare module 'assemblyscript/expressions/helpers/load' {
   /** @module assemblyscript/expressions */ /** */
-  import * as ts from "assemblyscript/typescript";
   import { Expression } from "binaryen";
   import { Compiler } from "assemblyscript/compiler";
   import { Type } from "assemblyscript/reflection";
   /** Helper compiling a load operation. */
-  export function compileLoad(compiler: Compiler, node: ts.Expression, type: Type, ptr: Expression, offset: number): Expression;
+  export function compileLoad(compiler: Compiler, type: Type, ptr: Expression, offset: number): Expression;
   export default compileLoad;
 }
 
 declare module 'assemblyscript/expressions/helpers/loadorstore' {
   /** @module assemblyscript/expressions */ /** */
-  import * as ts from "assemblyscript/typescript";
   import { Expression } from "binaryen";
   import { Compiler } from "assemblyscript/compiler";
   import { Type } from "assemblyscript/reflection";
   /** Helper compiling a load operation if `valueToSet` has been omitted, otherwise a store operation. */
-  export function compileLoadOrStore(compiler: Compiler, node: ts.Expression, type: Type, ptr: Expression, offset: number, valueToSet?: Expression, valueToSetContextualType?: Type): Expression;
+  export function compileLoadOrStore(compiler: Compiler, type: Type, ptr: Expression, offset: number, valueToSet?: Expression, valueToSetContextualType?: Type): Expression;
   export default compileLoadOrStore;
 }
 
 declare module 'assemblyscript/expressions/helpers/store' {
   /** @module assemblyscript/expressions */ /** */
-  import * as ts from "assemblyscript/typescript";
   import { Expression } from "binaryen";
   import { Compiler } from "assemblyscript/compiler";
   import { Type } from "assemblyscript/reflection";
   /** Helper compiling a store operation. */
-  export function compileStore(compiler: Compiler, node: ts.Expression, type: Type, ptr: Expression, offset: number, value: Expression): Expression;
+  export function compileStore(compiler: Compiler, type: Type, ptr: Expression, offset: number, value: Expression): Expression;
   export default compileStore;
 }
 

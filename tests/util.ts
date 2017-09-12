@@ -2,7 +2,7 @@ import * as Long from "long";
 import * as loader from "../lib/loader/src";
 export { Long, loader };
 
-export const arrayHeaderSize = 8;
+export const arrayHeaderSize = 12; // capacity:i32 + length:i32 + base:i32
 
 export function hexdump(memory: WebAssembly.Memory, offset: number, length: number): string {
   var buffer = new Uint8Array(memory.buffer);

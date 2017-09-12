@@ -13,7 +13,7 @@ import { Compiler, LIB_PREFIX } from "./compiler";
 import { compileLoad } from "./expressions/helpers/load";
 import { compileStore } from "./expressions/helpers/store";
 import { Type } from "./reflection";
-import { getReflectedType, startsWith } from "./util";
+import { getReflectedType, setReflectedType, startsWith } from "./util";
 
 /** Tests if the specified file is a library file. */
 export function isLibraryFile(file: ts.SourceFile): boolean {
@@ -452,13 +452,15 @@ export function unreachable(compiler: Compiler): Expression {
 /** Compiles a load from memory operation. */
 export function load(compiler: Compiler, type: Type, node: ts.Expression, expr: Expression): Expression {
   const callNode = <ts.CallExpression>node.parent;
-  return compileLoad(compiler, callNode, type, expr, 0);
+  setReflectedType(callNode, type);
+  return compileLoad(compiler, type, expr, 0);
 }
 
 /** Compiles a store to memory operation. */
 export function store(compiler: Compiler, type: Type, nodes: TypeScriptExpressionPair, exprs: BinaryenExpressionPair): Expression {
   const callNode = <ts.CallExpression>nodes[0].parent;
-  return compileStore(compiler, callNode, type, exprs[0], 0, exprs[1]);
+  setReflectedType(callNode, Type.void);
+  return compileStore(compiler, type, exprs[0], 0, exprs[1]);
 }
 
 /** Compiles a sizeof operation determining the byte size of a type. */

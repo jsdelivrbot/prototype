@@ -3,7 +3,6 @@
  (func $std:Array<i8> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
-  (local $4 i32)
   (if
    (i32.lt_s
     (get_local $1)
@@ -11,49 +10,46 @@
    )
    (unreachable)
   )
-  (set_local $2
-   (i32.mul
-    (get_local $1)
-    (i32.const 1)
-   )
-  )
-  (set_local $3
-   (call $lib:malloc
-    (i32.add
-     (i32.const 8)
+  (i32.store offset=4
+   (get_local $0)
+   (block (result i32)
+    (set_local $2
+     (get_local $0)
+    )
+    (i32.store
+     (get_local $2)
+     (get_local $1)
+    )
+    (i32.load
      (get_local $2)
     )
    )
   )
-  (set_local $4
-   (get_local $3)
+  (set_local $3
+   (i32.mul
+    (i32.load
+     (get_local $0)
+    )
+    (i32.const 1)
+   )
   )
-  (i32.store
-   (get_local $4)
-   (get_local $1)
-  )
-  (i32.store offset=4
-   (get_local $4)
-   (get_local $1)
-  )
-  (drop
+  (i32.store offset=8
+   (get_local $0)
    (call $lib:memset
-    (i32.add
+    (call $lib:malloc
      (get_local $3)
-     (i32.const 8)
     )
     (i32.const 0)
-    (get_local $2)
+    (get_local $3)
    )
   )
   (return
-   (get_local $3)
+   (get_local $0)
   )
  )
  (func $std:Array<u8> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
-  (local $4 i32)
   (if
    (i32.lt_s
     (get_local $1)
@@ -61,49 +57,46 @@
    )
    (unreachable)
   )
-  (set_local $2
-   (i32.mul
-    (get_local $1)
-    (i32.const 1)
-   )
-  )
-  (set_local $3
-   (call $lib:malloc
-    (i32.add
-     (i32.const 8)
+  (i32.store offset=4
+   (get_local $0)
+   (block (result i32)
+    (set_local $2
+     (get_local $0)
+    )
+    (i32.store
+     (get_local $2)
+     (get_local $1)
+    )
+    (i32.load
      (get_local $2)
     )
    )
   )
-  (set_local $4
-   (get_local $3)
+  (set_local $3
+   (i32.mul
+    (i32.load
+     (get_local $0)
+    )
+    (i32.const 1)
+   )
   )
-  (i32.store
-   (get_local $4)
-   (get_local $1)
-  )
-  (i32.store offset=4
-   (get_local $4)
-   (get_local $1)
-  )
-  (drop
+  (i32.store offset=8
+   (get_local $0)
    (call $lib:memset
-    (i32.add
+    (call $lib:malloc
      (get_local $3)
-     (i32.const 8)
     )
     (i32.const 0)
-    (get_local $2)
+    (get_local $3)
    )
   )
   (return
-   (get_local $3)
+   (get_local $0)
   )
  )
  (func $std:Array<i16> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
-  (local $4 i32)
   (if
    (i32.lt_s
     (get_local $1)
@@ -111,49 +104,46 @@
    )
    (unreachable)
   )
-  (set_local $2
-   (i32.mul
-    (get_local $1)
-    (i32.const 2)
-   )
-  )
-  (set_local $3
-   (call $lib:malloc
-    (i32.add
-     (i32.const 8)
+  (i32.store offset=4
+   (get_local $0)
+   (block (result i32)
+    (set_local $2
+     (get_local $0)
+    )
+    (i32.store
+     (get_local $2)
+     (get_local $1)
+    )
+    (i32.load
      (get_local $2)
     )
    )
   )
-  (set_local $4
-   (get_local $3)
+  (set_local $3
+   (i32.mul
+    (i32.load
+     (get_local $0)
+    )
+    (i32.const 2)
+   )
   )
-  (i32.store
-   (get_local $4)
-   (get_local $1)
-  )
-  (i32.store offset=4
-   (get_local $4)
-   (get_local $1)
-  )
-  (drop
+  (i32.store offset=8
+   (get_local $0)
    (call $lib:memset
-    (i32.add
+    (call $lib:malloc
      (get_local $3)
-     (i32.const 8)
     )
     (i32.const 0)
-    (get_local $2)
+    (get_local $3)
    )
   )
   (return
-   (get_local $3)
+   (get_local $0)
   )
  )
  (func $std:Array<u16> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
-  (local $4 i32)
   (if
    (i32.lt_s
     (get_local $1)
@@ -161,49 +151,46 @@
    )
    (unreachable)
   )
-  (set_local $2
-   (i32.mul
-    (get_local $1)
-    (i32.const 2)
-   )
-  )
-  (set_local $3
-   (call $lib:malloc
-    (i32.add
-     (i32.const 8)
+  (i32.store offset=4
+   (get_local $0)
+   (block (result i32)
+    (set_local $2
+     (get_local $0)
+    )
+    (i32.store
+     (get_local $2)
+     (get_local $1)
+    )
+    (i32.load
      (get_local $2)
     )
    )
   )
-  (set_local $4
-   (get_local $3)
+  (set_local $3
+   (i32.mul
+    (i32.load
+     (get_local $0)
+    )
+    (i32.const 2)
+   )
   )
-  (i32.store
-   (get_local $4)
-   (get_local $1)
-  )
-  (i32.store offset=4
-   (get_local $4)
-   (get_local $1)
-  )
-  (drop
+  (i32.store offset=8
+   (get_local $0)
    (call $lib:memset
-    (i32.add
+    (call $lib:malloc
      (get_local $3)
-     (i32.const 8)
     )
     (i32.const 0)
-    (get_local $2)
+    (get_local $3)
    )
   )
   (return
-   (get_local $3)
+   (get_local $0)
   )
  )
  (func $std:Array<i32> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
-  (local $4 i32)
   (if
    (i32.lt_s
     (get_local $1)
@@ -211,49 +198,46 @@
    )
    (unreachable)
   )
-  (set_local $2
-   (i32.mul
-    (get_local $1)
-    (i32.const 4)
-   )
-  )
-  (set_local $3
-   (call $lib:malloc
-    (i32.add
-     (i32.const 8)
+  (i32.store offset=4
+   (get_local $0)
+   (block (result i32)
+    (set_local $2
+     (get_local $0)
+    )
+    (i32.store
+     (get_local $2)
+     (get_local $1)
+    )
+    (i32.load
      (get_local $2)
     )
    )
   )
-  (set_local $4
-   (get_local $3)
+  (set_local $3
+   (i32.mul
+    (i32.load
+     (get_local $0)
+    )
+    (i32.const 4)
+   )
   )
-  (i32.store
-   (get_local $4)
-   (get_local $1)
-  )
-  (i32.store offset=4
-   (get_local $4)
-   (get_local $1)
-  )
-  (drop
+  (i32.store offset=8
+   (get_local $0)
    (call $lib:memset
-    (i32.add
+    (call $lib:malloc
      (get_local $3)
-     (i32.const 8)
     )
     (i32.const 0)
-    (get_local $2)
+    (get_local $3)
    )
   )
   (return
-   (get_local $3)
+   (get_local $0)
   )
  )
  (func $std:Array<u32> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
-  (local $4 i32)
   (if
    (i32.lt_s
     (get_local $1)
@@ -261,49 +245,46 @@
    )
    (unreachable)
   )
-  (set_local $2
-   (i32.mul
-    (get_local $1)
-    (i32.const 4)
-   )
-  )
-  (set_local $3
-   (call $lib:malloc
-    (i32.add
-     (i32.const 8)
+  (i32.store offset=4
+   (get_local $0)
+   (block (result i32)
+    (set_local $2
+     (get_local $0)
+    )
+    (i32.store
+     (get_local $2)
+     (get_local $1)
+    )
+    (i32.load
      (get_local $2)
     )
    )
   )
-  (set_local $4
-   (get_local $3)
+  (set_local $3
+   (i32.mul
+    (i32.load
+     (get_local $0)
+    )
+    (i32.const 4)
+   )
   )
-  (i32.store
-   (get_local $4)
-   (get_local $1)
-  )
-  (i32.store offset=4
-   (get_local $4)
-   (get_local $1)
-  )
-  (drop
+  (i32.store offset=8
+   (get_local $0)
    (call $lib:memset
-    (i32.add
+    (call $lib:malloc
      (get_local $3)
-     (i32.const 8)
     )
     (i32.const 0)
-    (get_local $2)
+    (get_local $3)
    )
   )
   (return
-   (get_local $3)
+   (get_local $0)
   )
  )
  (func $std:Array<i64> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
-  (local $4 i32)
   (if
    (i32.lt_s
     (get_local $1)
@@ -311,49 +292,46 @@
    )
    (unreachable)
   )
-  (set_local $2
-   (i32.mul
-    (get_local $1)
-    (i32.const 8)
-   )
-  )
-  (set_local $3
-   (call $lib:malloc
-    (i32.add
-     (i32.const 8)
+  (i32.store offset=4
+   (get_local $0)
+   (block (result i32)
+    (set_local $2
+     (get_local $0)
+    )
+    (i32.store
+     (get_local $2)
+     (get_local $1)
+    )
+    (i32.load
      (get_local $2)
     )
    )
   )
-  (set_local $4
-   (get_local $3)
+  (set_local $3
+   (i32.mul
+    (i32.load
+     (get_local $0)
+    )
+    (i32.const 8)
+   )
   )
-  (i32.store
-   (get_local $4)
-   (get_local $1)
-  )
-  (i32.store offset=4
-   (get_local $4)
-   (get_local $1)
-  )
-  (drop
+  (i32.store offset=8
+   (get_local $0)
    (call $lib:memset
-    (i32.add
+    (call $lib:malloc
      (get_local $3)
-     (i32.const 8)
     )
     (i32.const 0)
-    (get_local $2)
+    (get_local $3)
    )
   )
   (return
-   (get_local $3)
+   (get_local $0)
   )
  )
  (func $std:Array<u64> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
-  (local $4 i32)
   (if
    (i32.lt_s
     (get_local $1)
@@ -361,49 +339,46 @@
    )
    (unreachable)
   )
-  (set_local $2
-   (i32.mul
-    (get_local $1)
-    (i32.const 8)
-   )
-  )
-  (set_local $3
-   (call $lib:malloc
-    (i32.add
-     (i32.const 8)
+  (i32.store offset=4
+   (get_local $0)
+   (block (result i32)
+    (set_local $2
+     (get_local $0)
+    )
+    (i32.store
+     (get_local $2)
+     (get_local $1)
+    )
+    (i32.load
      (get_local $2)
     )
    )
   )
-  (set_local $4
-   (get_local $3)
+  (set_local $3
+   (i32.mul
+    (i32.load
+     (get_local $0)
+    )
+    (i32.const 8)
+   )
   )
-  (i32.store
-   (get_local $4)
-   (get_local $1)
-  )
-  (i32.store offset=4
-   (get_local $4)
-   (get_local $1)
-  )
-  (drop
+  (i32.store offset=8
+   (get_local $0)
    (call $lib:memset
-    (i32.add
+    (call $lib:malloc
      (get_local $3)
-     (i32.const 8)
     )
     (i32.const 0)
-    (get_local $2)
+    (get_local $3)
    )
   )
   (return
-   (get_local $3)
+   (get_local $0)
   )
  )
  (func $std:Array<f32> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
-  (local $4 i32)
   (if
    (i32.lt_s
     (get_local $1)
@@ -411,49 +386,46 @@
    )
    (unreachable)
   )
-  (set_local $2
-   (i32.mul
-    (get_local $1)
-    (i32.const 4)
-   )
-  )
-  (set_local $3
-   (call $lib:malloc
-    (i32.add
-     (i32.const 8)
+  (i32.store offset=4
+   (get_local $0)
+   (block (result i32)
+    (set_local $2
+     (get_local $0)
+    )
+    (i32.store
+     (get_local $2)
+     (get_local $1)
+    )
+    (i32.load
      (get_local $2)
     )
    )
   )
-  (set_local $4
-   (get_local $3)
+  (set_local $3
+   (i32.mul
+    (i32.load
+     (get_local $0)
+    )
+    (i32.const 4)
+   )
   )
-  (i32.store
-   (get_local $4)
-   (get_local $1)
-  )
-  (i32.store offset=4
-   (get_local $4)
-   (get_local $1)
-  )
-  (drop
+  (i32.store offset=8
+   (get_local $0)
    (call $lib:memset
-    (i32.add
+    (call $lib:malloc
      (get_local $3)
-     (i32.const 8)
     )
     (i32.const 0)
-    (get_local $2)
+    (get_local $3)
    )
   )
   (return
-   (get_local $3)
+   (get_local $0)
   )
  )
  (func $std:Array<f64> (type $iii) (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   (local $3 i32)
-  (local $4 i32)
   (if
    (i32.lt_s
     (get_local $1)
@@ -461,43 +433,41 @@
    )
    (unreachable)
   )
-  (set_local $2
-   (i32.mul
-    (get_local $1)
-    (i32.const 8)
-   )
-  )
-  (set_local $3
-   (call $lib:malloc
-    (i32.add
-     (i32.const 8)
+  (i32.store offset=4
+   (get_local $0)
+   (block (result i32)
+    (set_local $2
+     (get_local $0)
+    )
+    (i32.store
+     (get_local $2)
+     (get_local $1)
+    )
+    (i32.load
      (get_local $2)
     )
    )
   )
-  (set_local $4
-   (get_local $3)
+  (set_local $3
+   (i32.mul
+    (i32.load
+     (get_local $0)
+    )
+    (i32.const 8)
+   )
   )
-  (i32.store
-   (get_local $4)
-   (get_local $1)
-  )
-  (i32.store offset=4
-   (get_local $4)
-   (get_local $1)
-  )
-  (drop
+  (i32.store offset=8
+   (get_local $0)
    (call $lib:memset
-    (i32.add
+    (call $lib:malloc
      (get_local $3)
-     (i32.const 8)
     )
     (i32.const 0)
-    (get_local $2)
+    (get_local $3)
    )
   )
   (return
-   (get_local $3)
+   (get_local $0)
   )
  )
  (func $test (type $v)

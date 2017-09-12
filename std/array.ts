@@ -1,28 +1,18 @@
-@no_implicit_malloc()
 export class Array<T> implements IDisposable {
-  readonly capacity: int;
-  length: int; // can be any user-provided value
+  readonly capacity: i32; // @0 (4)
+  length: i32;            // @4 (4)
+  readonly base: usize;   // @8 (4/8)
 
-  constructor(capacity: int) {
-
-    // if the argument is any other number, a RangeError exception is thrown
+  constructor(capacity: i32) {
     if (capacity < 0)
-      unreachable();
-
-    const elementsByteSize: usize = (capacity as usize) * sizeof<T>();
-    const ptr: usize = malloc(sizeof<ArrayStruct>() + elementsByteSize);
-    const struct: ArrayStruct = unsafe_cast<usize,ArrayStruct>(ptr);
-
-    struct.capacity = capacity;
-    struct.length = capacity;
-
-    memset(ptr + sizeof<ArrayStruct>(), 0, elementsByteSize);
-
-    return unsafe_cast<usize,this>(ptr);
+      throw new Error("Invalid array length");
+    this.length = this.capacity = capacity;
+    const dataSize: usize = this.capacity as usize * sizeof<T>();
+    this.base = memset(malloc(dataSize), 0, dataSize);
   }
 
-  indexOf(searchElement: T, fromIndex: int = 0): int {
-    let length: int = this.length;
+  indexOf(searchElement: T, fromIndex: i32 = 0): i32 {
+    let length: i32 = this.length;
     if (length > this.capacity)
       length = this.capacity;
 
@@ -41,12 +31,11 @@ export class Array<T> implements IDisposable {
         return fromIndex;
       ++fromIndex;
     }
-
     return -1;
   }
 
-  lastIndexOf(searchElement: T, fromIndex: int = 0x7fffffff): int {
-    let length: int = this.length;
+  lastIndexOf(searchElement: T, fromIndex: i32 = 0x7fffffff): i32 {
+    let length: i32 = this.length;
     if (length > this.capacity)
       length = this.capacity;
 
@@ -67,8 +56,8 @@ export class Array<T> implements IDisposable {
     return -1;
   }
 
-  slice(begin: int = 0, end: int = 0x7fffffff): this {
-    let length: int = this.length;
+  slice(begin: i32 = 0, end: i32 = 0x7fffffff): this {
+    let length: i32 = this.length;
     if (length > this.capacity)
       length = this.capacity;
 
@@ -87,14 +76,14 @@ export class Array<T> implements IDisposable {
     if (end < begin)
       end = begin;
 
-    const capacity: int = end - begin;
-    const elementsByteSize: usize = (capacity as usize) * sizeof<T>();
-    const ptr: usize = malloc(sizeof<ArrayStruct>() + elementsByteSize);
+    const capacity: i32 = end - begin;
+    const dataSize: usize = (capacity as usize) * sizeof<T>();
 
-    unsafe_cast<usize,ArrayStruct>(ptr).length = capacity;
-    memcpy(ptr + sizeof<ArrayStruct>(), unsafe_cast<this,usize>(this) + sizeof<ArrayStruct>() + begin * sizeof<T>(), elementsByteSize);
-
-    return unsafe_cast<usize,this>(ptr);
+    const slice: usize = malloc(sizeof<Array<T>>());
+    store<i32>(slice, capacity);
+    store<i32>(slice + 4, capacity);
+    store<usize>(slice + 8, this.base + begin * sizeof<T>());
+    return unsafe_cast<usize,this>(slice);
   }
 
   reverse(): this {
@@ -113,13 +102,9 @@ export class Array<T> implements IDisposable {
     return this;
   }
 
-  dispose(): void {
+  dispose(disposeData: bool = true): void {
     free(unsafe_cast<this,usize>(this));
+    if (disposeData)
+      free(this.base);
   }
-}
-
-// transient helper struct used to set the otherwise readonly length property
-class ArrayStruct {
-  capacity: int;
-  length: int;
 }

@@ -1,10 +1,10 @@
 /** @module assemblyscript/expressions */ /** */
 
 import * as ts from "../typescript";
-import * as Long from "long";
 import { Expression, I32Operations, I64Operations } from "binaryen";
 import { Compiler } from "../compiler";
 import { compileLoadOrStore } from "./helpers/loadorstore";
+import { compileLoad } from "./helpers/load";
 import { Type } from "../reflection";
 import { getReflectedType, setReflectedType } from "../util";
 
@@ -38,28 +38,32 @@ export function compileElementAccess(compiler: Compiler, node: ts.ElementAccessE
     const literalText = literalNode.text; // (usually) preprocessed by TypeScript to a base10 string
 
     if (literalText === "0")
-      return compileLoadOrStore(compiler, node, elementType, expression, compiler.arrayHeaderSize, valueExpression, contextualType);
+      return compileLoadOrStore(compiler, elementType,
+        compileLoad(compiler, compiler.usizeType, expression, 8),
+        0, valueExpression, contextualType
+      );
 
     if (/^[1-9][0-9]*$/.test(literalText)) {
-      const value = Long.fromString(literalText, true, 10);
-      return compileLoadOrStore(compiler, node, elementType,
-        usizeCategory.add(
-          expression,
-          compiler.valueOf(compiler.usizeType, value.mul(elementType.size))
-        ), compiler.arrayHeaderSize, valueExpression, contextualType
+      const value = parseInt(literalText, 10);
+      if (value * elementType.size > 0x7fffffff)
+        compiler.report(literalNode, ts.DiagnosticsEx.Literal_overflow_Compiling_to_a_value_in_range_0_to_1_instead, 0, (0x7fffffff / elementType.size) | 0);
+      return compileLoadOrStore(compiler, elementType,
+        compileLoad(compiler, compiler.usizeType, expression, 8),
+        (value * elementType.size) & 0x7fffffff, valueExpression, contextualType
       );
     }
   }
 
   // otherwise evaluate at runtime
-  return compileLoadOrStore(compiler, node, elementType,
+  const argumentExpression = compiler.compileExpression(argumentNode, Type.i32, Type.i32, false);
+  return compileLoadOrStore(compiler, elementType,
     usizeCategory.add(
-      expression,
+      compileLoad(compiler, compiler.usizeType, expression, 8),
       usizeCategory.mul(
-        compiler.compileExpression(argumentNode, Type.i32, Type.i32, false),
+        compiler.maybeConvertValue(argumentNode, argumentExpression, Type.i32, compiler.usizeType, true),
         compiler.valueOf(compiler.usizeType, elementType.size)
       )
-    ), compiler.arrayHeaderSize, valueExpression, contextualType
+    ), 0, valueExpression, contextualType
   );
 }
 

@@ -190,7 +190,7 @@ export class Compiler {
   get usizeSize(): number { return this.usizeType.size; }
 
   /** Gets the size of an array header in bytes. */
-  get arrayHeaderSize(): number { return 2 * Type.i32.size; } // capacity + length
+  get arrayHeaderSize(): number { return 2 * Type.i32.size + this.usizeType.size; } // capacity + length + data
 
   /**
    * Constructs a new AssemblyScript compiler.
@@ -802,7 +802,7 @@ export class Compiler {
         const property = (<Class>instance.parent).properties[param.name];
         if (property)
           body.push(
-            compileStore(this, /* solely used for diagnostics anyway */ <ts.Expression>param.node, property.type, op.getLocal(0, this.typeOf(this.usizeType)), property.offset, op.getLocal(i, this.typeOf(param.type)))
+            compileStore(this, property.type, op.getLocal(0, this.typeOf(this.usizeType)), property.offset, op.getLocal(i, this.typeOf(param.type)))
           );
         else
           throw Error("missing parameter property");
@@ -841,7 +841,7 @@ export class Compiler {
         const property = properties[key];
         if (property.isInstance && property.initializer) {
           body.splice(bodyIndex++, 0,
-            compileStore(this, property.initializer, property.type,
+            compileStore(this, property.type,
               op.getLocal(0, binaryenPtrType), property.offset,
               this.compileExpression(property.initializer, property.type, property.type, false)
             )

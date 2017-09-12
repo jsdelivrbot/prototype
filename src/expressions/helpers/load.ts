@@ -1,16 +1,12 @@
 /** @module assemblyscript/expressions */ /** */
 
-import * as ts from "../../typescript";
 import { Expression } from "binaryen";
 import { Compiler } from "../../compiler";
 import { Type, TypeKind } from "../../reflection";
-import { setReflectedType } from "../../util";
 
 /** Helper compiling a load operation. */
-export function compileLoad(compiler: Compiler, node: ts.Expression, type: Type, ptr: Expression, offset: number): Expression {
+export function compileLoad(compiler: Compiler, type: Type, ptr: Expression, offset: number): Expression {
   const op = compiler.module;
-
-  setReflectedType(node, type);
 
   switch (type.kind) {
 

@@ -8,11 +8,13 @@ export function test(test: tape.Test, module: loader.Module) {
 
   // getArray(): int[] -> pointer
   let ptr = exports.getArray() >>> 0;
+  let base = memory.u32.get(ptr + 8);
 
   // verify initial contents
-  console.log(hexdump(memory, ptr, arrayHeaderSize + 12));
+  console.log(hexdump(memory, ptr, arrayHeaderSize));
   test.strictEqual(exports.getArrayCapacity(), 3, "should have initialized an array of capacity 3");
   test.strictEqual(exports.getArrayLength(), 3, "should have initialized an array of size 3");
+  console.log(hexdump(memory, base, 12));
   test.strictEqual(exports.getArrayElement(0), 1, "should have initialized a[0] = 1");
   test.strictEqual(exports.getArrayElement(1), 2, "should have initialized a[1] = 2");
   test.strictEqual(exports.getArrayElement(2), 3, "should have initialized a[2] = 3");
@@ -30,8 +32,9 @@ export function test(test: tape.Test, module: loader.Module) {
   exports.setArray(array.ptr);
 
   // verify that 'a' now references the new array
-  console.log(hexdump(memory, array.ptr, arrayHeaderSize + 12));
+  console.log(hexdump(memory, array.ptr, arrayHeaderSize));
   test.strictEqual(exports.getArray(), array.ptr, "should now reference the temporary array");
+  console.log(hexdump(memory, array.base, 12));
   test.strictEqual(exports.getArrayElement(0), 4, "should return a[0] = 4");
   test.strictEqual(exports.getArrayElement(1), 5, "should return a[1] = 5");
   test.strictEqual(exports.getArrayElement(2), 6, "should return a[2] = 6");
@@ -42,8 +45,9 @@ export function test(test: tape.Test, module: loader.Module) {
   exports.setArrayElement(2, 9);
 
   // verify that the values have been changed
-  console.log(hexdump(memory, array.ptr, arrayHeaderSize + 12));
+  console.log(hexdump(memory, array.ptr, arrayHeaderSize));
   test.strictEqual(exports.getArray(), array.ptr, "should still reference the temporary array");
+  console.log(hexdump(memory, array.base, 12));
   test.strictEqual(exports.getArrayElement(0), 7, "should return a[0] = 7");
   test.strictEqual(exports.getArrayElement(1), 8, "should return a[1] = 8");
   test.strictEqual(exports.getArrayElement(2), 9, "should return a[2] = 9");
@@ -52,8 +56,9 @@ export function test(test: tape.Test, module: loader.Module) {
   exports.setArrayFrom(ptr);
 
   // verify that the values have been changed
-  console.log(hexdump(memory, array.ptr, arrayHeaderSize + 12));
+  console.log(hexdump(memory, array.ptr, arrayHeaderSize));
   test.strictEqual(exports.getArray(), array.ptr, "should still reference the temporary array");
+  console.log(hexdump(memory, array.base, 12));
   test.strictEqual(exports.getArrayElement(0), 1, "should return a[0] = 1");
   test.strictEqual(exports.getArrayElement(1), 2, "should return a[1] = 2");
   test.strictEqual(exports.getArrayElement(2), 3, "should return a[2] = 3");
@@ -63,8 +68,9 @@ export function test(test: tape.Test, module: loader.Module) {
   exports.free(array.ptr);
 
   // verify that the reference has been changed
-  console.log(hexdump(memory, ptr, arrayHeaderSize + 12));
+  console.log(hexdump(memory, ptr, arrayHeaderSize));
   test.strictEqual(exports.getArray(), ptr, "should now reference the initial array again");
+  console.log(hexdump(memory, base, 12));
   test.strictEqual(exports.getArrayElement(0), 1, "should return a[0] = 1");
   test.strictEqual(exports.getArrayElement(1), 2, "should return a[1] = 2");
   test.strictEqual(exports.getArrayElement(2), 3, "should return a[2] = 3");

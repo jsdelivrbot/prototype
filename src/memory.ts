@@ -75,20 +75,24 @@ export class Memory {
   createArray(values: Array<number | Long | string | null>, type: Type): MemorySegment {
     const startOffset = this.align();
     const length = values.length;
-    const buffer = new Uint8Array(this.compiler.arrayHeaderSize + type.size * length);
+    const buffer = new Uint8Array(this.compiler.arrayHeaderSize + type.size * length); // header and data next to each other
 
     if (length < 0 || length > 0x7fffffff)
       throw Error("length exceeds 31-bits");
 
     writeInt(buffer, 0, length);
     writeInt(buffer, 4, length);
+    if (this.compiler.usizeType === Type.usize32)
+      writeInt(buffer, 8, startOffset.toInt() + 4 + 4 + 4);
+    else
+      writeLong(buffer, 8, startOffset.add(4 + 4 + 8));
 
     // create segment and advance (elements might result in more segments)
     this.currentOffset = this.currentOffset.add(buffer.length);
     const segment = { offset: startOffset, buffer };
     this.segments.push(segment);
 
-    let innerOffset = 8;
+    let innerOffset = this.compiler.arrayHeaderSize;
     switch (type.kind) {
 
       case TypeKind.bool:

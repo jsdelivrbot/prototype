@@ -93,7 +93,7 @@ export function compilePropertyAccess(compiler: Compiler, node: ts.PropertyAcces
     if (valueNode)
       valueExpression = compiler.maybeConvertValue(valueNode, compiler.compileExpression(valueNode, property.type), getReflectedType(valueNode), property.type, false);
 
-    return compileLoadOrStore(compiler, node, property.type, expression, property.offset, valueExpression, contextualType);
+    return compileLoadOrStore(compiler, property.type, expression, property.offset, valueExpression, contextualType);
   } else {
     const method = clazz.methods[propertyName];
     if (method) {
