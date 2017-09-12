@@ -1166,13 +1166,19 @@ export class Compiler {
     let commonType: ts.LiteralTypeNode | null = null;
     for (let i = 0, k = type.types.length; i < k; ++i) {
       let subType: ts.TypeNode | null = type.types[i];
+
+      while (subType.kind === ts.SyntaxKind.ParenthesizedType)
+        subType = (<ts.ParenthesizedTypeNode>subType).type;
+
       if (subType.kind === ts.SyntaxKind.UnionType) {
         subType = this.tryReduceLiteralUnionType(<ts.UnionTypeNode>subType);
         if (subType === null)
           return null;
       }
+
       if (subType.kind !== ts.SyntaxKind.LiteralType)
         return null;
+
       if (!commonType)
         commonType = <ts.LiteralTypeNode>subType;
       else if ((<ts.LiteralTypeNode>subType).literal.kind !== commonType.literal.kind)
@@ -1183,6 +1189,9 @@ export class Compiler {
 
   /** Resolves a TypeScript type to a AssemblyScript type. */
   resolveType(type: ts.TypeNode, acceptVoid: boolean = false, typeArgumentsMap?: TypeArgumentsMap): Type | null {
+
+    while (type.kind === ts.SyntaxKind.ParenthesizedType)
+      type = (<ts.ParenthesizedTypeNode>type).type;
 
     if (type.kind === ts.SyntaxKind.UnionType) {
 

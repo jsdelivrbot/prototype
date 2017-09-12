@@ -227,6 +227,7 @@ declare module 'assemblyscript/typescript' {
   export import NumericLiteral = ts.NumericLiteral;
   export import OmittedExpression = ts.OmittedExpression;
   export import ParenthesizedExpression = ts.ParenthesizedExpression;
+  export import ParenthesizedTypeNode = ts.ParenthesizedTypeNode;
   export import PostfixUnaryExpression = ts.PostfixUnaryExpression;
   export import PrefixUnaryExpression = ts.PrefixUnaryExpression;
   export import Program = ts.Program;
