@@ -87,12 +87,12 @@ export class Array<T> implements IDisposable {
   }
 
   reverse(): this {
-    let length: int = this.length;
+    let length: i32 = this.length;
     if (length > this.capacity)
       length = this.capacity;
 
     // transposes the elements of the calling array object in place, mutating the array
-    for (let i: int = 0, j: int = length - 1, t: int; i < j; ++i, --j) {
+    for (let i: i32 = 0, j: i32 = length - 1, t: i32; i < j; ++i, --j) {
       t = this[i];
       this[i] = this[j];
       this[j] = t;

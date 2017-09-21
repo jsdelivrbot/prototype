@@ -1259,7 +1259,10 @@ export class Compiler {
               case "string": return this.classes[LIB_PREFIX + "String"].type;
             }
 
-            const reference = this.resolveReference(referenceNode.typeName, ReflectionObjectKind.ClassTemplate | ReflectionObjectKind.Class);
+            const reference = this.resolveReference(referenceNode.typeName, ReflectionObjectKind.ClassTemplate | ReflectionObjectKind.Class | ReflectionObjectKind.Enum);
+
+            if (reference instanceof Enum)
+              return Type.i32;
 
             if (reference instanceof Class)
               return (<Class>reference).type;

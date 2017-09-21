@@ -5,3 +5,7 @@ export class Error {
     this.message = message;
   }
 }
+
+export class RangeError extends Error {}
+export class ReferenceError extends Error {}
+export class TypeError extends Error {}

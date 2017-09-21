@@ -109,7 +109,7 @@ declare class Array<T> implements IDisposable {
   slice(begin?: i32, end?: i32): this;
   /** Reverses the array's elements in place. The first array element becomes the last, and the last array element becomes the first. */
   reverse(): this;
-  dispose(): void;
+  dispose(disposeData?: bool): void;
 }
 
 /** A fixed-size 8-bit signed integer array. */
@@ -157,6 +157,10 @@ declare class Error {
   /** Constructs a new error with the specified message. */
   constructor(message: string);
 }
+
+declare class RangeError extends Error {}
+declare class ReferenceError extends Error {}
+declare class TypeError extends Error {}
 
 // Console
 
