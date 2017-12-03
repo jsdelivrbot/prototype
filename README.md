@@ -1,6 +1,8 @@
 ![AssemblyScript](https://raw.githubusercontent.com/AssemblyScript/assemblyscript/master/logo.png)
 ==============
 
+**NOTE:** This repository contains the initial prototype. Development continues at [AssemblyScript NEXT](https://github.com/AssemblyScript/next).
+
 [AssemblyScript](https://github.com/AssemblyScript) defines a subset of [TypeScript](http://www.typescriptlang.org) that it compiles to [WebAssembly](http://webassembly.org). It aims to provide everyone with an existing background in TypeScript and standard JavaScript-APIs with a comfortable way to compile to WebAssembly, eliminating the need to switch between languages or to learn new ones just for this purpose.
 
 Try it out [in your browser](http://assemblyscript.org/try)!
